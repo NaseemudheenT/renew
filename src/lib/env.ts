@@ -77,5 +77,6 @@ export function getServerEnv() {
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || "",
     },
     sentryDsn: process.env.SENTRY_DSN || "",
+    authSecret: process.env.AUTH_SECRET || "",
   } as const;
 }
