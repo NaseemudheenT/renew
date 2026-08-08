@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { OtpInput } from "@/components/ui/otp-input";
+import { SocialAuth } from "@/components/auth/social-auth";
 import { useAuth } from "@/components/providers/auth-provider";
 import { authErrorMessage } from "@/lib/auth/errors";
 import { emailSchema, passwordSchema } from "@/lib/validation/auth";
@@ -190,6 +191,15 @@ export default function LoginPage() {
                     </span>
                   </button>
                 ))}
+              </div>
+
+              {/* Social sign-in */}
+              <SocialAuth onError={setFormError} disabled={loading} />
+
+              <div className="my-5 flex items-center gap-3">
+                <span className="h-px flex-1 bg-[var(--border)]" />
+                <span className="text-xs tracking-wide text-[var(--subtle)]">or with email</span>
+                <span className="h-px flex-1 bg-[var(--border)]" />
               </div>
 
               <form onSubmit={submitCredentials} className="flex flex-col gap-4" noValidate>

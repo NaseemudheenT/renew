@@ -8,8 +8,11 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import {
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  OAuthProvider,
   onAuthStateChanged,
   signInWithEmailAndPassword,
+  signInWithPopup,
   signOut,
   type User,
 } from "firebase/auth";
@@ -20,6 +23,8 @@ interface AuthContextValue {
   initializing: boolean;
   signIn: (email: string, password: string) => Promise<User>;
   signUp: (email: string, password: string) => Promise<User>;
+  signInWithGoogle: () => Promise<User>;
+  signInWithApple: () => Promise<User>;
   logout: () => Promise<void>;
 }
 
@@ -53,6 +58,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         (await signInWithEmailAndPassword(getFirebaseAuth(), email, password)).user,
       signUp: async (email, password) =>
         (await createUserWithEmailAndPassword(getFirebaseAuth(), email, password)).user,
+      signInWithGoogle: async () => {
+        const provider = new GoogleAuthProvider();
+        provider.setCustomParameters({ prompt: "select_account" });
+        return (await signInWithPopup(getFirebaseAuth(), provider)).user;
+      },
+      signInWithApple: async () => {
+        const provider = new OAuthProvider("apple.com");
+        provider.addScope("email");
+        provider.addScope("name");
+        return (await signInWithPopup(getFirebaseAuth(), provider)).user;
+      },
       logout: () => signOut(getFirebaseAuth()),
     }),
     [user, initializing],

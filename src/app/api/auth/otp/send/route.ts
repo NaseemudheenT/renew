@@ -4,6 +4,7 @@ import { sendOtpSchema } from "@/lib/validation/auth";
 import { createOtpToken, generateCode, OTP_COOKIE, OTP_TTL_MS } from "@/lib/otp";
 import { getResend, getFromAddress, isResendConfigured } from "@/lib/resend";
 import { otpEmail } from "@/lib/email/templates";
+import { clientEnv } from "@/lib/env";
 
 export const runtime = "nodejs";
 
@@ -34,7 +35,8 @@ export async function POST(req: Request) {
     maxAge: Math.floor(OTP_TTL_MS / 1000),
   });
 
-  const { subject, html, text } = otpEmail(code);
+  const logoUrl = clientEnv.appUrl ? `${clientEnv.appUrl.replace(/\/$/, "")}/icon` : undefined;
+  const { subject, html, text } = otpEmail(code, logoUrl);
   let delivered = false;
 
   if (isResendConfigured()) {

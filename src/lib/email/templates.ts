@@ -3,11 +3,17 @@
  * for maximum client compatibility). On-brand: deep navy, champagne gold.
  */
 
-export function otpEmail(code: string): { subject: string; html: string; text: string } {
+export function otpEmail(
+  code: string,
+  logoUrl?: string,
+): { subject: string; html: string; text: string } {
   const spaced = code.split("").join(" ");
+  const logo = logoUrl
+    ? `<img src="${logoUrl}" width="56" height="56" alt="Renew" style="display:block;margin:0 auto 12px;border-radius:14px;" />`
+    : "";
   return {
     subject: `${code} is your Renew verification code`,
-    text: `Your Renew verification code is ${code}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`,
+    text: `RENEW\n\nYour Renew verification code is ${code}. It expires in 10 minutes. If you didn't request this, you can ignore this email.\n\n— A Zap product`,
     html: `
 <!doctype html>
 <html>
@@ -18,7 +24,8 @@ export function otpEmail(code: string): { subject: string; html: string; text: s
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:440px;background:#10141d;border:1px solid rgba(214,202,172,0.12);border-radius:20px;overflow:hidden;">
             <tr>
               <td style="padding:40px 40px 8px;text-align:center;">
-                <div style="font-size:13px;letter-spacing:6px;text-transform:uppercase;color:#d4af6a;font-weight:600;">Renew</div>
+                ${logo}
+                <div style="font-size:15px;letter-spacing:7px;text-transform:uppercase;color:#d4af6a;font-weight:600;">Renew</div>
               </td>
             </tr>
             <tr>
