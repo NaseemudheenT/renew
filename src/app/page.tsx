@@ -7,6 +7,7 @@ import { Atmosphere } from "@/components/atmosphere/live-atmosphere";
 import { RenewMark } from "@/components/brand/renew-mark";
 import { Wordmark } from "@/components/brand/wordmark";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { InstallButton } from "@/components/pwa/install";
 import { sleep } from "@/lib/utils";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -26,8 +27,9 @@ export default function Landing() {
     <main className="relative flex min-h-dvh flex-col items-center justify-center overflow-hidden px-6">
       <Atmosphere />
 
-      {/* Quiet theme toggle — the only chrome on the page */}
-      <div className="fixed top-5 right-5 z-20">
+      {/* Quiet chrome — install affordance + theme toggle */}
+      <div className="fixed top-5 right-5 z-20 flex items-center gap-2">
+        <InstallButton />
         <ThemeToggle />
       </div>
 

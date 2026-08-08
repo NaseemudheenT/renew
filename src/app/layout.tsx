@@ -35,6 +35,7 @@ export const metadata: Metadata = {
     type: "website",
   },
   icons: { icon: "/favicon.ico" },
+  appleWebApp: { capable: true, statusBarStyle: "black-translucent", title: "Renew" },
 };
 
 export const viewport: Viewport = {

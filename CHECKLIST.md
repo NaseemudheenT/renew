@@ -15,9 +15,17 @@ Legend: ✅ done & verified · 🔄 in progress · ⬜ pending
 ## Phase 1 — Living Atmosphere + Cinematic Intro
 - ✅ Canvas 2D atmosphere (aurora, god-rays, bokeh, particles, parallax) — fallback layer
 - ✅ Cinematic overlay (vignette + film grain)
-- 🔄 **Lite-3D atmosphere (React Three Fiber)** — real depth, floating motes, soft light orbs, camera parallax, day/night grade
-- 🔄 **Cinematic logo intro** — fade-from-dark, logo draws + light sweep, name reveals, tap-to-enter expands into the world
-- ⬜ Performance pass: 60fps, reduced-motion fallback, no-WebGL fallback
+- ✅ **Lite-3D atmosphere (React Three Fiber)** — real depth, floating motes (atmospheric, not a starfield), soft volumetric light, camera parallax, day/night grade; robust crisp sizing
+- ✅ **Cinematic logo intro** — fade-from-dark, logo draws + light sweep, name reveals, tap-to-enter expands into the world
+- ✅ Removed Next.js dev badge for a clean canvas
+- 🔄 Performance pass: reduced-motion + no-WebGL fallback done; verify 60fps on real hardware
+- 🔄 Realism tuning — keep pushing "real, not cartoon" on real displays
+
+## Phase 1.5 — Installable app (PWA)
+- ✅ Web manifest (standalone), generated app + apple icons
+- ✅ Service worker (prod only; update-safe, offline fallback)
+- ✅ "Install app" prompt/button (Chrome/Edge/Android); iOS detection
+- ⬜ In-app install hint for iOS (Add to Home Screen)
 
 ## Phase 2 — Auth (emerges from the world)
 - ✅ Firebase email/password + secure email OTP (HMAC cookie, Resend)

@@ -2,21 +2,20 @@
 
 /**
  * Atmosphere3D — the living "lite-3D" world (React Three Fiber).
- * Real depth: a drifting field of soft motes, large soft light orbs, fog for
- * atmospheric falloff, and gentle camera parallax to the pointer. Calm and slow
- * — the Pandora feeling (light + depth + space), never fantasy or gaming.
- * Colors are graded to the theme: dark = night, light = day.
+ * NOT a starfield or space scene. This is calm, premium *air*: soft motes of
+ * light that slowly float upward with depth, large soft volumetric light, and
+ * fog for atmospheric falloff — the Pandora feeling (light, depth, space in a
+ * room), graded to the theme (dark = evening, light = daylight).
  *
  * Loaded only on the client via next/dynamic (ssr:false) by LiveAtmosphere,
  * which also handles the reduced-motion / no-WebGL fallback.
  */
-import { Canvas, useFrame } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { useTheme } from "@/components/providers/theme-provider";
 
-/** Seeded, deterministic PRNG (mulberry32) — stable across re-renders, and
- *  pure (no Math.random in render). */
+/** Seeded, deterministic PRNG (mulberry32) — stable across re-renders, pure. */
 function makeRng(seed: number) {
   let a = seed >>> 0;
   return () => {
@@ -28,63 +27,89 @@ function makeRng(seed: number) {
   };
 }
 
-type Palette = { motes: string; orbA: string; orbB: string; fog: string; moteOpacity: number };
+type Palette = { motesNear: string; motesFar: string; orbA: string; orbB: string; fog: string };
 
 const PALETTES: Record<"dark" | "light", Palette> = {
-  dark: { motes: "#ecd199", orbA: "#d4af6a", orbB: "#3a4a74", fog: "#0b0e14", moteOpacity: 0.9 },
-  light: { motes: "#b8923f", orbA: "#c69a3f", orbB: "#8a9bc0", fog: "#efe9dc", moteOpacity: 0.55 },
+  dark: { motesNear: "#f0d8a2", motesFar: "#caa768", orbA: "#d4af6a", orbB: "#37476f", fog: "#0b0e14" },
+  light: { motesNear: "#c69a3f", motesFar: "#b7924a", orbA: "#c69a3f", orbB: "#8a9bc0", fog: "#efe9dc" },
 };
 
 /** Soft radial dot texture for points and sprites (no hard edges). */
-function useRadialTexture(inner = 0.0) {
+function useSoftTexture() {
   return useMemo(() => {
     const size = 128;
     const c = document.createElement("canvas");
     c.width = c.height = size;
     const ctx = c.getContext("2d")!;
-    const g = ctx.createRadialGradient(size / 2, size / 2, size * inner, size / 2, size / 2, size / 2);
-    g.addColorStop(0, "rgba(255,255,255,1)");
-    g.addColorStop(0.25, "rgba(255,255,255,0.55)");
+    const g = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+    // Gentle glow, not a sharp dot — reads as a soft mote of light, not a star.
+    g.addColorStop(0, "rgba(255,255,255,0.82)");
+    g.addColorStop(0.22, "rgba(255,255,255,0.28)");
+    g.addColorStop(0.6, "rgba(255,255,255,0.06)");
     g.addColorStop(1, "rgba(255,255,255,0)");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, size, size);
     const tex = new THREE.CanvasTexture(c);
     tex.needsUpdate = true;
     return tex;
-  }, [inner]);
+  }, []);
 }
 
-function Motes({ color, opacity, count = 1600 }: { color: string; opacity: number; count?: number }) {
-  const ref = useRef<THREE.Points>(null);
-  const tex = useRadialTexture(0);
+interface MotesProps {
+  color: string;
+  count: number;
+  size: number;
+  opacity: number;
+  seed: number;
+  spread: [number, number, number];
+  rise: number;
+}
 
-  const positions = useMemo(() => {
-    const rng = makeRng(0x9e3779b9 ^ count);
-    const arr = new Float32Array(count * 3);
+/** A layer of soft motes that slowly float upward and sway, wrapping around. */
+function Motes({ color, count, size, opacity, seed, spread, rise }: MotesProps) {
+  const geomRef = useRef<THREE.BufferGeometry>(null);
+  const tex = useSoftTexture();
+  const [sx, sy, sz] = spread;
+
+  const data = useMemo(() => {
+    const rng = makeRng(seed);
+    const pos = new Float32Array(count * 3);
+    const speed = new Float32Array(count);
+    const phase = new Float32Array(count);
     for (let i = 0; i < count; i++) {
-      arr[i * 3] = (rng() - 0.5) * 20;
-      arr[i * 3 + 1] = (rng() - 0.5) * 13;
-      arr[i * 3 + 2] = (rng() - 0.5) * 12 - 2;
+      pos[i * 3] = (rng() - 0.5) * sx;
+      pos[i * 3 + 1] = (rng() - 0.5) * sy;
+      pos[i * 3 + 2] = (rng() - 0.5) * sz - 2;
+      speed[i] = rise * (0.5 + rng());
+      phase[i] = rng() * Math.PI * 2;
     }
-    return arr;
-  }, [count]);
+    return { pos, speed, phase };
+  }, [count, seed, sx, sy, sz, rise]);
 
-  useFrame((state) => {
-    if (!ref.current) return;
+  useFrame((state, delta) => {
+    const g = geomRef.current;
+    if (!g) return;
+    const arr = g.attributes.position.array as Float32Array;
     const t = state.clock.elapsedTime;
-    ref.current.rotation.y = t * 0.012;
-    ref.current.position.y = Math.sin(t * 0.06) * 0.35; // slow breathing drift
+    const halfY = sy / 2;
+    const d = Math.min(delta, 0.05); // guard against tab-switch jumps
+    for (let i = 0; i < count; i++) {
+      arr[i * 3 + 1] += d * data.speed[i]; // float up
+      arr[i * 3] += Math.sin(t * 0.12 + data.phase[i]) * 0.0007; // gentle sway
+      if (arr[i * 3 + 1] > halfY) arr[i * 3 + 1] = -halfY; // wrap
+    }
+    g.attributes.position.needsUpdate = true;
   });
 
   return (
-    <points ref={ref}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" args={[positions, 3]} />
+    <points>
+      <bufferGeometry ref={geomRef}>
+        <bufferAttribute attach="attributes-position" args={[data.pos, 3]} />
       </bufferGeometry>
       <pointsMaterial
         map={tex}
         color={color}
-        size={0.075}
+        size={size}
         sizeAttenuation
         transparent
         opacity={opacity}
@@ -95,17 +120,18 @@ function Motes({ color, opacity, count = 1600 }: { color: string; opacity: numbe
   );
 }
 
+/** Large, very soft volumetric light — the cinematic glow / depth. */
 function Orbs({ colorA, colorB }: { colorA: string; colorB: string }) {
-  const tex = useRadialTexture(0);
+  const tex = useSoftTexture();
   const group = useRef<THREE.Group>(null);
 
   const orbs = useMemo(
     () => [
-      { p: [-5, 2.4, -4] as const, s: 8, c: colorA, o: 0.16 },
-      { p: [5.2, -1.4, -5] as const, s: 9, c: colorB, o: 0.18 },
-      { p: [2.4, 3.2, -3] as const, s: 6, c: colorA, o: 0.12 },
-      { p: [-3.4, -3, -6] as const, s: 10, c: colorA, o: 0.1 },
-      { p: [0.5, -0.5, -2] as const, s: 5, c: colorA, o: 0.08 },
+      { p: [-5.2, 2.2, -4] as const, s: 10, c: colorA, o: 0.22 },
+      { p: [5.4, -1.2, -5] as const, s: 11, c: colorB, o: 0.24 },
+      { p: [2.2, 3.2, -3] as const, s: 7, c: colorA, o: 0.18 },
+      { p: [-3.2, -3, -6] as const, s: 12, c: colorA, o: 0.14 },
+      { p: [0.4, -0.6, -2.5] as const, s: 6, c: colorA, o: 0.12 },
     ],
     [colorA, colorB],
   );
@@ -114,8 +140,8 @@ function Orbs({ colorA, colorB }: { colorA: string; colorB: string }) {
     if (!group.current) return;
     const t = state.clock.elapsedTime;
     group.current.children.forEach((child, i) => {
-      child.position.y += Math.sin(t * 0.08 + i * 1.3) * 0.0016;
-      child.position.x += Math.cos(t * 0.05 + i) * 0.0012;
+      child.position.y += Math.sin(t * 0.07 + i * 1.3) * 0.0012;
+      child.position.x += Math.cos(t * 0.045 + i) * 0.0009;
     });
   });
 
@@ -141,29 +167,64 @@ function Orbs({ colorA, colorB }: { colorA: string; colorB: string }) {
 function CameraRig() {
   useFrame((state) => {
     const { camera, pointer } = state;
-    camera.position.x += (pointer.x * 0.7 - camera.position.x) * 0.025;
-    camera.position.y += (pointer.y * 0.45 - camera.position.y) * 0.025;
+    camera.position.x += (pointer.x * 0.6 - camera.position.x) * 0.02;
+    camera.position.y += (pointer.y * 0.4 - camera.position.y) * 0.02;
     camera.lookAt(0, 0, -2);
   });
+  return null;
+}
+
+/**
+ * Force the drawing buffer to match the container via getBoundingClientRect.
+ * R3F's ResizeObserver can under-measure in some embedded/preview contexts;
+ * this keeps the render crisp and correctly sized everywhere.
+ */
+function ForceResize() {
+  const gl = useThree((s) => s.gl);
+  const setSize = useThree((s) => s.setSize);
+  useEffect(() => {
+    const measure = () => {
+      const el = gl.domElement.parentElement;
+      const r = el?.getBoundingClientRect();
+      const w = r?.width || document.documentElement.clientWidth || window.innerWidth;
+      const h = r?.height || document.documentElement.clientHeight || window.innerHeight;
+      if (w && h) setSize(w, h);
+    };
+    measure();
+    const id = window.setTimeout(measure, 250);
+    window.addEventListener("resize", measure);
+    return () => {
+      window.clearTimeout(id);
+      window.removeEventListener("resize", measure);
+    };
+  }, [gl, setSize]);
   return null;
 }
 
 export default function Atmosphere3D() {
   const { resolved } = useTheme();
   const pal = PALETTES[resolved];
+  const nearOpacity = resolved === "dark" ? 0.85 : 0.5;
+  const farOpacity = resolved === "dark" ? 0.6 : 0.34;
 
   return (
     <Canvas
       className="atmosphere-fade"
-      dpr={[1, 1.75]}
+      dpr={[1, 2]}
       gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
-      camera={{ position: [0, 0, 7], fov: 62 }}
+      camera={{ position: [0, 0, 7], fov: 60 }}
       style={{ position: "fixed", inset: 0, width: "100%", height: "100%", zIndex: -10 }}
     >
-      <fog attach="fog" args={[pal.fog, 7, 22]} />
-      <Motes color={pal.motes} opacity={pal.moteOpacity} />
+      <fog attach="fog" args={[pal.fog, 9, 28]} />
+      {/* Far, fine haze — fewer, so it reads as atmosphere not a star map */}
+      <Motes color={pal.motesFar} count={320} size={0.09} opacity={farOpacity} seed={101} spread={[24, 16, 11]} rise={0.11} />
+      {/* Mid drift — soft floating motes */}
+      <Motes color={pal.motesNear} count={220} size={0.16} opacity={nearOpacity} seed={202} spread={[19, 13, 8]} rise={0.17} />
+      {/* Near, large soft and slow */}
+      <Motes color={pal.motesNear} count={80} size={0.36} opacity={nearOpacity * 0.65} seed={303} spread={[16, 11, 5]} rise={0.22} />
       <Orbs colorA={pal.orbA} colorB={pal.orbB} />
       <CameraRig />
+      <ForceResize />
     </Canvas>
   );
 }
