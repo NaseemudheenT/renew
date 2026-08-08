@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Sora } from "next/font/google";
+import Script from "next/script";
 import "./globals.css";
 import { AppProviders } from "@/components/providers";
 import { themeInitScript } from "@/components/providers/theme-provider";
+import { CinematicOverlay } from "@/components/atmosphere/cinematic-overlay";
 import { clientEnv } from "@/lib/env";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
@@ -52,11 +54,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} ${sora.variable} h-full antialiased`}
     >
-      <head>
-        {/* Set the theme before first paint to avoid any flash. */}
-        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
-      </head>
       <body className="min-h-full">
+        {/* Set the theme before hydration to avoid any flash of the wrong theme. */}
+        <Script id="renew-theme-init" strategy="beforeInteractive">
+          {themeInitScript}
+        </Script>
+        <CinematicOverlay />
         <AppProviders>{children}</AppProviders>
       </body>
     </html>

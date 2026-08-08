@@ -36,15 +36,18 @@ function applyTheme(pref: ThemePreference): ResolvedTheme {
 export const themeInitScript = `(function(){try{var p=localStorage.getItem('${STORAGE_KEY}')||'system';var m=window.matchMedia('(prefers-color-scheme: dark)').matches;var r=p==='system'?(m?'dark':'light'):p;document.documentElement.setAttribute('data-theme',r);document.documentElement.style.colorScheme=r;}catch(e){document.documentElement.setAttribute('data-theme','dark');}})();`;
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [preference, setPreferenceState] = useState<ThemePreference>("system");
-  const [resolved, setResolved] = useState<ResolvedTheme>("dark");
-
-  // Hydrate from storage on mount.
-  useEffect(() => {
-    const stored = (localStorage.getItem(STORAGE_KEY) as ThemePreference | null) || "system";
-    setPreferenceState(stored);
-    setResolved(applyTheme(stored));
-  }, []);
+  // Hydrate synchronously from what the pre-paint script already applied:
+  // localStorage for the preference, the <html data-theme> for the resolved
+  // value. No setState-in-effect, and no theme flash.
+  const [preference, setPreferenceState] = useState<ThemePreference>(() => {
+    if (typeof window === "undefined") return "system";
+    return (localStorage.getItem(STORAGE_KEY) as ThemePreference | null) || "system";
+  });
+  const [resolved, setResolved] = useState<ResolvedTheme>(() => {
+    if (typeof window === "undefined") return "dark";
+    const attr = document.documentElement.getAttribute("data-theme");
+    return attr === "light" || attr === "dark" ? attr : systemTheme();
+  });
 
   // React to OS changes while in "system" mode.
   useEffect(() => {

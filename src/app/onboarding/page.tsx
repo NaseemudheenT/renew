@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { Atmosphere } from "@/components/atmosphere/atmosphere";
+import { Atmosphere } from "@/components/atmosphere/live-atmosphere";
 import { RenewMark } from "@/components/brand/renew-mark";
 import { Wordmark } from "@/components/brand/wordmark";
 import { Button } from "@/components/ui/button";

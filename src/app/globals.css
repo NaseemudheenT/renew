@@ -226,6 +226,135 @@ body {
     0 0 30px -6px color-mix(in oklab, var(--gold) 40%, transparent);
 }
 
+/* --------------------------------------------------------------------
+   Cinematic overlay — vignette + fine film grain (fixed, non-interactive)
+   -------------------------------------------------------------------- */
+.cinematic-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: -5;
+  pointer-events: none;
+}
+
+.cinematic-vignette {
+  position: absolute;
+  inset: 0;
+  /* light default */
+  background: radial-gradient(125% 125% at 50% 42%, transparent 58%, rgba(40, 30, 12, 0.1) 100%);
+}
+:root[data-theme="dark"] .cinematic-vignette {
+  background: radial-gradient(125% 125% at 50% 42%, transparent 52%, rgba(3, 5, 10, 0.6) 100%);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cinematic-vignette {
+    background: radial-gradient(125% 125% at 50% 42%, transparent 52%, rgba(3, 5, 10, 0.6) 100%);
+  }
+}
+
+.cinematic-grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+:root[data-theme="dark"] .cinematic-grain {
+  opacity: 0.038;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .cinematic-grain {
+    opacity: 0.038;
+  }
+}
+
+/* --------------------------------------------------------------------
+   Gold sheen sweep — reusable on buttons and the mark
+   -------------------------------------------------------------------- */
+@keyframes renew-sheen {
+  0% {
+    transform: translateX(-140%) skewX(-18deg);
+  }
+  100% {
+    transform: translateX(240%) skewX(-18deg);
+  }
+}
+
+.gold-sheen {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+.gold-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(
+    100deg,
+    transparent 20%,
+    color-mix(in oklab, #fff 55%, transparent) 48%,
+    transparent 72%
+  );
+  transform: translateX(-140%) skewX(-18deg);
+  opacity: 0;
+  pointer-events: none;
+}
+.gold-sheen:hover::after {
+  opacity: 0.6;
+  animation: renew-sheen 0.9s var(--ease-calm);
+}
+
+/* Atmosphere fade-in — "the screen fades in" */
+@keyframes atmo-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.atmosphere-fade {
+  animation: atmo-fade 1.6s var(--ease-calm) both;
+}
+
+/* --------------------------------------------------------------------
+   Theme toggle icons — visibility driven by [data-theme] (hydration-safe)
+   -------------------------------------------------------------------- */
+.theme-toggle .theme-icon {
+  position: absolute;
+  transition:
+    opacity 0.28s var(--ease-calm),
+    transform 0.28s var(--ease-calm);
+}
+/* Light (default): show the sun */
+.theme-icon-sun {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+.theme-icon-moon {
+  opacity: 0;
+  transform: rotate(-35deg) scale(0.7);
+}
+/* Dark: show the moon */
+:root[data-theme="dark"] .theme-icon-sun {
+  opacity: 0;
+  transform: rotate(35deg) scale(0.7);
+}
+:root[data-theme="dark"] .theme-icon-moon {
+  opacity: 1;
+  transform: rotate(0) scale(1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .theme-icon-sun {
+    opacity: 0;
+    transform: rotate(35deg) scale(0.7);
+  }
+  :root:not([data-theme="light"]) .theme-icon-moon {
+    opacity: 1;
+    transform: rotate(0) scale(1);
+  }
+}
+
 /* Respect users who prefer reduced motion — the whole product calms down */
 @media (prefers-reduced-motion: reduce) {
   *,

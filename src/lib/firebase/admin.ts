@@ -10,7 +10,6 @@ import "server-only";
  */
 import {
   cert,
-  getApp,
   getApps,
   initializeApp,
   type App,

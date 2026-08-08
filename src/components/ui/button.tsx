@@ -10,12 +10,12 @@ type Size = "sm" | "md" | "lg";
 
 const VARIANTS: Record<Variant, string> = {
   primary:
-    "bg-[var(--gold)] text-[var(--gold-contrast)] hover:bg-[var(--gold-bright)] shadow-[0_8px_30px_-8px_color-mix(in_oklab,var(--gold)_60%,transparent)]",
+    "gold-sheen text-[var(--gold-contrast)] bg-[linear-gradient(135deg,var(--gold-bright),var(--gold)_55%,var(--gold-deep))] shadow-[0_10px_34px_-10px_color-mix(in_oklab,var(--gold)_70%,transparent)] hover:shadow-[0_14px_44px_-8px_color-mix(in_oklab,var(--gold)_85%,transparent)]",
   secondary:
-    "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-hover)]",
+    "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-strong)]",
   ghost: "bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-hover)]",
   outline:
-    "bg-transparent text-[var(--foreground)] border border-[var(--border-strong)] hover:border-[var(--gold)] hover:text-[var(--gold)]",
+    "gold-sheen bg-transparent text-[var(--foreground)] border border-[var(--border-strong)] hover:border-[var(--gold)] hover:text-[var(--gold)]",
   danger: "bg-[var(--danger)] text-white hover:opacity-90",
 };
 
@@ -54,8 +54,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
       )}
       {...props}
     >
-      {loading && <Loader2 className="size-4 animate-spin" />}
-      {children}
+      <span className="relative z-[2] inline-flex items-center justify-center gap-2">
+        {loading && <Loader2 className="size-4 animate-spin" />}
+        {children}
+      </span>
     </motion.button>
   );
 });

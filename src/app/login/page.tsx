@@ -4,10 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Lock, Mail } from "lucide-react";
-import { Atmosphere } from "@/components/atmosphere/atmosphere";
+import { Atmosphere } from "@/components/atmosphere/live-atmosphere";
 import { RenewMark } from "@/components/brand/renew-mark";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { GlassCard } from "@/components/ui/glass-card";
 import { Input } from "@/components/ui/input";
 import { OtpInput } from "@/components/ui/otp-input";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -37,11 +38,16 @@ export default function LoginPage() {
   const [cooldown, setCooldown] = useState(0);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  useEffect(() => () => void (cooldownRef.current && clearInterval(cooldownRef.current)), []);
+  useEffect(
+    () => () => {
+      if (cooldownRef.current) clearInterval(cooldownRef.current);
+    },
+    [],
+  );
 
   function startCooldown() {
     setCooldown(RESEND_SECONDS);
-    cooldownRef.current && clearInterval(cooldownRef.current);
+    if (cooldownRef.current) clearInterval(cooldownRef.current);
     cooldownRef.current = setInterval(() => {
       setCooldown((c) => {
         if (c <= 1 && cooldownRef.current) clearInterval(cooldownRef.current);
@@ -125,11 +131,11 @@ export default function LoginPage() {
         <ThemeToggle />
       </div>
 
-      <motion.div
+      <GlassCard
         initial={{ opacity: 0, scale: 0.96, y: 12 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         transition={{ duration: 0.7, ease: EASE }}
-        className="glass w-full max-w-[400px] rounded-[var(--radius-2xl)] p-8 sm:p-10"
+        className="w-full max-w-[400px] p-8 sm:p-10"
       >
         <div className="mb-7 flex flex-col items-center text-center">
           <RenewMark size={56} glow />
@@ -297,7 +303,7 @@ export default function LoginPage() {
             </motion.div>
           )}
         </AnimatePresence>
-      </motion.div>
+      </GlassCard>
     </main>
   );
 }

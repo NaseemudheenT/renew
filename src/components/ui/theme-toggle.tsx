@@ -1,37 +1,31 @@
 "use client";
 
-import { AnimatePresence, motion } from "framer-motion";
 import { Moon, Sun } from "lucide-react";
 import { useTheme } from "@/components/providers/theme-provider";
 import { cn } from "@/lib/utils";
 
+/**
+ * Theme toggle. Both icons are always rendered; which one shows is driven
+ * purely by the `[data-theme]` attribute on <html> (set before hydration by
+ * the pre-paint script), so server and client markup always match — no
+ * hydration mismatch, no flash. The cross-fade is CSS.
+ */
 export function ThemeToggle({ className }: { className?: string }) {
-  const { resolved, toggle } = useTheme();
+  const { toggle } = useTheme();
 
   return (
     <button
       type="button"
       onClick={toggle}
-      aria-label={`Switch to ${resolved === "dark" ? "light" : "dark"} theme`}
+      aria-label="Toggle color theme"
       className={cn(
-        "relative grid size-10 place-items-center rounded-full",
-        "text-[var(--muted)] transition-colors hover:text-[var(--gold)]",
-        "hover:bg-[var(--surface-hover)]",
+        "theme-toggle relative grid size-10 place-items-center rounded-full",
+        "text-[var(--muted)] transition-colors hover:bg-[var(--surface-hover)] hover:text-[var(--gold)]",
         className,
       )}
     >
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.span
-          key={resolved}
-          initial={{ opacity: 0, rotate: -30, scale: 0.7 }}
-          animate={{ opacity: 1, rotate: 0, scale: 1 }}
-          exit={{ opacity: 0, rotate: 30, scale: 0.7 }}
-          transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-          className="absolute"
-        >
-          {resolved === "dark" ? <Moon className="size-5" /> : <Sun className="size-5" />}
-        </motion.span>
-      </AnimatePresence>
+      <Sun className="theme-icon theme-icon-sun size-5" />
+      <Moon className="theme-icon theme-icon-moon size-5" />
     </button>
   );
 }
