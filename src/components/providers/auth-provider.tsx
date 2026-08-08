@@ -13,7 +13,7 @@ import {
   signOut,
   type User,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase/client";
+import { getFirebaseAuth } from "@/lib/firebase/client";
 
 interface AuthContextValue {
   user: User | null;
@@ -30,11 +30,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initializing, setInitializing] = useState(true);
 
   useEffect(() => {
-    const unsub = onAuthStateChanged(auth, (u) => {
-      setUser(u);
-      setInitializing(false);
-    });
-    return unsub;
+    let unsub = () => {};
+    try {
+      // getFirebaseAuth() is called here (client, post-mount) — never during
+      // render/SSR — so a missing Firebase config can't break prerendering.
+      unsub = onAuthStateChanged(getFirebaseAuth(), (u) => {
+        setUser(u);
+        setInitializing(false);
+      });
+    } catch (err) {
+      // Firebase not configured for this deployment — degrade gracefully.
+      console.error("[auth] Firebase is not configured:", err);
+    }
+    return () => unsub();
   }, []);
 
   const value = useMemo<AuthContextValue>(
@@ -42,10 +50,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       user,
       initializing,
       signIn: async (email, password) =>
-        (await signInWithEmailAndPassword(auth, email, password)).user,
+        (await signInWithEmailAndPassword(getFirebaseAuth(), email, password)).user,
       signUp: async (email, password) =>
-        (await createUserWithEmailAndPassword(auth, email, password)).user,
-      logout: () => signOut(auth),
+        (await createUserWithEmailAndPassword(getFirebaseAuth(), email, password)).user,
+      logout: () => signOut(getFirebaseAuth()),
     }),
     [user, initializing],
   );

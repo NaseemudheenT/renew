@@ -1,9 +1,13 @@
 "use client";
 
 /**
- * Firebase client SDK — browser only.
- * Initialised as a singleton so hot-reloads and multiple imports never create
- * duplicate apps. Analytics is loaded lazily and only when supported.
+ * Firebase client SDK — browser only, lazily initialised.
+ *
+ * Everything is created on first use via getters (never at module load), so
+ * static prerendering / SSR never touches Firebase. This keeps the production
+ * build resilient even when the NEXT_PUBLIC_FIREBASE_* env vars are absent
+ * (the build succeeds; Firebase simply activates on the client where configured).
+ * Singletons guard against duplicate apps across hot-reloads.
  */
 import { getApp, getApps, initializeApp, type FirebaseApp } from "firebase/app";
 import {
@@ -26,19 +30,32 @@ const firebaseConfig = {
   measurementId: clientEnv.firebase.measurementId || undefined,
 };
 
-export const firebaseApp: FirebaseApp = getApps().length
-  ? getApp()
-  : initializeApp(firebaseConfig);
+let app: FirebaseApp | null = null;
+export function getFirebaseApp(): FirebaseApp {
+  if (app) return app;
+  app = getApps().length ? getApp() : initializeApp(firebaseConfig);
+  return app;
+}
 
-export const auth: Auth = getAuth(firebaseApp);
-export const db: Firestore = getFirestore(firebaseApp);
-export const storage: FirebaseStorage = getStorage(firebaseApp);
+let authInstance: Auth | null = null;
+export function getFirebaseAuth(): Auth {
+  if (authInstance) return authInstance;
+  authInstance = getAuth(getFirebaseApp());
+  // Keep the session across reloads/tabs; harmless if it fails (private mode).
+  if (typeof window !== "undefined") {
+    setPersistence(authInstance, browserLocalPersistence).catch(() => {});
+  }
+  return authInstance;
+}
 
-// Keep the session across reloads/tabs. Guarded so SSR never touches it.
-if (typeof window !== "undefined") {
-  setPersistence(auth, browserLocalPersistence).catch(() => {
-    /* persistence can fail in private mode — auth still works in-memory */
-  });
+let dbInstance: Firestore | null = null;
+export function getDb(): Firestore {
+  return (dbInstance ??= getFirestore(getFirebaseApp()));
+}
+
+let storageInstance: FirebaseStorage | null = null;
+export function getStorageClient(): FirebaseStorage {
+  return (storageInstance ??= getStorage(getFirebaseApp()));
 }
 
 /**
@@ -49,7 +66,7 @@ export async function initAnalytics() {
   if (typeof window === "undefined" || !firebaseConfig.measurementId) return null;
   try {
     const { getAnalytics, isSupported } = await import("firebase/analytics");
-    if (await isSupported()) return getAnalytics(firebaseApp);
+    if (await isSupported()) return getAnalytics(getFirebaseApp());
   } catch {
     /* analytics is non-critical */
   }
