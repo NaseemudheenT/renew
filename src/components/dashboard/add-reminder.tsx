@@ -135,7 +135,7 @@ export function AddReminder({ open, onClose }: { open: boolean; onClose: () => v
                       <button
                         key={c.key}
                         onClick={() => pick(c.key)}
-                        className="flex flex-col items-start gap-3 rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] p-4 text-left transition-all hover:border-[var(--gold)] hover:bg-[var(--surface-hover)]"
+                        className="glass glass-interactive flex flex-col items-start gap-3 rounded-[var(--radius-md)] p-4 text-left"
                       >
                         <span className="grid size-9 place-items-center rounded-[var(--radius-sm)] bg-[color-mix(in_oklab,var(--gold)_12%,transparent)] text-[var(--gold)]">
                           <CategoryIcon category={c.key} />
@@ -170,7 +170,7 @@ export function AddReminder({ open, onClose }: { open: boolean; onClose: () => v
                         value={dueDate}
                         min={todayISO()}
                         onChange={(e) => setDueDate(e.target.value)}
-                        className="h-12 w-full rounded-[var(--radius-md)] border border-[var(--border)] bg-[var(--surface)] px-4 text-[15px] text-[var(--foreground)] outline-none focus:border-[var(--gold)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--gold)_25%,transparent)]"
+                        className="glass-input h-12 w-full rounded-[var(--radius-md)] px-4 text-[15px] text-[var(--foreground)]"
                       />
                     </div>
 

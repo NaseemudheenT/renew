@@ -274,6 +274,26 @@ body {
   box-shadow: var(--shadow-float);
 }
 
+/* Glass form field — translucent and legible, with a gold focus ring. */
+.glass-input {
+  background: color-mix(in oklab, var(--surface) 55%, transparent);
+  border: 1px solid var(--glass-border);
+  box-shadow: inset 0 1px 0 0 var(--glass-highlight);
+  backdrop-filter: blur(12px) saturate(1.3);
+  -webkit-backdrop-filter: blur(12px) saturate(1.3);
+  transition:
+    border-color 0.2s var(--ease-calm),
+    box-shadow 0.2s var(--ease-calm);
+}
+.glass-input:focus,
+.glass-input:focus-visible {
+  outline: none;
+  border-color: var(--gold);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 0 0 3px color-mix(in oklab, var(--gold) 22%, transparent);
+}
+
 .ring-gold {
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--gold) 45%, transparent),
     0 0 30px -6px color-mix(in oklab, var(--gold) 40%, transparent);

@@ -118,7 +118,7 @@ export default function DashboardPage() {
               { label: "Due soon", value: stats.soon, icon: CalendarClock },
               { label: "Overdue", value: stats.overdue, icon: Bell },
             ].map((s) => (
-              <div key={s.label} className="glass rounded-[var(--radius-lg)] p-4">
+              <div key={s.label} className="glass glass-interactive rounded-[var(--radius-lg)] p-4">
                 <p className="text-2xl font-light text-[var(--foreground)]">{s.value}</p>
                 <p className="mt-1 text-xs text-[var(--muted)]">{s.label}</p>
               </div>

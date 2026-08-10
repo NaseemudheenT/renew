@@ -39,10 +39,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           type={inputType}
           aria-invalid={!!error}
           className={cn(
-            "h-12 w-full rounded-[var(--radius-md)] bg-[var(--surface)] text-[15px] text-[var(--foreground)]",
-            "border border-[var(--border)] placeholder:text-[var(--subtle)]",
-            "transition-colors duration-200 outline-none",
-            "focus:border-[var(--gold)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--gold)_25%,transparent)]",
+            "glass-input h-12 w-full rounded-[var(--radius-md)] text-[15px] text-[var(--foreground)]",
+            "placeholder:text-[var(--subtle)]",
             Icon ? "pl-11" : "pl-4",
             isPassword ? "pr-11" : "pr-4",
             error && "border-[var(--danger)] focus:border-[var(--danger)] focus:ring-0",

@@ -69,7 +69,7 @@ export function SocialAuth({
   }
 
   const base =
-    "inline-flex h-12 w-full items-center justify-center gap-3 rounded-[var(--radius-md)] border border-[var(--border-strong)] bg-[var(--surface)] text-sm font-medium text-[var(--foreground)] transition-colors hover:bg-[var(--surface-hover)] hover:border-[var(--gold)] disabled:cursor-not-allowed disabled:opacity-50";
+    "glass glass-interactive inline-flex h-12 w-full items-center justify-center gap-3 rounded-[var(--radius-md)] text-sm font-medium text-[var(--foreground)] disabled:cursor-not-allowed disabled:opacity-50";
 
   return (
     <div className="flex flex-col gap-3">

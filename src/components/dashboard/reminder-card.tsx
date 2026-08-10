@@ -37,7 +37,7 @@ export function ReminderCard({
       exit={{ opacity: 0, scale: 0.96 }}
       transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
       className={cn(
-        "glass group flex items-center gap-4 rounded-[var(--radius-lg)] p-4 sm:p-5",
+        "glass glass-interactive group flex items-center gap-4 rounded-[var(--radius-lg)] p-4 sm:p-5",
         reminder.completed && "opacity-55",
       )}
     >

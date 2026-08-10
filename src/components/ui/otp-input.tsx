@@ -105,10 +105,9 @@ export function OtpInput({
           onKeyDown={(e) => handleKeyDown(i, e)}
           onPaste={handlePaste}
           className={cn(
-            "size-12 rounded-[var(--radius-md)] text-center text-xl font-semibold sm:size-14",
-            "bg-[var(--surface)] text-[var(--foreground)] border transition-colors duration-200 outline-none",
-            "focus:border-[var(--gold)] focus:ring-2 focus:ring-[color-mix(in_oklab,var(--gold)_25%,transparent)]",
-            error ? "border-[var(--danger)]" : "border-[var(--border)]",
+            "glass-input size-12 rounded-[var(--radius-md)] text-center text-xl font-semibold sm:size-14",
+            "text-[var(--foreground)]",
+            error && "border-[var(--danger)]",
             disabled && "opacity-50",
           )}
         />
