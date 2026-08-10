@@ -77,6 +77,15 @@
   --particle: rgba(120, 100, 60, 0.5);
   --ray: rgba(198, 154, 63, 0.1);
 
+  /* Liquid glass (light = pearl/ivory translucent, warm soft shadow) */
+  --glass-bg-1: rgba(255, 255, 255, 0.74);
+  --glass-bg-2: rgba(255, 253, 248, 0.42);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-highlight: rgba(255, 255, 255, 0.95);
+  --glass-shadow: rgba(60, 50, 25, 0.18);
+  --glass-blur: 26px;
+  --shadow-float: 0 18px 50px -20px rgba(60, 50, 25, 0.28);
+
   --font-sans-stack: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --font-display-stack: var(--font-display), var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 
@@ -113,6 +122,15 @@
   --particle: rgba(236, 209, 153, 0.55);
   --ray: rgba(212, 175, 106, 0.08);
 
+  /* Liquid glass (dark = deep translucent, gold edge, the "magic") */
+  --glass-bg-1: rgba(32, 40, 58, 0.58);
+  --glass-bg-2: rgba(16, 21, 33, 0.4);
+  --glass-border: rgba(214, 202, 172, 0.18);
+  --glass-highlight: rgba(255, 255, 255, 0.09);
+  --glass-shadow: rgba(0, 0, 0, 0.55);
+  --glass-blur: 30px;
+  --shadow-float: 0 22px 60px -22px rgba(0, 0, 0, 0.7);
+
   color-scheme: dark;
 }
 
@@ -146,6 +164,14 @@
     --aurora-3: rgba(150, 130, 90, 0.1);
     --particle: rgba(236, 209, 153, 0.55);
     --ray: rgba(212, 175, 106, 0.08);
+
+    --glass-bg-1: rgba(32, 40, 58, 0.58);
+    --glass-bg-2: rgba(16, 21, 33, 0.4);
+    --glass-border: rgba(214, 202, 172, 0.18);
+    --glass-highlight: rgba(255, 255, 255, 0.09);
+    --glass-shadow: rgba(0, 0, 0, 0.55);
+    --glass-blur: 30px;
+    --shadow-float: 0 22px 60px -22px rgba(0, 0, 0, 0.7);
 
     color-scheme: dark;
   }
@@ -214,11 +240,38 @@ body {
   color: transparent;
 }
 
+/* Liquid glass — a translucent surface that floats above the environment:
+   layered translucency, a bright top highlight edge, and a soft floating
+   shadow. Adapts to light (pearl) and dark (deep, gold-edged) themes. */
 .glass {
-  background: color-mix(in oklab, var(--surface) 70%, transparent);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid var(--border);
+  background: linear-gradient(155deg, var(--glass-bg-1), var(--glass-bg-2));
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.7);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    inset 0 -1px 0 0 color-mix(in oklab, var(--glass-shadow) 30%, transparent),
+    var(--shadow-float);
+}
+
+/* An interactive glass surface (buttons, tappable panels) that lifts on hover. */
+.glass-interactive {
+  transition:
+    transform 0.3s var(--ease-calm),
+    box-shadow 0.3s var(--ease-calm),
+    border-color 0.3s var(--ease-calm);
+}
+.glass-interactive:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in oklab, var(--gold) 40%, var(--glass-border));
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 26px 70px -20px var(--glass-shadow);
+}
+
+/* Floating elevation for non-glass elements. */
+.float {
+  box-shadow: var(--shadow-float);
 }
 
 .ring-gold {

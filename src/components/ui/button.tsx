@@ -11,11 +11,10 @@ type Size = "sm" | "md" | "lg";
 const VARIANTS: Record<Variant, string> = {
   primary:
     "gold-sheen text-[var(--gold-contrast)] bg-[linear-gradient(135deg,var(--gold-bright),var(--gold)_55%,var(--gold-deep))] shadow-[0_10px_34px_-10px_color-mix(in_oklab,var(--gold)_70%,transparent)] hover:shadow-[0_14px_44px_-8px_color-mix(in_oklab,var(--gold)_85%,transparent)]",
-  secondary:
-    "bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)] hover:bg-[var(--surface-hover)] hover:border-[var(--border-strong)]",
+  secondary: "glass glass-interactive text-[var(--foreground)]",
   ghost: "bg-transparent text-[var(--foreground)] hover:bg-[var(--surface-hover)]",
   outline:
-    "gold-sheen bg-transparent text-[var(--foreground)] border border-[var(--border-strong)] hover:border-[var(--gold)] hover:text-[var(--gold)]",
+    "gold-sheen glass glass-interactive text-[var(--foreground)] hover:text-[var(--gold)]",
   danger: "bg-[var(--danger)] text-white hover:opacity-90",
 };
 
