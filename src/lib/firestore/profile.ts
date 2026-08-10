@@ -12,7 +12,14 @@ export async function getProfile(uid: string): Promise<UserProfile | null> {
 }
 
 export function subscribeProfile(uid: string, cb: (profile: UserProfile | null) => void) {
-  return onSnapshot(profileRef(uid), (snap) => cb(snap.exists() ? (snap.data() as UserProfile) : null));
+  return onSnapshot(
+    profileRef(uid),
+    (snap) => cb(snap.exists() ? (snap.data() as UserProfile) : null),
+    (err) => {
+      console.error("[profile] subscription error:", err.code || err.message);
+      cb(null);
+    },
+  );
 }
 
 /** Create or merge the user's profile. */

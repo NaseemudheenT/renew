@@ -18,9 +18,16 @@ function remindersCol(uid: string) {
 /** Live subscription to a user's reminders, sorted by due date. */
 export function subscribeReminders(uid: string, cb: (reminders: Reminder[]) => void) {
   const q = query(remindersCol(uid), orderBy("dueDate", "asc"));
-  return onSnapshot(q, (snap) => {
-    cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Reminder, "id">) })));
-  });
+  return onSnapshot(
+    q,
+    (snap) => cb(snap.docs.map((d) => ({ id: d.id, ...(d.data() as Omit<Reminder, "id">) }))),
+    (err) => {
+      // Firestore not reachable / rules deny / DB not enabled: don't hang the
+      // UI on skeletons — surface the empty state instead.
+      console.error("[reminders] subscription error:", err.code || err.message);
+      cb([]);
+    },
+  );
 }
 
 export async function addReminder(uid: string, data: NewReminder): Promise<string> {
