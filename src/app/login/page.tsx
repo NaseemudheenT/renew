@@ -113,7 +113,7 @@ export default function LoginPage() {
       });
       const data = await res.json().catch(() => ({}));
       if (data?.ok) {
-        router.push("/onboarding");
+        router.push("/dashboard");
       } else {
         setOtpError(data?.error || "That code isn't right.");
         setCode("");

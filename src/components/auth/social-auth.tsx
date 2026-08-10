@@ -56,7 +56,7 @@ export function SocialAuth({
     onError("");
     try {
       await fn();
-      router.push("/onboarding");
+      router.push("/dashboard");
     } catch (err) {
       const code = authErrorCode(err);
       // User simply closed the popup — not an error worth surfacing.

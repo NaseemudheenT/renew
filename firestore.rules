@@ -1,0 +1,23 @@
+rules_version = '2';
+
+// Renew — Firestore security rules.
+// Every user can read and write ONLY their own profile and reminders.
+// Deploy with:  firebase deploy --only firestore:rules
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // A signed-in user owns /users/{their uid} and everything beneath it.
+    match /users/{uid} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /reminders/{reminderId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+    }
+
+    // Everything else is denied by default.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
