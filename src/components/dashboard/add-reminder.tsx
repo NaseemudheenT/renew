@@ -122,7 +122,7 @@ export function AddReminder({ open, onClose }: { open: boolean; onClose: () => v
             </div>
 
             <div className="max-h-[70vh] overflow-y-auto p-5">
-              <AnimatePresence mode="wait">
+              <div>
                 {!category ? (
                   <motion.div
                     key="picker"
@@ -220,7 +220,7 @@ export function AddReminder({ open, onClose }: { open: boolean; onClose: () => v
                     </Button>
                   </motion.div>
                 )}
-              </AnimatePresence>
+              </div>
             </div>
           </motion.div>
         </motion.div>

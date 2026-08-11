@@ -11,6 +11,7 @@ import {
   GoogleAuthProvider,
   OAuthProvider,
   onAuthStateChanged,
+  sendPasswordResetEmail,
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
@@ -25,6 +26,7 @@ interface AuthContextValue {
   signUp: (email: string, password: string) => Promise<User>;
   signInWithGoogle: () => Promise<User>;
   signInWithApple: () => Promise<User>;
+  resetPassword: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -69,6 +71,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         provider.addScope("name");
         return (await signInWithPopup(getFirebaseAuth(), provider)).user;
       },
+      resetPassword: (email) => sendPasswordResetEmail(getFirebaseAuth(), email.trim()),
       logout: () => signOut(getFirebaseAuth()),
     }),
     [user, initializing],

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { ArrowRight, Lock, Mail } from "lucide-react";
 import { Atmosphere } from "@/components/atmosphere/live-atmosphere";
 import { RenewMark } from "@/components/brand/renew-mark";
@@ -17,13 +17,13 @@ import { authErrorMessage } from "@/lib/auth/errors";
 import { emailSchema, passwordSchema } from "@/lib/validation/auth";
 
 type Mode = "signin" | "signup";
-type View = "credentials" | "otp";
+type View = "credentials" | "otp" | "forgot";
 const EASE = [0.22, 1, 0.36, 1] as const;
 const RESEND_SECONDS = 30;
 
 export default function LoginPage() {
   const router = useRouter();
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, resetPassword } = useAuth();
 
   const [mode, setMode] = useState<Mode>("signin");
   const [view, setView] = useState<View>("credentials");
@@ -33,6 +33,7 @@ export default function LoginPage() {
   const [formError, setFormError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [resetSent, setResetSent] = useState(false);
   const [code, setCode] = useState("");
   const [otpError, setOtpError] = useState("");
   const [devCode, setDevCode] = useState<string | null>(null);
@@ -68,8 +69,27 @@ export default function LoginPage() {
     startCooldown();
   }
 
+  async function sendReset() {
+    const emailCheck = emailSchema.safeParse(email);
+    if (!emailCheck.success) {
+      setFieldErrors({ email: emailCheck.error.issues[0].message });
+      return;
+    }
+    setLoading(true);
+    setFormError("");
+    try {
+      await resetPassword(email.trim());
+      setResetSent(true);
+    } catch (err) {
+      setFormError(authErrorMessage(err));
+    } finally {
+      setLoading(false);
+    }
+  }
+
   async function submitCredentials(e: React.FormEvent) {
     e.preventDefault();
+    if (loading) return; // guard against double-submit
     setFormError("");
     const errors: typeof fieldErrors = {};
 
@@ -142,7 +162,10 @@ export default function LoginPage() {
           <RenewMark size={56} glow />
         </div>
 
-        <AnimatePresence mode="wait" initial={false}>
+        {/* Keyed view swap — a change to `view` remounts the active panel and
+            plays its enter animation. Avoids the AnimatePresence mode="wait"
+            deadlock in framer-motion 13 where the next view never mounts. */}
+        <div className="relative">
           {view === "credentials" ? (
             <motion.div
               key="credentials"
@@ -226,6 +249,21 @@ export default function LoginPage() {
                   error={fieldErrors.password}
                 />
 
+                {mode === "signin" && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setView("forgot");
+                      setResetSent(false);
+                      setFormError("");
+                      setFieldErrors({});
+                    }}
+                    className="-mt-1 self-end text-xs text-[var(--muted)] transition-colors hover:text-[var(--gold)]"
+                  >
+                    Forgot password?
+                  </button>
+                )}
+
                 {formError && (
                   <p className="text-center text-sm text-[var(--danger)]">{formError}</p>
                 )}
@@ -238,6 +276,68 @@ export default function LoginPage() {
                   )}
                 </Button>
               </form>
+            </motion.div>
+          ) : view === "forgot" ? (
+            <motion.div
+              key="forgot"
+              initial={{ opacity: 0, x: 12 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 12 }}
+              transition={{ duration: 0.3, ease: EASE }}
+            >
+              <h1 className="text-center text-xl font-medium text-[var(--foreground)]">
+                {resetSent ? "Check your email" : "Reset your password"}
+              </h1>
+              {resetSent ? (
+                <>
+                  <p className="mt-1.5 mb-7 text-center text-sm text-[var(--muted)]">
+                    If an account exists for
+                    <br />
+                    <span className="text-[var(--foreground)]">{email}</span>, a reset link is on
+                    its way.
+                  </p>
+                  <Button
+                    size="lg"
+                    fullWidth
+                    variant="secondary"
+                    onClick={() => setView("credentials")}
+                  >
+                    Back to sign in
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <p className="mt-1.5 mb-6 text-center text-sm text-[var(--muted)]">
+                    We&apos;ll email you a secure link to set a new password.
+                  </p>
+                  <div className="flex flex-col gap-4">
+                    <Input
+                      name="reset-email"
+                      type="email"
+                      autoComplete="email"
+                      placeholder="you@example.com"
+                      label="Email"
+                      icon={Mail}
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      error={fieldErrors.email}
+                    />
+                    {formError && (
+                      <p className="text-center text-sm text-[var(--danger)]">{formError}</p>
+                    )}
+                    <Button size="lg" fullWidth loading={loading} onClick={sendReset}>
+                      {!loading && "Send reset link"}
+                    </Button>
+                    <button
+                      type="button"
+                      onClick={() => setView("credentials")}
+                      className="text-sm text-[var(--muted)] transition-colors hover:text-[var(--foreground)]"
+                    >
+                      Back
+                    </button>
+                  </div>
+                </>
+              )}
             </motion.div>
           ) : (
             <motion.div
@@ -312,7 +412,7 @@ export default function LoginPage() {
               </div>
             </motion.div>
           )}
-        </AnimatePresence>
+        </div>
       </GlassCard>
     </main>
   );
