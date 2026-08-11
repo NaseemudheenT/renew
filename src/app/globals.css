@@ -1,0 +1,211 @@
+@import "tailwindcss";
+
+/* ============================================================================
+   RENEW — Design tokens
+   Calm · real · cinematic. Floating liquid glass on warm, soft light.
+   Light theme is primary (daytime); dark is the same peaceful world at night.
+   ========================================================================== */
+
+@theme {
+  --font-sans:
+    var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-brand: var(--font-jost), var(--font-inter), ui-sans-serif, sans-serif;
+
+  /* Champagne gold — used ONLY for meaning (brand, primary, active). */
+  --color-gold-50: #fbf6ea;
+  --color-gold-100: #f4e9cf;
+  --color-gold-200: #e9d3a3;
+  --color-gold-300: #ddbd78;
+  --color-gold-400: #d0a959;
+  --color-gold-500: #c6a15b;
+  --color-gold-600: #a5824a;
+  --color-gold-700: #83663a;
+  --color-gold-800: #5f4a2b;
+  --color-gold-900: #3d301c;
+
+  --radius-glass: 1.5rem;
+  --radius-glass-lg: 2rem;
+
+  --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* ---- Semantic theme variables ------------------------------------------- */
+:root,
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  /* Cinematic background — warm pearl / ivory daylight (never pure white). */
+  --bg-base: #efe8dc;
+  --bg-tint-1: #f6f0e6; /* warm ivory highlight */
+  --bg-tint-2: #ece2d2; /* soft sand */
+  --bg-tint-3: #e7ddef; /* faint cool lavender for depth */
+  --bokeh-1: rgba(224, 196, 140, 0.55); /* warm gold light pool */
+  --bokeh-2: rgba(240, 226, 205, 0.7); /* soft daylight pool */
+  --bokeh-3: rgba(206, 190, 214, 0.42); /* cool depth pool */
+  --grain-opacity: 0.05;
+  --vignette: rgba(120, 100, 70, 0.14);
+
+  /* Text */
+  --text-strong: #2b2b2f;
+  --text-body: #4a4741;
+  --text-muted: #7c7669;
+  --text-onGold: #2a2113;
+
+  /* Liquid glass */
+  --glass-bg: rgba(255, 255, 255, 0.5);
+  --glass-bg-strong: rgba(255, 255, 255, 0.66);
+  --glass-bg-soft: rgba(255, 255, 255, 0.32);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-edge: rgba(255, 255, 255, 0.95); /* bright top highlight */
+  --glass-inner-shadow: rgba(120, 105, 75, 0.08);
+  --glass-shadow:
+    0 1px 1px rgba(60, 50, 30, 0.04), 0 8px 24px rgba(70, 58, 34, 0.1),
+    0 24px 60px rgba(70, 58, 34, 0.12);
+  --glass-blur: 20px;
+  --glass-saturate: 150%;
+
+  --field-bg: rgba(255, 255, 255, 0.55);
+  --field-border: rgba(140, 120, 85, 0.22);
+  --focus-ring: rgba(198, 161, 91, 0.55);
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  /* Cinematic background — deep warm charcoal-navy (NOT space black),
+     with warm champagne light pools glowing through, like lights in fog. */
+  --bg-base: #14161f;
+  --bg-tint-1: #1b1e2b; /* warm navy lift */
+  --bg-tint-2: #191b26; /* charcoal */
+  --bg-tint-3: #221d24; /* faint warm plum */
+  --bokeh-1: rgba(198, 161, 91, 0.28); /* warm gold light pool */
+  --bokeh-2: rgba(120, 118, 150, 0.22); /* cool moonlight pool */
+  --bokeh-3: rgba(150, 110, 80, 0.2); /* warm amber pool */
+  --grain-opacity: 0.06;
+  --vignette: rgba(0, 0, 0, 0.4);
+
+  --text-strong: #f2ede3;
+  --text-body: #cec8bd;
+  --text-muted: #8f897d;
+  --text-onGold: #201804;
+
+  --glass-bg: rgba(38, 42, 56, 0.46);
+  --glass-bg-strong: rgba(44, 49, 66, 0.62);
+  --glass-bg-soft: rgba(38, 42, 56, 0.28);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-edge: rgba(255, 255, 255, 0.22); /* bright top highlight */
+  --glass-inner-shadow: rgba(0, 0, 0, 0.25);
+  --glass-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.2), 0 10px 30px rgba(0, 0, 0, 0.35),
+    0 30px 70px rgba(0, 0, 0, 0.45);
+  --glass-blur: 22px;
+  --glass-saturate: 140%;
+
+  --field-bg: rgba(20, 22, 31, 0.5);
+  --field-border: rgba(255, 255, 255, 0.12);
+  --focus-ring: rgba(214, 184, 122, 0.5);
+}
+
+/* ---- Base ---------------------------------------------------------------- */
+* {
+  border-color: var(--glass-border);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+  overflow-x: hidden;
+}
+
+::selection {
+  background: var(--color-gold-300);
+  color: var(--text-onGold);
+}
+
+/* Accessible focus — champagne ring, never removed */
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* ---- Liquid glass utilities --------------------------------------------- */
+@layer components {
+  .glass {
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur))
+      saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-glass);
+    box-shadow: var(--glass-shadow);
+  }
+
+  /* Bright thin top highlight edge — the "liquid" light on glass. */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      to bottom,
+      var(--glass-edge),
+      transparent 40%,
+      transparent 85%,
+      var(--glass-inner-shadow)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .glass-strong {
+    background: var(--glass-bg-strong);
+  }
+
+  .glass-soft {
+    background: var(--glass-bg-soft);
+  }
+
+  /* Content above the ::before highlight layer */
+  .glass > * {
+    position: relative;
+    z-index: 2;
+  }
+}
+
+/* ---- Motion preferences -------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Utility: text that breathes */
+.text-strong {
+  color: var(--text-strong);
+}
+.text-body {
+  color: var(--text-body);
+}
+.text-muted {
+  color: var(--text-muted);
+}

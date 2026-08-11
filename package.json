@@ -1,0 +1,58 @@
+{
+  "name": "renew",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Renew — a calm, premium life-companion that makes sure you never lose money, documents, or peace of mind by forgetting a renewal. By Zap.",
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint . --max-warnings=0",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@react-three/drei": "10.7.8",
+    "@react-three/fiber": "9.7.0",
+    "@tanstack/react-query": "5.101.4",
+    "clsx": "^2.1.1",
+    "cloudinary": "2.10.0",
+    "date-fns": "4.4.0",
+    "date-fns-tz": "^3.2.0",
+    "firebase": "12.17.1",
+    "firebase-admin": "^13.6.0",
+    "framer-motion": "13.0.0",
+    "lucide-react": "1.30.0",
+    "next": "16.3.0",
+    "posthog-js": "1.414.0",
+    "react": "19.2.8",
+    "react-dom": "19.2.8",
+    "react-hook-form": "7.84.0",
+    "resend": "^6.1.2",
+    "stripe": "^19.1.0",
+    "tailwind-merge": "^3.3.1",
+    "three": "^0.185.0",
+    "zod": "4.4.3",
+    "zustand": "5.0.14"
+  },
+  "devDependencies": {
+    "@sentry/nextjs": "^10.19.0",
+    "@tailwindcss/postcss": "4.3.3",
+    "@types/node": "20.19.43",
+    "@types/react": "19.2.18",
+    "@types/react-dom": "19.2.4",
+    "@types/three": "0.185.4",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.0",
+    "postcss": "8.5.26",
+    "prettier": "3.9.6",
+    "tailwindcss": "4.3.3",
+    "typescript": "5.9.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
