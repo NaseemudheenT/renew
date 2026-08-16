@@ -27,3 +27,22 @@ export function clamp(value: number, min: number, max: number): number {
 export function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
+
+/** Human-readable file size, e.g. 1.4 MB. */
+export function formatBytes(bytes: number): string {
+  if (!bytes) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  const i = Math.min(
+    units.length - 1,
+    Math.floor(Math.log(bytes) / Math.log(1024)),
+  );
+  const value = bytes / Math.pow(1024, i);
+  return `${value.toFixed(value < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
+}
+
+/** True if the format/extension is a previewable image. */
+export function isImageFormat(format: string): boolean {
+  return ["jpg", "jpeg", "png", "gif", "webp", "avif", "svg", "heic"].includes(
+    format.toLowerCase(),
+  );
+}
