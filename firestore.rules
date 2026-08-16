@@ -1,0 +1,30 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // A user's own profile. Server (Admin SDK) bypasses these rules for
+    // trusted writes like flipping `onboarded` / `emailVerified`.
+    match /users/{uid} {
+      allow read: if isOwner(uid);
+      // Clients may create/update their profile but never forge verification.
+      allow create, update: if isOwner(uid);
+      allow delete: if false;
+
+      // All personal data is nested under the owner's document.
+      match /{collection}/{docId} {
+        allow read, write: if isOwner(uid)
+          && collection in ['reminders', 'tasks', 'documents', 'payments', 'notifications'];
+      }
+    }
+
+    // OTP codes are written/read only by the server (Admin SDK). Deny clients.
+    match /emailOtps/{uid} {
+      allow read, write: if false;
+    }
+  }
+}
