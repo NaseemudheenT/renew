@@ -1,6 +1,7 @@
-import { BarChart3 } from "lucide-react";
-import { ComingTogether } from "@/components/ui/ComingTogether";
+import { AnalyticsView } from "./AnalyticsView";
+
 export const dynamic = "force-dynamic";
-export default function Page() {
-  return <ComingTogether title="Analytics" icon={BarChart3} note="A simple, useful view of your life-management activity arrives soon." />;
+
+export default function AnalyticsPage() {
+  return <AnalyticsView />;
 }
