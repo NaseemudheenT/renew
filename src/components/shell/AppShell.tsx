@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { TopBar } from "./TopBar";
+import { NotificationSync } from "./NotificationSync";
 import type { ShellUser } from "./shell-types";
 
 /**
@@ -20,6 +21,7 @@ export function AppShell({
 }) {
   return (
     <div className="min-h-dvh lg:pl-64">
+      <NotificationSync />
       <Sidebar user={user} />
       <div className="flex min-h-dvh flex-col">
         <TopBar user={user} />

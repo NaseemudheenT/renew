@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Bell, Check, Bell as BellIcon } from "lucide-react";
 import { orderBy, limit } from "firebase/firestore";
@@ -134,6 +135,14 @@ export function NotificationBell() {
                 ))
               )}
             </div>
+
+            <Link
+              href="/notifications"
+              onClick={() => setOpen(false)}
+              className="border-t border-[var(--glass-border)] px-4 py-2.5 text-center text-xs font-medium text-[var(--color-gold-600)] hover:bg-[var(--glass-bg-soft)]"
+            >
+              See all notifications
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
