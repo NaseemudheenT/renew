@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Inter, Jost } from "next/font/google";
 import { Providers } from "@/components/providers/Providers";
+import { AtmosphericBackground } from "@/components/environment/AtmosphericBackground";
 import { themeNoFlashScript } from "@/lib/theme";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
@@ -54,6 +55,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Renew",
+    statusBarStyle: "black-translucent",
   },
 };
 
@@ -77,6 +84,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeNoFlashScript }} />
       </head>
       <body className={`${inter.variable} ${jost.variable} antialiased`}>
+        <AtmosphericBackground />
         <Providers>{children}</Providers>
       </body>
     </html>

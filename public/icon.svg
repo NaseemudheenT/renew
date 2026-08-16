@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Renew">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512">
+      <stop offset="0" stop-color="#1b1e2b"/>
+      <stop offset="1" stop-color="#14161f"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="150" y1="120" x2="380" y2="400">
+      <stop offset="0" stop-color="#F3DCA4"/>
+      <stop offset="0.55" stop-color="#C6A15B"/>
+      <stop offset="1" stop-color="#A5824A"/>
+    </linearGradient>
+  </defs>
+  <!-- Full-bleed background for maskable safe area -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <g transform="translate(106 106) scale(3)" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <circle cx="50" cy="50" r="33" stroke="url(#gold)" stroke-width="7"
+      stroke-dasharray="171 36" stroke-dashoffset="103" transform="rotate(90 50 50)"/>
+    <path d="M35 51 L45.5 61.5 L76 24" stroke="url(#gold)" stroke-width="7.5"/>
+  </g>
+</svg>
