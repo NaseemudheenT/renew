@@ -29,6 +29,12 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 
+# service-account keys (never commit)
+*service-account*.json
+service-account.json
+serviceAccount*.json
+*firebase-adminsdk*.json
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
