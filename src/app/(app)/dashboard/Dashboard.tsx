@@ -67,6 +67,18 @@ export function Dashboard({ firstName }: { firstName: string }) {
     () => [...payments.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 5),
     [payments.data],
   );
+  const topTasks = useMemo(
+    () =>
+      [...tasks.data]
+        .sort((a, b) => {
+          if (a.dueAt != null && b.dueAt != null) return a.dueAt - b.dueAt;
+          if (a.dueAt != null) return -1;
+          if (b.dueAt != null) return 1;
+          return b.order - a.order;
+        })
+        .slice(0, 5),
+    [tasks.data],
+  );
 
   const totalItems =
     reminders.data.length +
@@ -197,6 +209,21 @@ export function Dashboard({ firstName }: { firstName: string }) {
 
               <StaggerItem>
                 <GlassCard padded className="h-full">
+                  <SectionHeading title="Tasks" href="/tasks" count={topTasks.length} />
+                  {topTasks.length === 0 ? (
+                    <EmptyState compact icon={ListTodo} title="No active tasks" />
+                  ) : (
+                    <ul className="mt-3 flex flex-col gap-2">
+                      {topTasks.map((t) => (
+                        <TaskRow key={t.id} task={t} />
+                      ))}
+                    </ul>
+                  )}
+                </GlassCard>
+              </StaggerItem>
+
+              <StaggerItem className="lg:col-span-2">
+                <GlassCard padded className="h-full">
                   <SectionHeading title="Payments" href="/payments" />
                   {sortedPayments.length === 0 ? (
                     <EmptyState compact icon={Wallet} title="No payments tracked" />
@@ -301,6 +328,26 @@ function ReminderRow({ reminder }: { reminder: Reminder }) {
           {overdue && <AlertCircle className="size-3.5" />}
           {dueLabel(reminder.dueAt, reminder.hasTime)}
         </span>
+      </Link>
+    </li>
+  );
+}
+
+function TaskRow({ task }: { task: Task }) {
+  const overdue = task.dueAt != null && isOverdue(task.dueAt);
+  return (
+    <li>
+      <Link
+        href="/tasks"
+        className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3 transition-colors hover:border-[var(--focus-ring)]/50"
+      >
+        <span className="size-2 shrink-0 rounded-full bg-sky-400" />
+        <span className="text-body min-w-0 flex-1 truncate text-sm">{task.title}</span>
+        {task.dueAt != null && (
+          <span className={cn("text-xs", overdue ? "text-rose-500" : "text-[var(--text-muted)]")}>
+            {dueLabel(task.dueAt)}
+          </span>
+        )}
       </Link>
     </li>
   );
