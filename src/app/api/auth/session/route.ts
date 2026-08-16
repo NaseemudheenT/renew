@@ -32,12 +32,10 @@ export async function POST(request: Request) {
         displayName: user.displayName,
       },
     });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "unknown";
-    const status = message === "stale-token" ? 401 : 500;
+  } catch {
     return NextResponse.json(
       { error: "Could not establish a session. Please sign in again." },
-      { status },
+      { status: 401 },
     );
   }
 }

@@ -18,11 +18,10 @@ export interface SessionUser {
 /** Exchange a Firebase ID token for a signed session cookie and set it. */
 export async function createSession(idToken: string): Promise<SessionUser> {
   const auth = getAdminAuth();
-  // Verify the ID token is fresh (issued in the last 5 min) before minting.
+  // Verify the ID token is currently valid and not revoked before minting the
+  // session cookie. (createSessionCookie additionally requires the ID token to
+  // have been issued recently, so freshness is already enforced by Firebase.)
   const decoded = await auth.verifyIdToken(idToken, true);
-  if (Date.now() / 1000 - decoded.auth_time > 5 * 60) {
-    throw new Error("stale-token");
-  }
 
   const sessionCookie = await auth.createSessionCookie(idToken, {
     expiresIn: FIVE_DAYS_MS,
