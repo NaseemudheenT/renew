@@ -1,6 +1,7 @@
-import { Settings } from "lucide-react";
-import { ComingTogether } from "@/components/ui/ComingTogether";
+import { SettingsView } from "./SettingsView";
+
 export const dynamic = "force-dynamic";
-export default function Page() {
-  return <ComingTogether title="Settings" icon={Settings} note="Profile, appearance, notifications, security and billing arrive soon." />;
+
+export default function SettingsPage() {
+  return <SettingsView />;
 }

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { orderBy, limit } from "firebase/firestore";
 import { useUserCollection } from "@/hooks/useUserCollection";
+import { useUserProfile, DEFAULT_NOTIFICATION_PREFS } from "@/hooks/useUserProfile";
 import {
   computeDesired,
   createMissingNotifications,
@@ -35,6 +36,12 @@ export function NotificationSync() {
     notifConstraints,
   );
 
+  const { profile } = useUserProfile();
+  const prefs = useMemo(
+    () => profile?.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS,
+    [profile?.notificationPrefs],
+  );
+
   const attempted = useRef<Set<string>>(new Set());
 
   const anyLoading =
@@ -48,12 +55,15 @@ export function NotificationSync() {
     const uid = reminders.uid;
     if (!uid || anyLoading) return;
 
-    const desired = computeDesired({
-      reminders: reminders.data,
-      tasks: tasks.data,
-      payments: payments.data,
-      documents: documents.data,
-    });
+    const desired = computeDesired(
+      {
+        reminders: reminders.data,
+        tasks: tasks.data,
+        payments: payments.data,
+        documents: documents.data,
+      },
+      prefs,
+    );
 
     // Skip ids already present or already attempted this session.
     const existingIds = new Set(notifications.data.map((n) => n.id));
@@ -77,6 +87,7 @@ export function NotificationSync() {
     payments.data,
     documents.data,
     notifications.data,
+    prefs,
   ]);
 
   return null;

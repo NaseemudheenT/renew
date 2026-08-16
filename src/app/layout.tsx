@@ -55,6 +55,12 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [{ url: "/icon.svg" }],
+  },
+  appleWebApp: {
+    capable: true,
+    title: "Renew",
+    statusBarStyle: "black-translucent",
   },
 };
 
