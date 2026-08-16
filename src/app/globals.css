@@ -34,16 +34,17 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* Cinematic background — warm pearl / ivory daylight (never pure white). */
-  --bg-base: #efe8dc;
-  --bg-tint-1: #f6f0e6; /* warm ivory highlight */
-  --bg-tint-2: #ece2d2; /* soft sand */
-  --bg-tint-3: #e7ddef; /* faint cool lavender for depth */
-  --bokeh-1: rgba(224, 196, 140, 0.55); /* warm gold light pool */
-  --bokeh-2: rgba(240, 226, 205, 0.7); /* soft daylight pool */
-  --bokeh-3: rgba(206, 190, 214, 0.42); /* cool depth pool */
+  /* Cinematic background — warm champagne-gold daylight (never pure white).
+     A golden, premium light world that echoes the dark champagne-gold night. */
+  --bg-base: #ede2ca; /* warm champagne */
+  --bg-tint-1: #f5ecd8; /* golden highlight */
+  --bg-tint-2: #e8dcc0; /* soft sand-gold */
+  --bg-tint-3: #efe4c9; /* warm gold depth (replaces cool lavender) */
+  --bokeh-1: rgba(214, 176, 104, 0.52); /* champagne gold pool */
+  --bokeh-2: rgba(238, 220, 176, 0.6); /* soft golden daylight */
+  --bokeh-3: rgba(206, 174, 116, 0.4); /* warm gold depth */
   --grain-opacity: 0.05;
-  --vignette: rgba(120, 100, 70, 0.14);
+  --vignette: rgba(120, 92, 50, 0.16);
 
   /* Text */
   --text-strong: #2a2a2e;
@@ -85,37 +86,39 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Cinematic background — deep warm charcoal-navy (NOT space black),
-     with warm champagne light pools glowing through, like lights in fog. */
-  --bg-base: #14161f;
-  --bg-tint-1: #1b1e2b; /* warm navy lift */
-  --bg-tint-2: #191b26; /* charcoal */
-  --bg-tint-3: #221d24; /* faint warm plum */
-  --bokeh-1: rgba(198, 161, 91, 0.28); /* warm gold light pool */
-  --bokeh-2: rgba(120, 118, 150, 0.22); /* cool moonlight pool */
-  --bokeh-3: rgba(150, 110, 80, 0.2); /* warm amber pool */
+  /* Cinematic background — deep champagne-gold / bronze night. A very dark warm
+     gold-black base with muted champagne light pools glowing through. Premium
+     and subtle — never bright yellow, orange, or neon. */
+  --bg-base: #17130a; /* deep warm gold-black */
+  --bg-tint-1: #221a0c; /* warm bronze lift */
+  --bg-tint-2: #1b1608; /* espresso gold */
+  --bg-tint-3: #251c0d; /* faint amber depth */
+  --bokeh-1: rgba(198, 161, 91, 0.3); /* champagne gold pool */
+  --bokeh-2: rgba(150, 112, 55, 0.22); /* deep amber pool */
+  --bokeh-3: rgba(224, 196, 140, 0.16); /* soft gold light */
   --grain-opacity: 0.06;
-  --vignette: rgba(0, 0, 0, 0.4);
+  --vignette: rgba(0, 0, 0, 0.5);
 
-  --text-strong: #f2ede3;
-  --text-body: #cec8bd;
-  --text-muted: #8f897d;
+  --text-strong: #f4efe3;
+  --text-body: #d3ccbb;
+  --text-muted: #948b76;
   --text-onGold: #201804;
 
-  --glass-bg: rgba(38, 42, 56, 0.46);
-  --glass-bg-strong: rgba(44, 49, 66, 0.62);
-  --glass-bg-soft: rgba(38, 42, 56, 0.28);
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --glass-edge: rgba(255, 255, 255, 0.22); /* bright top highlight */
-  --glass-inner-shadow: rgba(0, 0, 0, 0.25);
+  /* Warm charcoal-gold glass so surfaces sit naturally on the gold-black world */
+  --glass-bg: rgba(46, 40, 27, 0.5);
+  --glass-bg-strong: rgba(54, 46, 30, 0.64);
+  --glass-bg-soft: rgba(46, 40, 27, 0.3);
+  --glass-border: rgba(255, 240, 210, 0.14);
+  --glass-edge: rgba(255, 244, 216, 0.24); /* warm top highlight */
+  --glass-inner-shadow: rgba(0, 0, 0, 0.28);
   --glass-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.2), 0 10px 30px rgba(0, 0, 0, 0.35),
-    0 30px 70px rgba(0, 0, 0, 0.45);
+    0 1px 1px rgba(0, 0, 0, 0.22), 0 10px 30px rgba(0, 0, 0, 0.38),
+    0 30px 70px rgba(0, 0, 0, 0.5);
   --glass-blur: 22px;
-  --glass-saturate: 140%;
+  --glass-saturate: 145%;
 
-  --field-bg: rgba(20, 22, 31, 0.5);
-  --field-border: rgba(255, 255, 255, 0.14);
+  --field-bg: rgba(28, 23, 13, 0.5);
+  --field-border: rgba(255, 240, 210, 0.16);
   --focus-ring: rgba(214, 184, 122, 0.5);
 
   /* Brand — bright champagne on the dark night world */

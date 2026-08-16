@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Settings, LogOut, ChevronDown } from "lucide-react";
 import { Avatar } from "./Avatar";
 import type { ShellUser } from "./shell-types";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { signOutUser } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 
@@ -84,11 +83,6 @@ export function AccountMenu({
             </div>
 
             <div className="my-1 h-px bg-[var(--glass-border)]" />
-
-            <div className="flex items-center justify-between px-3 py-2">
-              <span className="text-body text-sm">Theme</span>
-              <ThemeToggle />
-            </div>
 
             <Link
               href="/settings"
