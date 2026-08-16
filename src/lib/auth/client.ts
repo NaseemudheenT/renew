@@ -5,6 +5,7 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   GoogleAuthProvider,
+  OAuthProvider,
   updateProfile,
   sendPasswordResetEmail,
   signOut,
@@ -22,7 +23,11 @@ const ERROR_MESSAGES: Record<string, string> = {
   "auth/invalid-credential": "That email or password isn't right.",
   "auth/too-many-requests": "Too many attempts. Please try again shortly.",
   "auth/popup-closed-by-user": "Sign-in was cancelled.",
+  "auth/cancelled-popup-request": "Sign-in was cancelled.",
+  "auth/popup-blocked": "Your browser blocked the sign-in popup. Allow popups and try again.",
   "auth/network-request-failed": "Network error. Check your connection.",
+  "auth/operation-not-allowed":
+    "Apple sign-in isn't enabled for this project yet.",
   "auth/account-exists-with-different-credential":
     "This email is already linked to a different sign-in method.",
 };
@@ -97,6 +102,26 @@ export async function signInWithGoogle(): Promise<void> {
   const auth = getFirebaseAuth();
   const provider = new GoogleAuthProvider();
   provider.setCustomParameters({ prompt: "select_account" });
+  try {
+    const { user } = await signInWithPopup(auth, provider);
+    await establishSession(user, true);
+  } catch (err) {
+    throw toAuthError(err);
+  }
+}
+
+/**
+ * Sign in with Apple via Firebase's generic OAuth provider ("apple.com").
+ * Requires the Apple provider to be enabled in Firebase Auth (Service ID, Apple
+ * Team ID, Key ID and private key) — see the config note reported to the owner.
+ * When it isn't enabled Firebase returns `auth/operation-not-allowed`, which we
+ * surface as a clear message rather than a crash.
+ */
+export async function signInWithApple(): Promise<void> {
+  const auth = getFirebaseAuth();
+  const provider = new OAuthProvider("apple.com");
+  provider.addScope("email");
+  provider.addScope("name");
   try {
     const { user } = await signInWithPopup(auth, provider);
     await establishSession(user, true);

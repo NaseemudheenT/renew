@@ -35,15 +35,17 @@ export function RenewMark({
       xmlns="http://www.w3.org/2000/svg"
     >
       <defs>
+        {/* Theme-aware champagne: deeper in light so it isn't washed out on
+            the ivory background, bright on the dark night world. */}
         <linearGradient id={gold} x1="22" y1="14" x2="80" y2="88">
-          <stop offset="0" stopColor="#F3DCA4" />
-          <stop offset="0.35" stopColor="#E4C88A" />
-          <stop offset="0.7" stopColor="#C6A15B" />
-          <stop offset="1" stopColor="#A5824A" />
+          <stop offset="0" stopColor="var(--mark-gold-1, #F3DCA4)" />
+          <stop offset="0.35" stopColor="var(--mark-gold-2, #E4C88A)" />
+          <stop offset="0.7" stopColor="var(--mark-gold-3, #C6A15B)" />
+          <stop offset="1" stopColor="var(--mark-gold-4, #A5824A)" />
         </linearGradient>
         <linearGradient id={goldSoft} x1="30" y1="20" x2="72" y2="82">
-          <stop offset="0" stopColor="#F6E6BE" />
-          <stop offset="1" stopColor="#C9A45E" />
+          <stop offset="0" stopColor="var(--mark-gold-2, #F6E6BE)" />
+          <stop offset="1" stopColor="var(--mark-gold-4, #C9A45E)" />
         </linearGradient>
         <filter id={glow} x="-40%" y="-40%" width="180%" height="180%">
           <feGaussianBlur stdDeviation="1.1" result="b" />

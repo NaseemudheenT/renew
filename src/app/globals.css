@@ -46,9 +46,9 @@
   --vignette: rgba(120, 100, 70, 0.14);
 
   /* Text */
-  --text-strong: #2b2b2f;
-  --text-body: #4a4741;
-  --text-muted: #7c7669;
+  --text-strong: #2a2a2e;
+  --text-body: #454239;
+  --text-muted: #6b6458; /* darkened for AA contrast on the ivory background */
   --text-onGold: #2a2113;
 
   /* Liquid glass */
@@ -65,8 +65,21 @@
   --glass-saturate: 150%;
 
   --field-bg: rgba(255, 255, 255, 0.55);
-  --field-border: rgba(140, 120, 85, 0.22);
-  --focus-ring: rgba(198, 161, 91, 0.55);
+  --field-border: rgba(120, 100, 70, 0.34); /* stronger so inputs read clearly */
+  --focus-ring: rgba(180, 140, 70, 0.6);
+
+  /* Brand — deeper champagne in light so the mark & wordmark never wash out */
+  --mark-gold-1: #dcb96f;
+  --mark-gold-2: #c6a15b;
+  --mark-gold-3: #a5824a;
+  --mark-gold-4: #7d6035;
+  --wordmark-from: #b58f4c;
+  --wordmark-to: #77592e;
+
+  /* Liquid-glass primary button */
+  --glass-gold-hi: rgba(224, 196, 140, 0.36);
+  --glass-gold-lo: rgba(165, 130, 74, 0.2);
+  --btn-gold-text: #6a5225;
 }
 
 :root[data-theme="dark"] {
@@ -102,8 +115,21 @@
   --glass-saturate: 140%;
 
   --field-bg: rgba(20, 22, 31, 0.5);
-  --field-border: rgba(255, 255, 255, 0.12);
+  --field-border: rgba(255, 255, 255, 0.14);
   --focus-ring: rgba(214, 184, 122, 0.5);
+
+  /* Brand — bright champagne on the dark night world */
+  --mark-gold-1: #f3dca4;
+  --mark-gold-2: #e4c88a;
+  --mark-gold-3: #c6a15b;
+  --mark-gold-4: #a5824a;
+  --wordmark-from: #f4e9cf;
+  --wordmark-to: #d0a959;
+
+  /* Liquid-glass primary button */
+  --glass-gold-hi: rgba(233, 211, 163, 0.22);
+  --glass-gold-lo: rgba(198, 161, 91, 0.14);
+  --btn-gold-text: #f4e9cf;
 }
 
 /* ---- Base ---------------------------------------------------------------- */
@@ -178,6 +204,16 @@ body {
 
   .glass-soft {
     background: var(--glass-bg-soft);
+  }
+
+  /* Champagne liquid-glass — the primary action. Translucent + blurred (from
+     .glass) with a subtle gold tint layered over it and readable gold text.
+     Theme-aware via the --glass-gold-* / --btn-gold-text tokens. */
+  .glass-primary {
+    background:
+      linear-gradient(to bottom, var(--glass-gold-hi), var(--glass-gold-lo)),
+      var(--glass-bg-strong);
+    color: var(--btn-gold-text);
   }
 
   /* Content above the ::before highlight layer */

@@ -8,11 +8,11 @@ import { Mail, Lock, AlertCircle, CheckCircle2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { AnimatedButton, FadeScale } from "@/components/motion";
-import { GoogleIcon } from "@/components/brand/GoogleIcon";
+import { AppleIcon } from "@/components/brand/AppleIcon";
 import { SetupNotice } from "@/components/auth/SetupNotice";
 import {
   signInWithEmail,
-  signInWithGoogle,
+  signInWithApple,
   resetPassword,
   AuthError,
 } from "@/lib/auth/client";
@@ -26,7 +26,7 @@ export default function SignInPage() {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -45,15 +45,15 @@ export default function SignInPage() {
     }
   }
 
-  async function onGoogle() {
+  async function onApple() {
     setFormError(null);
-    setGoogleLoading(true);
+    setAppleLoading(true);
     try {
-      await signInWithGoogle();
+      await signInWithApple();
       router.replace("/dashboard");
     } catch (err) {
       setFormError(err instanceof AuthError ? err.message : "Something went wrong.");
-      setGoogleLoading(false);
+      setAppleLoading(false);
     }
   }
 
@@ -98,12 +98,12 @@ export default function SignInPage() {
 
         <button
           type="button"
-          onClick={onGoogle}
-          disabled={googleLoading || isSubmitting}
-          className="glass !rounded-full mt-5 flex h-11 w-full items-center justify-center gap-3 text-[0.95rem] font-medium text-[var(--text-strong)] transition-all hover:-translate-y-px disabled:opacity-55"
+          onClick={onApple}
+          disabled={appleLoading || isSubmitting}
+          className="glass !rounded-full mt-5 flex h-11 w-full items-center justify-center gap-2.5 text-[0.95rem] font-medium text-[var(--text-strong)] transition-all hover:-translate-y-px disabled:opacity-55"
         >
-          <GoogleIcon className="size-5" />
-          Continue with Google
+          <AppleIcon className="size-[1.15rem]" />
+          Continue with Apple
         </button>
 
         <div className="my-5 flex items-center gap-3 text-xs text-[var(--text-muted)]">
@@ -145,7 +145,7 @@ export default function SignInPage() {
             </button>
           </div>
           <AnimatedButton type="submit" size="lg" fullWidth loading={isSubmitting}>
-            Sign in
+            Continue with Email
           </AnimatedButton>
         </form>
 

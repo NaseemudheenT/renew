@@ -8,12 +8,12 @@ import { User as UserIcon, Mail, Lock, AlertCircle } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { AnimatedButton } from "@/components/motion";
-import { GoogleIcon } from "@/components/brand/GoogleIcon";
+import { AppleIcon } from "@/components/brand/AppleIcon";
 import { SetupNotice } from "@/components/auth/SetupNotice";
 import { FadeScale } from "@/components/motion";
 import {
   signUpWithEmail,
-  signInWithGoogle,
+  signInWithApple,
   requestOtp,
   AuthError,
 } from "@/lib/auth/client";
@@ -27,7 +27,7 @@ interface FormValues {
 export default function SignUpPage() {
   const router = useRouter();
   const [formError, setFormError] = useState<string | null>(null);
-  const [googleLoading, setGoogleLoading] = useState(false);
+  const [appleLoading, setAppleLoading] = useState(false);
   const {
     register,
     handleSubmit,
@@ -45,15 +45,15 @@ export default function SignUpPage() {
     }
   }
 
-  async function onGoogle() {
+  async function onApple() {
     setFormError(null);
-    setGoogleLoading(true);
+    setAppleLoading(true);
     try {
-      await signInWithGoogle();
+      await signInWithApple();
       router.replace("/onboarding");
     } catch (err) {
       setFormError(err instanceof AuthError ? err.message : "Something went wrong.");
-      setGoogleLoading(false);
+      setAppleLoading(false);
     }
   }
 
@@ -78,12 +78,12 @@ export default function SignUpPage() {
 
         <button
           type="button"
-          onClick={onGoogle}
-          disabled={googleLoading || isSubmitting}
-          className="glass !rounded-full mt-5 flex h-11 w-full items-center justify-center gap-3 text-[0.95rem] font-medium text-[var(--text-strong)] transition-all hover:-translate-y-px disabled:opacity-55"
+          onClick={onApple}
+          disabled={appleLoading || isSubmitting}
+          className="glass !rounded-full mt-5 flex h-11 w-full items-center justify-center gap-2.5 text-[0.95rem] font-medium text-[var(--text-strong)] transition-all hover:-translate-y-px disabled:opacity-55"
         >
-          <GoogleIcon className="size-5" />
-          Continue with Google
+          <AppleIcon className="size-[1.15rem]" />
+          Continue with Apple
         </button>
 
         <div className="my-5 flex items-center gap-3 text-xs text-[var(--text-muted)]">

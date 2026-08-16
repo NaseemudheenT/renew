@@ -1,73 +1,50 @@
+"use client";
+
 import Link from "next/link";
+import { motion, useReducedMotion } from "framer-motion";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
-import {
-  StaggerContainer,
-  StaggerItem,
-  AnimatedButton,
-} from "@/components/motion";
 
 /**
- * The Renew entry — a calm, cinematic first impression. Auth wiring arrives in
- * Part 2; the "Begin" action already points at the (upcoming) sign-in route.
+ * The Renew entry — a single, calm, cinematic first impression: the mark, the
+ * wordmark, nothing else. Tapping the logo enters the login flow.
  */
 export default function Home() {
+  const reduced = useReducedMotion();
+
   return (
-    <main className="relative flex min-h-dvh flex-col items-center justify-center gap-12 p-6">
-      <div className="absolute right-5 top-5 sm:right-8 sm:top-8">
-        <ThemeToggle />
-      </div>
-
-      <StaggerContainer
-        className="flex max-w-xl flex-col items-center gap-7 text-center"
-        stagger={0.12}
-        delayChildren={0.15}
+    <main className="flex min-h-dvh items-center justify-center p-6">
+      <Link
+        href="/sign-in"
+        aria-label="Enter Renew"
+        className="group flex flex-col items-center gap-7 rounded-3xl px-6 py-8 outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
       >
-        <StaggerItem>
-          <RenewMark size={120} className="drop-shadow-[0_8px_30px_rgba(160,120,50,0.25)]" />
-        </StaggerItem>
+        {/* Mark — gently breathing to signal it's alive & tappable */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <motion.div
+            animate={reduced ? undefined : { y: [0, -6, 0] }}
+            transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+            className="transition-transform duration-500 ease-[var(--ease-calm)] group-hover:scale-105 group-active:scale-95"
+          >
+            <RenewMark
+              size={148}
+              className="drop-shadow-[0_10px_36px_rgba(150,110,45,0.28)]"
+            />
+          </motion.div>
+        </motion.div>
 
-        <StaggerItem>
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.35, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+        >
           <Wordmark sizeClassName="text-4xl sm:text-5xl" />
-        </StaggerItem>
-
-        <StaggerItem>
-          <h1 className="text-strong text-balance text-2xl font-light leading-snug sm:text-3xl">
-            Never lose money, documents, or peace of mind
-            <br className="hidden sm:block" /> to a forgotten renewal.
-          </h1>
-        </StaggerItem>
-
-        <StaggerItem>
-          <p className="text-muted mx-auto max-w-md text-balance text-base leading-relaxed">
-            Renew is a calm companion for life&apos;s commitments — passports,
-            insurance, licenses, subscriptions and bills — so the important
-            things simply never slip.
-          </p>
-        </StaggerItem>
-
-        <StaggerItem className="mt-2 flex flex-col items-center gap-3 sm:flex-row">
-          <Link href="/sign-up" aria-label="Create your Renew account">
-            <AnimatedButton size="lg">Begin</AnimatedButton>
-          </Link>
-          <Link href="/sign-in" aria-label="Sign in to Renew">
-            <AnimatedButton size="lg" variant="glass">
-              I already have an account
-            </AnimatedButton>
-          </Link>
-        </StaggerItem>
-      </StaggerContainer>
-
-      <footer className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-4 text-xs text-[var(--text-muted)]">
-        <Link href="/privacy" className="hover:text-[var(--text-strong)]">
-          Privacy
-        </Link>
-        <span aria-hidden="true">·</span>
-        <Link href="/terms" className="hover:text-[var(--text-strong)]">
-          Terms
-        </Link>
-      </footer>
+        </motion.div>
+      </Link>
     </main>
   );
 }
