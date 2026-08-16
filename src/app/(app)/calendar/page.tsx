@@ -1,6 +1,7 @@
-import { Calendar } from "lucide-react";
-import { ComingTogether } from "@/components/ui/ComingTogether";
+import { CalendarView } from "./CalendarView";
+
 export const dynamic = "force-dynamic";
-export default function Page() {
-  return <ComingTogether title="Calendar" icon={Calendar} note="A calm month and day view of your reminders and events arrives next." />;
+
+export default function CalendarPage() {
+  return <CalendarView />;
 }
