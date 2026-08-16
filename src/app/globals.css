@@ -209,3 +209,47 @@ body {
 .text-muted {
   color: var(--text-muted);
 }
+
+/* ---- Long-form / legal prose -------------------------------------------- */
+.prose-renew h1 {
+  color: var(--text-strong);
+  font-size: 1.75rem;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+.prose-renew h2 {
+  color: var(--text-strong);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+.prose-renew p,
+.prose-renew li {
+  color: var(--text-body);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+.prose-renew p {
+  margin-top: 0.75rem;
+}
+.prose-renew ul {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.prose-renew li {
+  margin-top: 0.35rem;
+}
+.prose-renew a {
+  color: var(--color-gold-600);
+  text-decoration: underline;
+}
+.prose-renew .lead {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.prose-renew strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}

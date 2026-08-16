@@ -9,6 +9,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { AnimatedButton } from "@/components/motion";
 import { GoogleIcon } from "@/components/brand/GoogleIcon";
+import { SetupNotice } from "@/components/auth/SetupNotice";
 import { FadeScale } from "@/components/motion";
 import {
   signUpWithEmail,
@@ -60,9 +61,10 @@ export default function SignUpPage() {
     <FadeScale>
       <GlassCard padded>
         <h1 className="text-strong text-xl font-medium">Create your account</h1>
-        <p className="text-muted mt-1 text-sm">
+        <p className="text-muted mt-1 mb-4 text-sm">
           Start keeping life&apos;s renewals in one calm place.
         </p>
+        <SetupNotice />
 
         {formError && (
           <div

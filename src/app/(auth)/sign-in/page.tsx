@@ -9,6 +9,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { AnimatedButton, FadeScale } from "@/components/motion";
 import { GoogleIcon } from "@/components/brand/GoogleIcon";
+import { SetupNotice } from "@/components/auth/SetupNotice";
 import {
   signInWithEmail,
   signInWithGoogle,
@@ -76,7 +77,8 @@ export default function SignInPage() {
     <FadeScale>
       <GlassCard padded>
         <h1 className="text-strong text-xl font-medium">Welcome back</h1>
-        <p className="text-muted mt-1 text-sm">Sign in to pick up where you left off.</p>
+        <p className="text-muted mt-1 mb-4 text-sm">Sign in to pick up where you left off.</p>
+        <SetupNotice />
 
         {formError && (
           <div

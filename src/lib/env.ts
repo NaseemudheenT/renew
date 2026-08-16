@@ -32,10 +32,21 @@ export const publicEnv = {
   stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
 } as const;
 
-/** Is a public config value present and non-empty? */
+/** True if a value is missing or an obvious placeholder. */
+function isPlaceholder(value: string): boolean {
+  if (!value) return true;
+  return /placeholder|your-|example|changeme|xxxx/i.test(value);
+}
+
+/** Is the Firebase config present with real (non-placeholder) values? */
 export function hasFirebaseConfig(): boolean {
   const f = publicEnv.firebase;
-  return Boolean(f.apiKey && f.authDomain && f.projectId && f.appId);
+  return (
+    !isPlaceholder(f.apiKey) &&
+    !isPlaceholder(f.authDomain) &&
+    !isPlaceholder(f.projectId) &&
+    !isPlaceholder(f.appId)
+  );
 }
 
 /**
