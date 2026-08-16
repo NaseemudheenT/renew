@@ -25,17 +25,17 @@ const sizes: Record<ButtonSize, string> = {
 };
 
 const variants: Record<ButtonVariant, string> = {
-  // Champagne gold — the primary, meaningful action.
+  // Champagne liquid-glass — the primary, meaningful action.
   primary:
-    "text-[var(--text-onGold)] shadow-[0_6px_20px_rgba(160,120,50,0.28)] " +
-    "bg-gradient-to-b from-gold-200 to-gold-400 hover:from-gold-100 hover:to-gold-300 " +
-    "hover:shadow-[0_10px_28px_rgba(160,120,50,0.34)]",
+    "glass glass-primary !rounded-full font-semibold " +
+    "hover:brightness-[1.06] hover:-translate-y-[1px]",
   glass:
     "glass !rounded-full text-[var(--text-strong)] hover:brightness-[1.04] " +
     "hover:-translate-y-[1px]",
   ghost:
     "text-[var(--text-body)] hover:text-[var(--text-strong)] " +
     "hover:bg-[var(--glass-bg-soft)]",
+  // Destructive stays solid for unmistakable, accessible signalling.
   danger:
     "text-white bg-gradient-to-b from-rose-400 to-rose-600 " +
     "hover:from-rose-300 hover:to-rose-500 shadow-[0_6px_20px_rgba(200,60,80,0.28)]",

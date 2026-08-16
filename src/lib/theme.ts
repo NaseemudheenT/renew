@@ -6,25 +6,26 @@ const THEME_EVENT = "renew-theme-change";
 /**
  * The inline script string injected before hydration to set the theme on
  * <html data-theme> so there is NO flash and NO hydration mismatch.
- * Light is the primary/default experience.
+ * The deep champagne-gold dark world is the primary/default experience;
+ * users can switch to light in Settings.
  */
 export const themeNoFlashScript = `
 (function () {
   try {
     var stored = localStorage.getItem("${THEME_STORAGE_KEY}");
-    var theme = stored === "dark" || stored === "light" ? stored : "light";
+    var theme = stored === "dark" || stored === "light" ? stored : "dark";
     document.documentElement.setAttribute("data-theme", theme);
   } catch (e) {
-    document.documentElement.setAttribute("data-theme", "light");
+    document.documentElement.setAttribute("data-theme", "dark");
   }
 })();
 `;
 
 /** Read the current theme from the DOM (source of truth after the script runs). */
 function readTheme(): Theme {
-  if (typeof document === "undefined") return "light";
+  if (typeof document === "undefined") return "dark";
   const attr = document.documentElement.getAttribute("data-theme");
-  return attr === "dark" ? "dark" : "light";
+  return attr === "light" ? "light" : "dark";
 }
 
 /** Apply + persist a theme and notify subscribers. */
@@ -62,5 +63,5 @@ export function getThemeSnapshot(): Theme {
 }
 
 export function getThemeServerSnapshot(): Theme {
-  return "light";
+  return "dark";
 }

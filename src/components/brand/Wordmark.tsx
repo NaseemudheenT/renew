@@ -18,11 +18,18 @@ export function Wordmark({
     <span
       className={cn(
         "font-brand font-light uppercase leading-none",
-        "bg-gradient-to-b from-gold-200 to-gold-500 bg-clip-text text-transparent",
+        "bg-clip-text text-transparent",
         sizeClassName,
         className,
       )}
-      style={{ letterSpacing: "0.42em", paddingLeft: "0.42em" }}
+      style={{
+        // Theme-aware champagne gradient: deeper in light (readable on ivory),
+        // bright in dark. Never washed out.
+        backgroundImage:
+          "linear-gradient(180deg, var(--wordmark-from), var(--wordmark-to))",
+        letterSpacing: "0.42em",
+        paddingLeft: "0.42em",
+      }}
     >
       Renew
     </span>

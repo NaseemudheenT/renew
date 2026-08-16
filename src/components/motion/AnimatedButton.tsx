@@ -30,12 +30,12 @@ const sizes: Record<Size, string> = {
 };
 
 const variants: Record<Variant, string> = {
-  primary:
-    "text-[var(--text-onGold)] shadow-[0_6px_20px_rgba(160,120,50,0.28)] " +
-    "bg-gradient-to-b from-gold-200 to-gold-400 hover:from-gold-100 hover:to-gold-300",
+  // Champagne liquid-glass — the primary, meaningful action.
+  primary: "glass glass-primary !rounded-full font-semibold hover:brightness-[1.06]",
   glass: "glass !rounded-full text-[var(--text-strong)]",
   ghost:
     "text-[var(--text-body)] hover:text-[var(--text-strong)] hover:bg-[var(--glass-bg-soft)]",
+  // Destructive stays solid for unmistakable, accessible signalling.
   danger:
     "text-white bg-gradient-to-b from-rose-400 to-rose-600 " +
     "hover:from-rose-300 hover:to-rose-500 shadow-[0_6px_20px_rgba(200,60,80,0.28)]",

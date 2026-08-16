@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
-import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 /** Readable, centered frame for legal/long-form content. */
 export default function LegalLayout({
@@ -11,9 +10,6 @@ export default function LegalLayout({
 }) {
   return (
     <div className="relative mx-auto min-h-dvh max-w-2xl px-5 py-10 sm:px-6">
-      <div className="absolute right-5 top-5 sm:right-6">
-        <ThemeToggle />
-      </div>
       <Link href="/" className="mb-8 flex items-center gap-2.5" aria-label="Renew home">
         <RenewMark size={34} />
         <Wordmark sizeClassName="text-lg" />
