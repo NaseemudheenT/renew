@@ -7,7 +7,11 @@ import {
   setPersistence,
   type Auth,
 } from "firebase/auth";
-import { getFirestore, type Firestore } from "firebase/firestore";
+import {
+  initializeFirestore,
+  getFirestore,
+  type Firestore,
+} from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
 import { publicEnv, hasFirebaseConfig } from "@/lib/env";
 
@@ -65,7 +69,16 @@ export function getFirebaseAuth(): Auth {
 
 export function getDb(): Firestore {
   if (dbInstance) return dbInstance;
-  dbInstance = getFirestore(getFirebaseApp());
+  // Auto-detect long-polling so Firestore still connects behind proxies and in
+  // restrictive browsers where the default WebChannel transport is blocked.
+  try {
+    dbInstance = initializeFirestore(getFirebaseApp(), {
+      experimentalAutoDetectLongPolling: true,
+    });
+  } catch {
+    // Already initialized elsewhere — fall back to the existing instance.
+    dbInstance = getFirestore(getFirebaseApp());
+  }
   return dbInstance;
 }
 

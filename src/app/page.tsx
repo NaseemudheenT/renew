@@ -58,6 +58,16 @@ export default function Home() {
           </Link>
         </StaggerItem>
       </StaggerContainer>
+
+      <footer className="absolute inset-x-0 bottom-5 flex items-center justify-center gap-4 text-xs text-[var(--text-muted)]">
+        <Link href="/privacy" className="hover:text-[var(--text-strong)]">
+          Privacy
+        </Link>
+        <span aria-hidden="true">·</span>
+        <Link href="/terms" className="hover:text-[var(--text-strong)]">
+          Terms
+        </Link>
+      </footer>
     </main>
   );
 }
