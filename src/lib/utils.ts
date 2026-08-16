@@ -46,3 +46,19 @@ export function isImageFormat(format: string): boolean {
     format.toLowerCase(),
   );
 }
+
+/** Currencies offered in the payment form. */
+export const CURRENCIES = ["USD", "EUR", "GBP", "INR", "AED", "AUD", "CAD", "SGD"] as const;
+
+/** Locale-aware money formatting with a graceful fallback. */
+export function formatMoney(amount: number, currency: string): string {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: "currency",
+      currency,
+      maximumFractionDigits: amount % 1 === 0 ? 0 : 2,
+    }).format(amount);
+  } catch {
+    return `${currency} ${amount.toLocaleString()}`;
+  }
+}

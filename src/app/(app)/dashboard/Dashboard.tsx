@@ -20,7 +20,7 @@ import { AnimatedButton, StaggerContainer, StaggerItem } from "@/components/moti
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { dueLabel, isOverdue, todayEnd } from "@/lib/dates";
 import type { Reminder, Task, Payment, DocItem } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, formatMoney } from "@/lib/utils";
 
 function greeting(): string {
   const h = new Date().getHours();
@@ -365,7 +365,7 @@ function PaymentRow({ payment }: { payment: Payment }) {
           {payment.name}
         </span>
         <span className="text-strong text-sm font-medium tabular-nums">
-          {payment.currency} {payment.amount.toLocaleString()}
+          {formatMoney(payment.amount, payment.currency)}
         </span>
         <span
           className={cn(
