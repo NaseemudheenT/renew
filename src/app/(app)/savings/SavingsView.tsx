@@ -14,6 +14,7 @@ import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createSavings, updateSavings, deleteSavings, addToSavings } from "@/lib/firestore/savings";
 import { toDateInput, fromDateTimeInputs, shortDate } from "@/lib/dates";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES, formatMoney, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
 
@@ -69,17 +70,18 @@ export function SavingsView() {
 }
 
 function GoalModal({ open, onClose, uid, editing }: { open: boolean; onClose: () => void; uid: string | null; editing: SavingsGoal | null }) {
+  const { prefs } = useLocale();
   const [name, setName] = useState("");
   const [target, setTarget] = useState("");
   const [current, setCurrent] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState(prefs.currency);
   const [hasDate, setHasDate] = useState(false);
   const [date, setDate] = useState(() => toDateInput(Date.now()));
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
   if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setTarget(String(editing.target)); setCurrent(String(editing.current)); setCurrency(editing.currency); setHasDate(editing.targetDate != null); setDate(toDateInput(editing.targetDate ?? editing.createdAt)); }
-  if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setTarget(""); setCurrent("0"); setCurrency("USD"); setHasDate(false); }
+  if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setTarget(""); setCurrent("0"); setCurrency(prefs.currency); setHasDate(false); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();

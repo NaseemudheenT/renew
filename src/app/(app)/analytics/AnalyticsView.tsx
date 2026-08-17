@@ -11,16 +11,18 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { catMeta, monthRange } from "@/lib/finance";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatMoney, cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
 
 const MONTHS = 6;
 
 export function AnalyticsView() {
+  const { prefs } = useLocale();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading } = useUserCollection<Transaction>("transactions", txC);
   const reduced = useReducedMotion();
-  const currency = data[0]?.currency ?? "USD";
+  const currency = data[0]?.currency ?? prefs.currency;
 
   const months = useMemo(() => {
     const out: { label: string; income: number; expense: number }[] = [];

@@ -14,10 +14,12 @@ import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createInvestment, updateInvestment, deleteInvestment } from "@/lib/firestore/investments";
 import { INVESTMENT_TYPES, investmentMeta } from "@/lib/finance";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES, formatMoney, cn } from "@/lib/utils";
 import type { Investment, InvestmentType } from "@/lib/types";
 
 export function InvestmentsView() {
+  const { prefs } = useLocale();
   const { data, loading, uid } = useUserCollection<Investment>("investments");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Investment | null>(null);
@@ -27,7 +29,7 @@ export function InvestmentsView() {
     for (const i of data) { value += i.quantity * i.currentPrice; cost += i.quantity * i.buyPrice; }
     return { value, cost, gain: value - cost };
   }, [data]);
-  const currency = data[0]?.currency ?? "USD";
+  const currency = data[0]?.currency ?? prefs.currency;
   const isEmpty = !loading && data.length === 0;
 
   return (
@@ -76,17 +78,18 @@ export function InvestmentsView() {
 }
 
 function HoldingModal({ open, onClose, uid, editing }: { open: boolean; onClose: () => void; uid: string | null; editing: Investment | null }) {
+  const { prefs } = useLocale();
   const [name, setName] = useState("");
   const [itype, setItype] = useState<InvestmentType>("stock");
   const [quantity, setQuantity] = useState("");
   const [buyPrice, setBuyPrice] = useState("");
   const [currentPrice, setCurrentPrice] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState(prefs.currency);
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
   if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setItype(editing.itype); setQuantity(String(editing.quantity)); setBuyPrice(String(editing.buyPrice)); setCurrentPrice(String(editing.currentPrice)); setCurrency(editing.currency); }
-  if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setItype("stock"); setQuantity(""); setBuyPrice(""); setCurrentPrice(""); setCurrency("USD"); }
+  if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setItype("stock"); setQuantity(""); setBuyPrice(""); setCurrentPrice(""); setCurrency(prefs.currency); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();

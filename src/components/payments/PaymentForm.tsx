@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton } from "@/components/motion";
 import { CATEGORIES, REPEAT_OPTIONS } from "@/lib/categories";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES } from "@/lib/utils";
 import type { Payment, Category, RepeatRule } from "@/lib/types";
 import type { PaymentInput } from "@/lib/firestore/payments";
@@ -22,9 +23,10 @@ export function PaymentForm({
   onSubmit: (input: PaymentInput) => void;
   onCancel: () => void;
 }) {
+  const { prefs } = useLocale();
   const [name, setName] = useState(initial?.name ?? "");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
-  const [currency, setCurrency] = useState(initial?.currency ?? "USD");
+  const [currency, setCurrency] = useState(initial?.currency ?? prefs.currency);
   const [date, setDate] = useState(() => toDateInput(initial?.dueAt ?? Date.now()));
   const [repeat, setRepeat] = useState<RepeatRule>(initial?.repeat ?? "monthly");
   const [category, setCategory] = useState<Category>(initial?.category ?? "bills");

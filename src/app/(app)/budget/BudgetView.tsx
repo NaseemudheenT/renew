@@ -15,6 +15,7 @@ import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createBudget, updateBudget, deleteBudget } from "@/lib/firestore/budgets";
 import { EXPENSE_CATEGORIES, catMeta, monthRange } from "@/lib/finance";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES, formatMoney, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
@@ -76,14 +77,15 @@ export function BudgetView() {
 }
 
 function BudgetModal({ open, onClose, uid, editing }: { open: boolean; onClose: () => void; uid: string | null; editing: Budget | null }) {
+  const { prefs } = useLocale();
   const [category, setCategory] = useState("food");
   const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("USD");
+  const [currency, setCurrency] = useState(prefs.currency);
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
   if (open && editing && initId !== editing.id) { setInitId(editing.id); setCategory(editing.category); setAmount(String(editing.amount)); setCurrency(editing.currency); }
-  if (open && !editing && initId !== "new") { setInitId("new"); setCategory("food"); setAmount(""); setCurrency("USD"); }
+  if (open && !editing && initId !== "new") { setInitId("new"); setCategory("food"); setAmount(""); setCurrency(prefs.currency); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();

@@ -16,10 +16,12 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { catMeta, monthRange } from "@/lib/finance";
 import { dueLabel, isOverdue } from "@/lib/dates";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatMoney, cn } from "@/lib/utils";
 import type { Transaction, SavingsGoal, Investment, Payment } from "@/lib/types";
 
 export function Dashboard({ firstName }: { firstName: string }) {
+  const { prefs } = useLocale();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const recentC = useMemo(() => [orderBy("date", "desc"), limit(6)], []);
   const upcomingC = useMemo(() => [where("status", "in", ["upcoming", "overdue"])], []);
@@ -34,7 +36,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const [submitting, setSubmitting] = useState(false);
 
   const loading = txAll.loading || savings.loading || investments.loading || bills.loading;
-  const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? "USD";
+  const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
 
   const totals = useMemo(() => {
     let income = 0, expense = 0, mIncome = 0, mExpense = 0;

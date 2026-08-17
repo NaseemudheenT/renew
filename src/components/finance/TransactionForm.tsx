@@ -7,13 +7,14 @@ import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
 import { categoriesFor } from "@/lib/finance";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Transaction, TxType } from "@/lib/types";
 import type { TransactionInput } from "@/lib/firestore/transactions";
 
 export function TransactionForm({
   initial,
-  defaultCurrency = "USD",
+  defaultCurrency,
   submitting,
   onSubmit,
   onCancel,
@@ -24,9 +25,10 @@ export function TransactionForm({
   onSubmit: (input: TransactionInput) => void;
   onCancel: () => void;
 }) {
+  const { prefs } = useLocale();
   const [type, setType] = useState<TxType>(initial?.type ?? "expense");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
-  const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency);
+  const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
   const [category, setCategory] = useState(initial?.category ?? categoriesFor(initial?.type ?? "expense")[0]!.id);
   const [date, setDate] = useState(() => toDateInput(initial?.date ?? Date.now()));
   const [note, setNote] = useState(initial?.note ?? "");
