@@ -5,7 +5,8 @@ import { Pencil, Trash2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { catMeta } from "@/lib/finance";
 import { dueLabel } from "@/lib/dates";
-import { formatMoney, cn } from "@/lib/utils";
+import { useLocale } from "@/components/providers/LocaleProvider";
+import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
 
 export function TransactionRow({
@@ -17,6 +18,7 @@ export function TransactionRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { money } = useLocale();
   const meta = catMeta(tx.category);
   const Icon = meta.icon;
   const income = tx.type === "income";
@@ -43,7 +45,7 @@ export function TransactionRow({
       </div>
       <div className={cn("flex items-center gap-1 text-sm font-semibold tabular-nums", income ? "text-emerald-500" : "text-rose-500")}>
         {income ? <ArrowDownLeft className="size-3.5" /> : <ArrowUpRight className="size-3.5" />}
-        {income ? "+" : "−"}{formatMoney(tx.amount, tx.currency)}
+        {income ? "+" : "−"}{money(tx.amount, tx.currency)}
       </div>
       <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: onEdit }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }]} />
     </motion.div>

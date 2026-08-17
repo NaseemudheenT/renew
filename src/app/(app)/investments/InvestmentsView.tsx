@@ -15,11 +15,11 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { createInvestment, updateInvestment, deleteInvestment } from "@/lib/firestore/investments";
 import { INVESTMENT_TYPES, investmentMeta } from "@/lib/finance";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { CURRENCIES, formatMoney, cn } from "@/lib/utils";
+import { CURRENCIES, cn } from "@/lib/utils";
 import type { Investment, InvestmentType } from "@/lib/types";
 
 export function InvestmentsView() {
-  const { prefs } = useLocale();
+  const { prefs, money } = useLocale();
   const { data, loading, uid } = useUserCollection<Investment>("investments");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Investment | null>(null);
@@ -41,9 +41,9 @@ export function InvestmentsView() {
         <>
           <GlassCard padded className="mb-4">
             <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-              <div><p className="text-muted text-xs">Portfolio value</p><p className="text-strong text-2xl font-light tabular-nums">{formatMoney(totals.value, currency)}</p></div>
-              <div><p className="text-muted text-xs">Invested</p><p className="text-body text-xl font-medium tabular-nums">{formatMoney(totals.cost, currency)}</p></div>
-              <div><p className="text-muted text-xs">Gain / loss</p><p className={cn("text-xl font-medium tabular-nums", totals.gain >= 0 ? "text-emerald-500" : "text-rose-500")}>{totals.gain >= 0 ? "+" : "−"}{formatMoney(Math.abs(totals.gain), currency)}</p></div>
+              <div><p className="text-muted text-xs">Portfolio value</p><p className="text-strong text-2xl font-light tabular-nums">{money(totals.value, currency)}</p></div>
+              <div><p className="text-muted text-xs">Invested</p><p className="text-body text-xl font-medium tabular-nums">{money(totals.cost, currency)}</p></div>
+              <div><p className="text-muted text-xs">Gain / loss</p><p className={cn("text-xl font-medium tabular-nums", totals.gain >= 0 ? "text-emerald-500" : "text-rose-500")}>{totals.gain >= 0 ? "+" : "−"}{money(Math.abs(totals.gain), currency)}</p></div>
             </div>
           </GlassCard>
           <div className="flex flex-col gap-2">
@@ -61,8 +61,8 @@ export function InvestmentsView() {
                       <p className="text-muted text-xs tabular-nums">{i.quantity} · {meta.label}</p>
                     </div>
                     <div className="text-right">
-                      <p className="text-strong text-sm font-medium tabular-nums">{formatMoney(value, i.currency)}</p>
-                      <p className={cn("text-xs tabular-nums", gain >= 0 ? "text-emerald-500" : "text-rose-500")}>{gain >= 0 ? "+" : "−"}{formatMoney(Math.abs(gain), i.currency)}</p>
+                      <p className="text-strong text-sm font-medium tabular-nums">{money(value, i.currency)}</p>
+                      <p className={cn("text-xs tabular-nums", gain >= 0 ? "text-emerald-500" : "text-rose-500")}>{gain >= 0 ? "+" : "−"}{money(Math.abs(gain), i.currency)}</p>
                     </div>
                     <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: () => { setEditing(i); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => uid && deleteInvestment(uid, i.id), danger: true }]} />
                   </motion.div>

@@ -6,7 +6,8 @@ import { PayButton } from "./PayButton";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { categoryMeta } from "@/lib/categories";
 import { dueLabel, isOverdue } from "@/lib/dates";
-import { formatMoney, cn } from "@/lib/utils";
+import { useLocale } from "@/components/providers/LocaleProvider";
+import { cn } from "@/lib/utils";
 import type { Payment } from "@/lib/types";
 
 export function PaymentRow({
@@ -22,6 +23,7 @@ export function PaymentRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
+  const { money } = useLocale();
   const meta = categoryMeta(payment.category);
   const Icon = meta.icon;
   const paid = payment.status === "paid";
@@ -43,7 +45,7 @@ export function PaymentRow({
           {payment.repeat !== "none" && <Repeat className="size-3.5 shrink-0 text-[var(--text-muted)]" />}
         </div>
         <div className="mt-0.5 flex flex-wrap items-center gap-x-3 text-xs">
-          <span className="text-strong font-medium tabular-nums">{formatMoney(payment.amount, payment.currency)}</span>
+          <span className="text-strong font-medium tabular-nums">{money(payment.amount, payment.currency)}</span>
           <span className={cn(overdue ? "text-rose-500" : "text-[var(--text-muted)]")}>{paid ? "Paid" : dueLabel(payment.dueAt)}</span>
         </div>
       </div>

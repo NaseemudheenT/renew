@@ -34,6 +34,7 @@ export const EN = {
   "nav.calendar": "Calendar",
   "nav.analytics": "Analytics",
   "nav.settings": "Settings",
+  "nav.more": "More",
 
   "settings.title": "Settings",
   "settings.subtitle": "Make Renew feel like yours.",
@@ -73,6 +74,7 @@ const CATALOGS: Record<string, Catalog> = {
     "nav.calendar": "Calendario",
     "nav.analytics": "Análisis",
     "nav.settings": "Ajustes",
+    "nav.more": "Más",
     "settings.region.title": "Región e idioma",
     "settings.region.language": "Idioma",
     "settings.region.region": "País / región",

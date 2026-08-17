@@ -8,10 +8,12 @@ import { Wordmark } from "@/components/brand/Wordmark";
 import { AccountMenu } from "./AccountMenu";
 import type { ShellUser } from "./shell-types";
 import { NAV_ITEMS } from "@/lib/nav";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
+  const { t } = useLocale();
   return (
     <aside className="glass fixed inset-y-0 left-0 z-30 hidden w-64 flex-col !rounded-none !rounded-r-glass-lg p-4 lg:flex">
       <Link href="/dashboard" className="mb-6 flex items-center gap-3 px-2 py-2" aria-label="Renew home">
@@ -19,7 +21,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
         <Wordmark sizeClassName="text-lg" />
       </Link>
       <nav className="flex flex-1 flex-col gap-1" aria-label="Primary">
-        {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {NAV_ITEMS.map(({ href, msgKey, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
@@ -39,7 +41,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
                 />
               )}
               <Icon className={cn("size-5 shrink-0", active && "text-[var(--color-gold-500)]")} />
-              {label}
+              {t(msgKey)}
             </Link>
           );
         })}

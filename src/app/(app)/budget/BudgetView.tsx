@@ -16,10 +16,11 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { createBudget, updateBudget, deleteBudget } from "@/lib/firestore/budgets";
 import { EXPENSE_CATEGORIES, catMeta, monthRange } from "@/lib/finance";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { CURRENCIES, formatMoney, cn } from "@/lib/utils";
+import { CURRENCIES, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
 export function BudgetView() {
+  const { money } = useLocale();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data: budgets, loading, uid } = useUserCollection<Budget>("budgets");
   const { data: txs } = useUserCollection<Transaction>("transactions", txC);
@@ -57,9 +58,9 @@ export function BudgetView() {
                     <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
                     <div className="min-w-0 flex-1">
                       <p className="text-strong text-sm font-medium">{meta.label}</p>
-                      <p className="text-muted text-xs tabular-nums">{formatMoney(spent, b.currency)} of {formatMoney(b.amount, b.currency)}</p>
+                      <p className="text-muted text-xs tabular-nums">{money(spent, b.currency)} of {money(b.amount, b.currency)}</p>
                     </div>
-                    <span className={cn("text-sm font-semibold tabular-nums", over ? "text-rose-500" : "text-[var(--text-strong)]")}>{formatMoney(Math.max(0, b.amount - spent), b.currency)}<span className="text-muted ml-1 text-xs font-normal">left</span></span>
+                    <span className={cn("text-sm font-semibold tabular-nums", over ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(Math.max(0, b.amount - spent), b.currency)}<span className="text-muted ml-1 text-xs font-normal">left</span></span>
                     <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: () => { setEditing(b); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => uid && deleteBudget(uid, b.id), danger: true }]} />
                   </div>
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">

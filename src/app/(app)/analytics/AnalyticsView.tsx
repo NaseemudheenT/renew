@@ -12,13 +12,13 @@ import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { catMeta, monthRange } from "@/lib/finance";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { formatMoney, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
 
 const MONTHS = 6;
 
 export function AnalyticsView() {
-  const { prefs } = useLocale();
+  const { prefs, money } = useLocale();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading } = useUserCollection<Transaction>("transactions", txC);
   const reduced = useReducedMotion();
@@ -63,8 +63,8 @@ export function AnalyticsView() {
       <StaggerContainer className="flex flex-col gap-6" stagger={0.07}>
         <StaggerItem>
           <div className="grid grid-cols-3 gap-3">
-            <Stat icon={ArrowDownLeft} label="Income · month" value={formatMoney(thisMonth.income, currency)} tone="emerald" />
-            <Stat icon={ArrowUpRight} label="Spent · month" value={formatMoney(thisMonth.expense, currency)} tone="rose" />
+            <Stat icon={ArrowDownLeft} label="Income · month" value={money(thisMonth.income, currency)} tone="emerald" />
+            <Stat icon={ArrowUpRight} label="Spent · month" value={money(thisMonth.expense, currency)} tone="rose" />
             <Stat icon={PiggyBank} label="Savings rate" value={`${savingsRate}%`} />
           </div>
         </StaggerItem>
@@ -76,8 +76,8 @@ export function AnalyticsView() {
               {months.map((m, i) => (
                 <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
                   <div className="flex h-full w-full items-end justify-center gap-1">
-                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-emerald-500 to-emerald-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.income / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 }} title={`Income: ${formatMoney(m.income, currency)}`} />
-                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-rose-500 to-rose-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.expense / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 + 0.05 }} title={`Expense: ${formatMoney(m.expense, currency)}`} />
+                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-emerald-500 to-emerald-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.income / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 }} title={`Income: ${money(m.income, currency)}`} />
+                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-rose-500 to-rose-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.expense / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 + 0.05 }} title={`Expense: ${money(m.expense, currency)}`} />
                   </div>
                   <span className="text-muted text-[10px]">{m.label}</span>
                 </div>
@@ -107,7 +107,7 @@ export function AnalyticsView() {
                       <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
                         <motion.div className="h-full rounded-full bg-gradient-to-r from-gold-300 to-gold-500" initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / catMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
                       </div>
-                      <span className="text-body w-20 text-right text-xs tabular-nums">{formatMoney(d.amount, currency)}</span>
+                      <span className="text-body w-20 text-right text-xs tabular-nums">{money(d.amount, currency)}</span>
                     </div>
                   );
                 })}

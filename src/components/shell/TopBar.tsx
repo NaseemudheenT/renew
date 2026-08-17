@@ -7,12 +7,15 @@ import { RenewMark } from "@/components/brand/RenewMark";
 import { NotificationBell } from "./NotificationBell";
 import { AccountMenu } from "./AccountMenu";
 import type { ShellUser } from "./shell-types";
-import { titleForPath } from "@/lib/nav";
+import { titleKeyForPath } from "@/lib/nav";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 
 export function TopBar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
-  const title = titleForPath(pathname);
+  const { t } = useLocale();
+  const titleKey = titleKeyForPath(pathname);
+  const title = titleKey ? t(titleKey) : "Renew";
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {

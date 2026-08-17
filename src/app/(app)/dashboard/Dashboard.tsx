@@ -17,11 +17,11 @@ import { createTransaction, type TransactionInput } from "@/lib/firestore/transa
 import { catMeta, monthRange } from "@/lib/finance";
 import { dueLabel, isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { formatMoney, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Transaction, SavingsGoal, Investment, Payment } from "@/lib/types";
 
 export function Dashboard({ firstName }: { firstName: string }) {
-  const { prefs } = useLocale();
+  const { prefs, money } = useLocale();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const recentC = useMemo(() => [orderBy("date", "desc"), limit(6)], []);
   const upcomingC = useMemo(() => [where("status", "in", ["upcoming", "overdue"])], []);
@@ -125,7 +125,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
                             <Link href="/transactions" className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--focus-ring)]/50">
                               <Icon className={cn("size-4 shrink-0", income ? "text-emerald-400" : "text-rose-400")} />
                               <span className="text-body min-w-0 flex-1 truncate text-sm">{t.note || meta.label}</span>
-                              <span className={cn("text-sm font-medium tabular-nums", income ? "text-emerald-500" : "text-rose-500")}>{income ? "+" : "−"}{formatMoney(t.amount, t.currency)}</span>
+                              <span className={cn("text-sm font-medium tabular-nums", income ? "text-emerald-500" : "text-rose-500")}>{income ? "+" : "−"}{money(t.amount, t.currency)}</span>
                             </Link>
                           </li>
                         );
@@ -149,7 +149,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
                           <li key={b.id}>
                             <Link href="/payments" className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--focus-ring)]/50">
                               <span className="text-body min-w-0 flex-1 truncate text-sm">{b.name}</span>
-                              <span className="text-strong text-sm font-medium tabular-nums">{formatMoney(b.amount, b.currency)}</span>
+                              <span className="text-strong text-sm font-medium tabular-nums">{money(b.amount, b.currency)}</span>
                               <span className={cn("w-16 text-right text-xs", overdue ? "text-rose-500" : "text-[var(--text-muted)]")}>{dueLabel(b.dueAt)}</span>
                             </Link>
                           </li>
@@ -168,9 +168,9 @@ export function Dashboard({ firstName }: { firstName: string }) {
                     <EmptyState compact icon={TrendingUp} title="No investments tracked" />
                   ) : (
                     <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-3">
-                      <div><p className="text-muted text-xs">Value</p><p className="text-strong text-xl font-medium tabular-nums">{formatMoney(invValue, currency)}</p></div>
-                      <div><p className="text-muted text-xs">Invested</p><p className="text-body text-xl font-medium tabular-nums">{formatMoney(invCost, currency)}</p></div>
-                      <div><p className="text-muted text-xs">Gain / loss</p><p className={cn("text-xl font-medium tabular-nums", invGain >= 0 ? "text-emerald-500" : "text-rose-500")}>{invGain >= 0 ? "+" : "−"}{formatMoney(Math.abs(invGain), currency)}</p></div>
+                      <div><p className="text-muted text-xs">Value</p><p className="text-strong text-xl font-medium tabular-nums">{money(invValue, currency)}</p></div>
+                      <div><p className="text-muted text-xs">Invested</p><p className="text-body text-xl font-medium tabular-nums">{money(invCost, currency)}</p></div>
+                      <div><p className="text-muted text-xs">Gain / loss</p><p className={cn("text-xl font-medium tabular-nums", invGain >= 0 ? "text-emerald-500" : "text-rose-500")}>{invGain >= 0 ? "+" : "−"}{money(Math.abs(invGain), currency)}</p></div>
                     </div>
                   )}
                 </GlassCard>

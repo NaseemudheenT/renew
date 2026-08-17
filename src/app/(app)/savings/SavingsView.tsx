@@ -15,10 +15,11 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { createSavings, updateSavings, deleteSavings, addToSavings } from "@/lib/firestore/savings";
 import { toDateInput, fromDateTimeInputs, shortDate } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { CURRENCIES, formatMoney, cn } from "@/lib/utils";
+import { CURRENCIES, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
 
 export function SavingsView() {
+  const { money } = useLocale();
   const { data, loading, uid } = useUserCollection<SavingsGoal>("savings");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<SavingsGoal | null>(null);
@@ -47,8 +48,8 @@ export function SavingsView() {
                     <RowMenu items={[{ label: "Add money", icon: Coins, onClick: () => setAddTo(g) }, { label: "Edit", icon: Pencil, onClick: () => { setEditing(g); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => uid && deleteSavings(uid, g.id), danger: true }]} />
                   </div>
                   <div className="mt-3 flex items-baseline gap-1">
-                    <span className="text-strong text-xl font-medium tabular-nums">{formatMoney(g.current, g.currency)}</span>
-                    <span className="text-muted text-xs tabular-nums">/ {formatMoney(g.target, g.currency)}</span>
+                    <span className="text-strong text-xl font-medium tabular-nums">{money(g.current, g.currency)}</span>
+                    <span className="text-muted text-xs tabular-nums">/ {money(g.target, g.currency)}</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
                     <motion.div className={cn("h-full rounded-full", done ? "bg-gradient-to-r from-emerald-400 to-emerald-600" : "bg-gradient-to-r from-gold-300 to-gold-500")} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
