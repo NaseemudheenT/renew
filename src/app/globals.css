@@ -1,28 +1,294 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   RENEW — base styles reset for the redesign.
-   Old design tokens/glass/animation styling were removed. The new Renew design
-   system will define its own tokens here.
+   RENEW — Liquid-glass design system.
+   A deep champagne-gold / warm-charcoal world (dark) and a warm champagne
+   daylight (light). Real material glass: blur, refraction, specular light,
+   internal highlights, depth. Every token is theme-aware.
    ========================================================================== */
 
 @theme {
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-brand: var(--font-jost), var(--font-inter), ui-sans-serif, sans-serif;
+
+  /* Champagne gold — meaning only (brand, primary, active). */
+  --color-gold-50: #fbf6ea;
+  --color-gold-100: #f4e9cf;
+  --color-gold-200: #e9d3a3;
+  --color-gold-300: #ddbd78;
+  --color-gold-400: #d0a959;
+  --color-gold-500: #c6a15b;
+  --color-gold-600: #a5824a;
+  --color-gold-700: #83663a;
+  --color-gold-800: #5f4a2b;
+  --color-gold-900: #3d301c;
+
+  --radius-glass: 1.25rem;
+  --radius-glass-lg: 1.75rem;
+
+  --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-glass: cubic-bezier(0.175, 0.885, 0.32, 1.4);
 }
 
+/* ---- DARK (default): deep warm charcoal with champagne gold ------------- */
+:root,
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg-base: #0d1016;
+  --bg-tint-1: #141821;
+  --bg-tint-2: #101319;
+  --bg-tint-3: #17140e;
+  --bokeh-1: rgba(198, 161, 91, 0.26);
+  --bokeh-2: rgba(150, 112, 55, 0.2);
+  --bokeh-3: rgba(224, 196, 140, 0.14);
+  --grain-opacity: 0.055;
+  --vignette: rgba(0, 0, 0, 0.5);
+
+  --text-strong: #f4efe3;
+  --text-body: #d2ccbe;
+  --text-muted: #948d7c;
+  --text-onGold: #201804;
+
+  /* Liquid glass — warm charcoal-gold translucency */
+  --glass-bg: rgba(30, 28, 22, 0.42);
+  --glass-bg-strong: rgba(38, 35, 26, 0.6);
+  --glass-bg-soft: rgba(30, 28, 22, 0.26);
+  --glass-border: rgba(255, 240, 210, 0.14);
+  --glass-edge: rgba(255, 246, 222, 0.28);
+  --glass-inner-shadow: rgba(0, 0, 0, 0.3);
+  --glass-highlight: rgba(255, 244, 220, 0.5);
+  --glass-shadow:
+    0 1px 1px rgba(0, 0, 0, 0.22), 0 12px 34px rgba(0, 0, 0, 0.4),
+    0 30px 70px rgba(0, 0, 0, 0.5);
+  --glass-blur: 20px;
+  --glass-saturate: 150%;
+
+  --field-bg: rgba(20, 18, 12, 0.5);
+  --field-border: rgba(255, 240, 210, 0.16);
+  --focus-ring: rgba(214, 184, 122, 0.55);
+
+  --mark-gold-1: #f3dca4;
+  --mark-gold-2: #e4c88a;
+  --mark-gold-3: #c6a15b;
+  --mark-gold-4: #a5824a;
+  --wordmark-from: #f4e9cf;
+  --wordmark-to: #d0a959;
+
+  --glass-gold-hi: rgba(233, 211, 163, 0.22);
+  --glass-gold-lo: rgba(198, 161, 91, 0.13);
+  --btn-gold-text: #f6ecd4;
+}
+
+/* ---- LIGHT: warm champagne daylight ------------------------------------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-base: #ece2ca;
+  --bg-tint-1: #f5ecd8;
+  --bg-tint-2: #e7dcc0;
+  --bg-tint-3: #efe5cb;
+  --bokeh-1: rgba(214, 176, 104, 0.5);
+  --bokeh-2: rgba(238, 220, 176, 0.6);
+  --bokeh-3: rgba(206, 174, 116, 0.4);
+  --grain-opacity: 0.045;
+  --vignette: rgba(120, 92, 50, 0.16);
+
+  --text-strong: #2a2a2e;
+  --text-body: #454239;
+  --text-muted: #6b6458;
+  --text-onGold: #2a2113;
+
+  --glass-bg: rgba(255, 253, 248, 0.5);
+  --glass-bg-strong: rgba(255, 254, 250, 0.68);
+  --glass-bg-soft: rgba(255, 253, 248, 0.34);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-edge: rgba(255, 255, 255, 0.95);
+  --glass-inner-shadow: rgba(120, 100, 60, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-shadow:
+    0 1px 1px rgba(70, 55, 25, 0.05), 0 10px 28px rgba(80, 62, 30, 0.12),
+    0 26px 60px rgba(80, 62, 30, 0.14);
+  --glass-blur: 18px;
+  --glass-saturate: 140%;
+
+  --field-bg: rgba(255, 255, 255, 0.6);
+  --field-border: rgba(120, 100, 70, 0.32);
+  --focus-ring: rgba(180, 140, 70, 0.6);
+
+  --mark-gold-1: #dcb96f;
+  --mark-gold-2: #c6a15b;
+  --mark-gold-3: #a5824a;
+  --mark-gold-4: #7d6035;
+  --wordmark-from: #b58f4c;
+  --wordmark-to: #77592e;
+
+  --glass-gold-hi: rgba(224, 196, 140, 0.4);
+  --glass-gold-lo: rgba(165, 130, 74, 0.22);
+  --btn-gold-text: #6a5225;
+}
+
+/* ---- Base --------------------------------------------------------------- */
+* {
+  border-color: var(--glass-border);
+}
 html {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-
 body {
-  min-height: 100dvh;
+  background-color: var(--bg-base);
+  color: var(--text-body);
   font-family: var(--font-sans);
+  min-height: 100dvh;
   overflow-x: hidden;
 }
+::selection {
+  background: var(--color-gold-300);
+  color: var(--text-onGold);
+}
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
 
+/* ---- Liquid-glass material --------------------------------------------- */
+@layer components {
+  .glass {
+    position: relative;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturate));
+    -webkit-backdrop-filter: blur(var(--glass-blur))
+      saturate(var(--glass-saturate));
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-glass);
+    box-shadow: var(--glass-shadow);
+  }
+  /* Bright refractive top edge — the liquid light on glass. */
+  .glass::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(
+      to bottom,
+      var(--glass-edge),
+      transparent 42%,
+      transparent 82%,
+      var(--glass-inner-shadow)
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+    z-index: 1;
+  }
+  /* Inner specular sheen (top-left light source). */
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      120% 80% at 15% 0%,
+      var(--glass-highlight),
+      transparent 55%
+    );
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .glass-strong {
+    background: var(--glass-bg-strong);
+  }
+  .glass-soft {
+    background: var(--glass-bg-soft);
+  }
+  .glass > * {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Champagne liquid-glass — primary action surface. */
+  .glass-primary {
+    background:
+      linear-gradient(to bottom, var(--glass-gold-hi), var(--glass-gold-lo)),
+      var(--glass-bg-strong);
+    color: var(--btn-gold-text);
+  }
+}
+
+/* ---- Text utilities ----------------------------------------------------- */
+.text-strong {
+  color: var(--text-strong);
+}
+.text-body {
+  color: var(--text-body);
+}
+.text-muted {
+  color: var(--text-muted);
+}
+
+/* ---- Long-form / legal prose ------------------------------------------- */
+.prose-renew h1 {
+  color: var(--text-strong);
+  font-size: 1.75rem;
+  font-weight: 300;
+  letter-spacing: -0.01em;
+}
+.prose-renew h2 {
+  color: var(--text-strong);
+  font-size: 1.1rem;
+  font-weight: 500;
+  margin-top: 2rem;
+  margin-bottom: 0.5rem;
+}
+.prose-renew p,
+.prose-renew li {
+  color: var(--text-body);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+.prose-renew p {
+  margin-top: 0.75rem;
+}
+.prose-renew ul {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+  list-style: disc;
+}
+.prose-renew li {
+  margin-top: 0.35rem;
+}
+.prose-renew a {
+  color: var(--color-gold-600);
+  text-decoration: underline;
+}
+.prose-renew .lead {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+.prose-renew strong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+/* ---- Keyframes (supplied reference) ------------------------------------- */
+@keyframes moveBackground {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 0% -1000%;
+  }
+}
+
+/* ---- Motion preferences ------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

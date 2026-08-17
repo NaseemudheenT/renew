@@ -1,22 +1,23 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { MotionConfig } from "framer-motion";
 import { QueryProvider } from "./QueryProvider";
 import { AuthProvider } from "./AuthProvider";
+import { Toaster } from "@/components/ui/Toaster";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
-/**
- * Root client providers (preserved foundation): data-fetching, auth state, and
- * the PWA service worker. UI-specific providers (toaster, motion config) were
- * removed with the old UI and will be re-introduced by the new design.
- */
+/** Root client providers. reducedMotion="user" makes every animation honour the OS setting. */
 export function Providers({ children }: { children: ReactNode }) {
   return (
-    <QueryProvider>
-      <AuthProvider>
-        {children}
-        <ServiceWorkerRegister />
-      </AuthProvider>
-    </QueryProvider>
+    <MotionConfig reducedMotion="user">
+      <QueryProvider>
+        <AuthProvider>
+          {children}
+          <Toaster />
+          <ServiceWorkerRegister />
+        </AuthProvider>
+      </QueryProvider>
+    </MotionConfig>
   );
 }
