@@ -1,10 +1,11 @@
 import {
   LayoutDashboard,
-  Bell,
+  ArrowLeftRight,
+  Target,
+  PiggyBank,
+  TrendingUp,
+  ReceiptText,
   Calendar,
-  ListTodo,
-  FileText,
-  Wallet,
   BarChart3,
   Settings,
   type LucideIcon,
@@ -19,12 +20,13 @@ export interface NavItem {
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard, primary: true },
-  { href: "/reminders", label: "Reminders", icon: Bell, primary: true },
-  { href: "/calendar", label: "Calendar", icon: Calendar, primary: true },
-  { href: "/tasks", label: "Tasks", icon: ListTodo, primary: true },
-  { href: "/payments", label: "Payments", icon: Wallet },
-  { href: "/documents", label: "Documents", icon: FileText },
+  { href: "/dashboard", label: "Overview", icon: LayoutDashboard, primary: true },
+  { href: "/transactions", label: "Transactions", icon: ArrowLeftRight, primary: true },
+  { href: "/budget", label: "Budget", icon: Target, primary: true },
+  { href: "/savings", label: "Savings", icon: PiggyBank, primary: true },
+  { href: "/investments", label: "Investments", icon: TrendingUp },
+  { href: "/payments", label: "Bills", icon: ReceiptText },
+  { href: "/calendar", label: "Calendar", icon: Calendar },
   { href: "/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

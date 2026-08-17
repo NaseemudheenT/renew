@@ -72,7 +72,7 @@ export function PaymentsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Payments" subtitle="Keep on top of what's due — never miss an important one." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />New payment</AnimatedButton>} />
+      <PageHeader title="Bills" subtitle="Recurring bills and payments — never miss a due date." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />New bill</AnimatedButton>} />
 
       {!isEmpty && (
         <div className="mb-5 grid grid-cols-2 gap-3">

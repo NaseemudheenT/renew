@@ -1,87 +1,116 @@
 "use client";
 
 import { useMemo } from "react";
-import { subDays, format, startOfDay } from "date-fns";
-import { BarChart3, CheckCircle2, Layers, TrendingUp } from "lucide-react";
+import { orderBy } from "firebase/firestore";
+import { subMonths, format } from "date-fns";
+import { motion, useReducedMotion } from "framer-motion";
+import { BarChart3, ArrowDownLeft, ArrowUpRight, PiggyBank } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
-import { ActivityChart, type DayBucket } from "@/components/charts/ActivityChart";
-import { CategoryBreakdown, type CategoryDatum } from "@/components/charts/CategoryBreakdown";
 import { useUserCollection } from "@/hooks/useUserCollection";
-import type { Reminder, Task, Payment, DocItem, Category } from "@/lib/types";
+import { catMeta, monthRange } from "@/lib/finance";
+import { formatMoney, cn } from "@/lib/utils";
+import type { Transaction } from "@/lib/types";
 
-const DAYS = 14;
+const MONTHS = 6;
 
 export function AnalyticsView() {
-  const reminders = useUserCollection<Reminder>("reminders");
-  const tasks = useUserCollection<Task>("tasks");
-  const payments = useUserCollection<Payment>("payments");
-  const docs = useUserCollection<DocItem>("documents");
+  const txC = useMemo(() => [orderBy("date", "desc")], []);
+  const { data, loading } = useUserCollection<Transaction>("transactions", txC);
+  const reduced = useReducedMotion();
+  const currency = data[0]?.currency ?? "USD";
 
-  const loading = reminders.loading || tasks.loading || payments.loading || docs.loading;
-  const total = reminders.data.length + tasks.data.length + payments.data.length + docs.data.length;
-
-  const buckets: DayBucket[] = useMemo(() => {
-    const days: DayBucket[] = [];
-    for (let i = DAYS - 1; i >= 0; i--) {
-      const day = startOfDay(subDays(new Date(), i));
-      const start = day.getTime();
-      const end = start + 86400000;
-      const r = reminders.data.filter((x) => x.completed && x.completedAt != null && x.completedAt >= start && x.completedAt < end).length;
-      const t = tasks.data.filter((x) => x.completed && x.completedAt != null && x.completedAt >= start && x.completedAt < end).length;
-      days.push({ label: format(day, "EEEEE"), fullLabel: format(day, "EEE d MMM"), reminders: r, tasks: t });
+  const months = useMemo(() => {
+    const out: { label: string; income: number; expense: number }[] = [];
+    for (let i = MONTHS - 1; i >= 0; i--) {
+      const ref = subMonths(new Date(), i);
+      const { start, end } = monthRange(ref);
+      let income = 0, expense = 0;
+      for (const t of data) if (t.date >= start && t.date < end) { if (t.type === "income") income += t.amount; else expense += t.amount; }
+      out.push({ label: format(ref, "MMM"), income, expense });
     }
-    return days;
-  }, [reminders.data, tasks.data]);
+    return out;
+  }, [data]);
 
-  const categoryData: CategoryDatum[] = useMemo(() => {
-    const counts = new Map<Category, number>();
-    reminders.data.filter((r) => !r.completed).forEach((r) => counts.set(r.category, (counts.get(r.category) ?? 0) + 1));
-    payments.data.filter((p) => p.status !== "paid").forEach((p) => counts.set(p.category, (counts.get(p.category) ?? 0) + 1));
-    return Array.from(counts.entries()).map(([category, count]) => ({ category, count })).filter((d) => d.count > 0);
-  }, [reminders.data, payments.data]);
+  const thisMonth = months[months.length - 1] ?? { income: 0, expense: 0 };
+  const savingsRate = thisMonth.income > 0 ? Math.round(((thisMonth.income - thisMonth.expense) / thisMonth.income) * 100) : 0;
 
-  const completed30 = useMemo(() => {
-    const cutoff = subDays(new Date(), 30).getTime();
-    return reminders.data.filter((x) => x.completed && (x.completedAt ?? 0) >= cutoff).length + tasks.data.filter((x) => x.completed && (x.completedAt ?? 0) >= cutoff).length;
-  }, [reminders.data, tasks.data]);
+  const byCategory = useMemo(() => {
+    const { start, end } = monthRange();
+    const m = new Map<string, number>();
+    for (const t of data) if (t.type === "expense" && t.date >= start && t.date < end) m.set(t.category, (m.get(t.category) ?? 0) + t.amount);
+    return Array.from(m.entries()).map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
+  }, [data]);
+  const catMax = Math.max(1, ...byCategory.map((c) => c.amount));
+  const maxMonth = Math.max(1, ...months.map((m) => Math.max(m.income, m.expense)));
 
-  const activeObligations = reminders.data.filter((r) => !r.completed).length + tasks.data.filter((t) => !t.completed).length + payments.data.filter((p) => p.status !== "paid").length;
-  const totalCompletions = useMemo(() => reminders.data.filter((r) => r.completed).length + tasks.data.filter((t) => t.completed).length, [reminders.data, tasks.data]);
-  const hasActivity = buckets.some((b) => b.reminders + b.tasks > 0);
-
-  if (!loading && total === 0) {
+  if (!loading && data.length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader title="Analytics" />
-        <GlassCard padded><EmptyState icon={BarChart3} title="Nothing to chart yet" description="As you add reminders, complete tasks and track payments, a simple picture of your activity will build here — always from your real data." /></GlassCard>
+        <GlassCard padded><EmptyState icon={BarChart3} title="Nothing to chart yet" description="Add income and expenses and Renew builds a clear picture of your money — always from your real data." /></GlassCard>
       </div>
     );
   }
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title="Analytics" subtitle="A calm, honest picture of your life-management activity." />
+      <PageHeader title="Analytics" subtitle="A clear, honest picture of your money." />
       <StaggerContainer className="flex flex-col gap-6" stagger={0.07}>
         <StaggerItem>
           <div className="grid grid-cols-3 gap-3">
-            <Stat icon={CheckCircle2} label="Done · 30 days" value={completed30} />
-            <Stat icon={Layers} label="Active" value={activeObligations} />
-            <Stat icon={TrendingUp} label="Completed" value={totalCompletions} />
+            <Stat icon={ArrowDownLeft} label="Income · month" value={formatMoney(thisMonth.income, currency)} tone="emerald" />
+            <Stat icon={ArrowUpRight} label="Spent · month" value={formatMoney(thisMonth.expense, currency)} tone="rose" />
+            <Stat icon={PiggyBank} label="Savings rate" value={`${savingsRate}%`} />
           </div>
         </StaggerItem>
+
         <StaggerItem>
           <GlassCard padded>
-            <h2 className="text-strong mb-4 text-sm font-medium">Activity</h2>
-            {hasActivity ? <ActivityChart data={buckets} /> : <EmptyState compact icon={TrendingUp} title="No completions yet" description="Complete a reminder or task and it will appear here." />}
+            <h2 className="text-strong mb-4 text-sm font-medium">Income vs expense</h2>
+            <div className="flex h-44 items-end gap-3">
+              {months.map((m, i) => (
+                <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                  <div className="flex h-full w-full items-end justify-center gap-1">
+                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-emerald-500 to-emerald-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.income / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 }} title={`Income: ${formatMoney(m.income, currency)}`} />
+                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-rose-500 to-rose-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.expense / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 + 0.05 }} title={`Expense: ${formatMoney(m.expense, currency)}`} />
+                  </div>
+                  <span className="text-muted text-[10px]">{m.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 flex items-center gap-4 text-xs">
+              <span className="text-muted inline-flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-emerald-400" />Income</span>
+              <span className="text-muted inline-flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-rose-400" />Expense</span>
+              <span className="text-muted ml-auto">Last {MONTHS} months</span>
+            </div>
           </GlassCard>
         </StaggerItem>
+
         <StaggerItem>
           <GlassCard padded>
-            <h2 className="text-strong mb-4 text-sm font-medium">Active obligations by category</h2>
-            {categoryData.length > 0 ? <CategoryBreakdown data={categoryData} /> : <EmptyState compact icon={Layers} title="Nothing active right now" />}
+            <h2 className="text-strong mb-4 text-sm font-medium">Spending by category · this month</h2>
+            {byCategory.length === 0 ? (
+              <EmptyState compact icon={BarChart3} title="No spending yet this month" />
+            ) : (
+              <div className="flex flex-col gap-3">
+                {byCategory.map((d, i) => {
+                  const meta = catMeta(d.category);
+                  const Icon = meta.icon;
+                  return (
+                    <div key={d.category} className="flex items-center gap-3">
+                      <span className="text-muted flex w-32 shrink-0 items-center gap-1.5 text-xs"><Icon className="size-3.5" />{meta.label}</span>
+                      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
+                        <motion.div className="h-full rounded-full bg-gradient-to-r from-gold-300 to-gold-500" initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / catMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
+                      </div>
+                      <span className="text-body w-20 text-right text-xs tabular-nums">{formatMoney(d.amount, currency)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </GlassCard>
         </StaggerItem>
       </StaggerContainer>
@@ -89,11 +118,11 @@ export function AnalyticsView() {
   );
 }
 
-function Stat({ icon: Icon, label, value }: { icon: typeof CheckCircle2; label: string; value: number }) {
+function Stat({ icon: Icon, label, value, tone }: { icon: typeof BarChart3; label: string; value: string; tone?: "emerald" | "rose" }) {
   return (
     <GlassCard className="flex flex-col gap-1 p-4">
-      <Icon className="size-5 text-[var(--color-gold-500)]" />
-      <div className="text-strong mt-1 text-2xl font-medium tabular-nums">{value}</div>
+      <Icon className={cn("size-5", tone === "emerald" ? "text-emerald-400" : tone === "rose" ? "text-rose-400" : "text-[var(--color-gold-500)]")} />
+      <div className="text-strong mt-1 text-xl font-medium tabular-nums">{value}</div>
       <div className="text-muted text-xs">{label}</div>
     </GlassCard>
   );
