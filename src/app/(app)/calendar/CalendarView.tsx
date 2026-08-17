@@ -10,7 +10,8 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AnimatedButton } from "@/components/motion";
 import { useUserCollection } from "@/hooks/useUserCollection";
-import { dueLabel, dayStart } from "@/lib/dates";
+import { dayStart } from "@/lib/dates";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import type { Reminder, Task, Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -23,9 +24,29 @@ const KIND_META: Record<Kind, { icon: typeof Bell; dot: string }> = {
 };
 
 export function CalendarView() {
+  const { prefs, dueLabel } = useLocale();
+  const loc = `${prefs.language}-${prefs.region}`;
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => new Date());
   const reminders = useUserCollection<Reminder>("reminders");
+
+  // Calendar cells are calendar days, not instants — format them locale-aware
+  // but WITHOUT the profile timezone, so the day number never shifts.
+  const monthTitle = useMemo(
+    () => new Intl.DateTimeFormat(loc, { month: "long", year: "numeric" }).format(cursor),
+    [loc, cursor],
+  );
+  const dayAria = useMemo(
+    () => new Intl.DateTimeFormat(loc, { weekday: "long", day: "numeric", month: "long" }),
+    [loc],
+  );
+  const weekdayLabels = useMemo(() => {
+    const fmt = new Intl.DateTimeFormat(loc, { weekday: "short" });
+    const names: string[] = [];
+    for (let i = 0; i < 7; i++) names.push(fmt.format(new Date(2023, 0, 1 + i))); // 2023-01-01 is Sunday
+    const s = prefs.weekStart;
+    return [...names.slice(s), ...names.slice(0, s)];
+  }, [loc, prefs.weekStart]);
   const tasks = useUserCollection<Task>("tasks");
   const payments = useUserCollection<Payment>("payments");
 
@@ -49,10 +70,10 @@ export function CalendarView() {
   }, [items]);
 
   const days = useMemo(() => {
-    const gridStart = startOfWeek(startOfMonth(cursor), { weekStartsOn: 0 });
-    const gridEnd = endOfWeek(endOfMonth(cursor), { weekStartsOn: 0 });
+    const gridStart = startOfWeek(startOfMonth(cursor), { weekStartsOn: prefs.weekStart });
+    const gridEnd = endOfWeek(endOfMonth(cursor), { weekStartsOn: prefs.weekStart });
     return eachDayOfInterval({ start: gridStart, end: gridEnd });
-  }, [cursor]);
+  }, [cursor, prefs.weekStart]);
 
   const selectedItems = useMemo(() => (byDay.get(dayStart(selected.getTime())) ?? []).sort((a, b) => a.at - b.at), [byDay, selected]);
 
@@ -62,14 +83,14 @@ export function CalendarView() {
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <GlassCard padded>
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-strong text-lg font-medium">{format(cursor, "MMMM yyyy")}</h2>
+            <h2 className="text-strong text-lg font-medium capitalize">{monthTitle}</h2>
             <div className="flex items-center gap-1">
               <button type="button" onClick={() => setCursor((c) => addMonths(c, -1))} aria-label="Previous month" className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"><ChevronLeft className="size-5" /></button>
               <button type="button" onClick={() => setCursor((c) => addMonths(c, 1))} aria-label="Next month" className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"><ChevronRight className="size-5" /></button>
             </div>
           </div>
           <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-[var(--text-muted)]">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d} className="py-1">{d}</div>)}
+            {weekdayLabels.map((d, i) => <div key={i} className="py-1 capitalize">{d}</div>)}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {days.map((day) => {
@@ -78,7 +99,7 @@ export function CalendarView() {
               const today = isSameDay(day, new Date());
               const dayItems = byDay.get(dayStart(day.getTime())) ?? [];
               return (
-                <button key={day.toISOString()} type="button" onClick={() => setSelected(day)} aria-label={format(day, "EEEE, d MMMM")} aria-pressed={isSel}
+                <button key={day.toISOString()} type="button" onClick={() => setSelected(day)} aria-label={dayAria.format(day)} aria-pressed={isSel}
                   className={cn("relative flex aspect-square flex-col items-center justify-start gap-1 rounded-xl p-1.5 text-sm transition-colors", inMonth ? "text-[var(--text-body)]" : "text-[var(--text-muted)]/50", isSel ? "bg-[var(--glass-bg-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]" : "hover:bg-[var(--glass-bg-soft)]")}>
                   <span className={cn("grid size-6 place-items-center rounded-full text-xs tabular-nums", today && "bg-gradient-to-b from-gold-300 to-gold-500 font-semibold text-[var(--text-onGold)]", isSel && !today && "font-semibold text-[var(--text-strong)]")}>{format(day, "d")}</span>
                   {dayItems.length > 0 && (
@@ -92,7 +113,7 @@ export function CalendarView() {
           </div>
         </GlassCard>
         <GlassCard padded className="h-max">
-          <h2 className="text-strong text-base font-medium">{format(selected, "EEEE, d MMMM")}</h2>
+          <h2 className="text-strong text-base font-medium capitalize">{dayAria.format(selected)}</h2>
           <div className="mt-4">
             <AnimatePresence mode="wait">
               <motion.div key={selected.toISOString()} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>

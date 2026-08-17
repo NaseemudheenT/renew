@@ -16,13 +16,20 @@ import {
   createTransaction, updateTransaction, deleteTransaction, restoreTransaction, type TransactionInput,
 } from "@/lib/firestore/transactions";
 import { catMeta } from "@/lib/finance";
-import { format } from "date-fns";
+import { dayStart } from "@/lib/dates";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import type { Transaction, TxType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Filter = "all" | TxType;
 
 export function TransactionsView() {
+  const { prefs } = useLocale();
+  const loc = `${prefs.language}-${prefs.region}`;
+  const groupHeaderFmt = useMemo(
+    () => new Intl.DateTimeFormat(loc, { weekday: "long", day: "numeric", month: "short", year: "numeric" }),
+    [loc],
+  );
   const constraints = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading, uid } = useUserCollection<Transaction>("transactions", constraints);
   const [filter, setFilter] = useState<Filter>("all");
@@ -39,9 +46,9 @@ export function TransactionsView() {
   }, [data, filter, q]);
 
   const groups = useMemo(() => {
-    const map = new Map<string, Transaction[]>();
+    const map = new Map<number, Transaction[]>();
     for (const t of filtered) {
-      const key = format(new Date(t.date), "EEEE, d MMM yyyy");
+      const key = dayStart(t.date);
       const arr = map.get(key) ?? [];
       arr.push(t);
       map.set(key, arr);
@@ -84,7 +91,7 @@ export function TransactionsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Transactions" subtitle="Every rupee in and out — captured in seconds." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton>} />
+      <PageHeader title="Transactions" subtitle="Every amount in and out — captured in seconds." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton>} />
 
       {!isEmpty && (
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -110,7 +117,7 @@ export function TransactionsView() {
         <div className="flex flex-col gap-6">
           {groups.map(([day, items]) => (
             <div key={day}>
-              <h2 className="text-muted mb-2 px-1 text-xs font-semibold uppercase tracking-wider">{day}</h2>
+              <h2 className="text-muted mb-2 px-1 text-xs font-semibold uppercase tracking-wider">{groupHeaderFmt.format(day)}</h2>
               <div className="flex flex-col gap-2">
                 <AnimatePresence initial={false}>
                   {items.map((t) => <TransactionRow key={t.id} tx={t} onEdit={() => openEdit(t)} onDelete={() => onDelete(t)} />)}
