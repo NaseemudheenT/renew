@@ -68,6 +68,13 @@ export const EN = {
   "settings.data.exportCsv": "Export transactions (CSV)",
   "settings.data.exported": "Export ready — check your downloads",
   "settings.data.empty": "Nothing to export yet",
+  "settings.data.import": "Import transactions (CSV)",
+  "settings.data.import.title": "Import transactions",
+  "settings.data.import.summary": "{valid} ready to import · {duplicates} duplicates skipped · {invalid} invalid rows",
+  "settings.data.import.confirm": "Import {valid}",
+  "settings.data.import.none": "No new transactions found in that file",
+  "settings.data.import.done": "Imported {count} transactions",
+  "settings.data.import.failed": "Couldn't read that file",
 } as const;
 
 /** Non-English catalogs. Partial by design; English fills every gap. */

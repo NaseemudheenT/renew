@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Tags, X } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -17,6 +17,8 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { toCSV, downloadFile, fileDateStamp } from "@/lib/export";
+import { parseCSV, rowsToTransactions } from "@/lib/import";
+import { importTransactions } from "@/lib/firestore/transactions";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
@@ -66,7 +68,7 @@ export function SettingsView() {
       </Section>
 
       <Section icon={Database} title="Data">
-        <DataControl />
+        {uid && <DataControl uid={uid} />}
       </Section>
 
       <Section icon={ShieldCheck} title="Security">
@@ -338,13 +340,17 @@ function CategoriesControl({ uid }: { uid: string }) {
   );
 }
 
-function DataControl() {
-  const { t } = useLocale();
+function DataControl({ uid }: { uid: string }) {
+  const { t, prefs } = useLocale();
   const transactions = useUserCollection<Transaction>("transactions");
   const budgets = useUserCollection<Budget>("budgets");
   const savings = useUserCollection<SavingsGoal>("savings");
   const investments = useUserCollection<Investment>("investments");
   const payments = useUserCollection<Payment>("payments");
+
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<ReturnType<typeof rowsToTransactions> | null>(null);
+  const [importing, setImporting] = useState(false);
 
   const total =
     transactions.data.length + budgets.data.length + savings.data.length +
@@ -372,6 +378,37 @@ function DataControl() {
     toast({ title: t("settings.data.exported"), variant: "success" });
   }
 
+  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const result = rowsToTransactions(parseCSV(text), transactions.data, prefs.currency);
+      if (result.valid.length === 0) {
+        toast({ title: t("settings.data.import.none") });
+        return;
+      }
+      setPreview(result);
+    } catch {
+      toast({ title: t("settings.data.import.failed"), variant: "error" });
+    }
+  }
+
+  async function confirmImport() {
+    if (!preview) return;
+    setImporting(true);
+    try {
+      const count = await importTransactions(uid, preview.valid);
+      toast({ title: t("settings.data.import.done", { count }), variant: "success" });
+      setPreview(null);
+    } catch {
+      toast({ title: t("settings.data.import.failed"), variant: "error" });
+    } finally {
+      setImporting(false);
+    }
+  }
+
   return (
     <div className="flex flex-col gap-3">
       <p className="text-muted text-xs">{t("settings.data.hint")}</p>
@@ -385,6 +422,28 @@ function DataControl() {
           {t("settings.data.exportCsv")}
         </AnimatedButton>
       </div>
+      <AnimatedButton variant="glass" fullWidth onClick={() => fileRef.current?.click()}>
+        <Upload className="size-4" />
+        {t("settings.data.import")}
+      </AnimatedButton>
+      <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
+
+      <AnimatedModal
+        open={preview !== null}
+        onClose={() => setPreview(null)}
+        title={t("settings.data.import.title")}
+        description={preview ? t("settings.data.import.summary", { valid: preview.valid.length, duplicates: preview.duplicates, invalid: preview.invalid }) : undefined}
+      >
+        <div className="flex items-center justify-end gap-3">
+          <AnimatedButton variant="ghost" onClick={() => setPreview(null)} disabled={importing}>
+            {t("common.cancel")}
+          </AnimatedButton>
+          <AnimatedButton onClick={confirmImport} loading={importing}>
+            <Upload className="size-4" />
+            {preview ? t("settings.data.import.confirm", { valid: preview.valid.length }) : t("common.add")}
+          </AnimatedButton>
+        </div>
+      </AnimatedModal>
     </div>
   );
 }

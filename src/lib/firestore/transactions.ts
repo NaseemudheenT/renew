@@ -1,7 +1,8 @@
 "use client";
 
-import { addDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
+import { addDoc, deleteDoc, updateDoc, serverTimestamp, writeBatch, doc } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getDb } from "@/lib/firebase/client";
 import type { Transaction, TxType } from "@/lib/types";
 
 export interface TransactionInput {
@@ -21,6 +22,27 @@ export async function createTransaction(uid: string, input: TransactionInput): P
     updatedAt: serverTimestamp(),
   });
   return ref.id;
+}
+
+/** Bulk-create transactions (CSV import). Chunked to Firestore's 500/batch limit. */
+export async function importTransactions(uid: string, inputs: TransactionInput[]): Promise<number> {
+  const db = getDb();
+  const col = userCollection(uid, "transactions");
+  let written = 0;
+  for (let i = 0; i < inputs.length; i += 400) {
+    const batch = writeBatch(db);
+    for (const input of inputs.slice(i, i + 400)) {
+      batch.set(doc(col), {
+        ...input,
+        note: input.note ?? "",
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+    written += Math.min(400, inputs.length - i);
+  }
+  return written;
 }
 
 export async function updateTransaction(uid: string, id: string, patch: Partial<TransactionInput>): Promise<void> {
