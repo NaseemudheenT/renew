@@ -135,3 +135,53 @@ export interface AppNotification {
   sourceId?: string;
   createdAt: number;
 }
+
+/* ---- Finance domain ------------------------------------------------------ */
+
+export type TxType = "income" | "expense";
+
+export interface Transaction {
+  id: string;
+  type: TxType;
+  amount: number; // positive magnitude
+  currency: string;
+  category: string; // category id (see lib/finance)
+  note?: string;
+  date: number; // epoch millis when it occurred
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface Budget {
+  id: string;
+  category: string; // expense category id
+  amount: number; // monthly limit
+  currency: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  target: number;
+  current: number;
+  currency: string;
+  targetDate?: number | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+export type InvestmentType = "stock" | "mutual_fund" | "etf" | "crypto" | "other";
+
+export interface Investment {
+  id: string;
+  name: string;
+  itype: InvestmentType;
+  quantity: number;
+  buyPrice: number; // per unit
+  currentPrice: number; // per unit
+  currency: string;
+  createdAt: number;
+  updatedAt: number;
+}

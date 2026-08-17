@@ -22,7 +22,11 @@ export type CollectionName =
   | "tasks"
   | "documents"
   | "payments"
-  | "notifications";
+  | "notifications"
+  | "transactions"
+  | "budgets"
+  | "savings"
+  | "investments";
 
 export function userCollection(
   uid: string,
