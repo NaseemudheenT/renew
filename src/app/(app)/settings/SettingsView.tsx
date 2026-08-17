@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { CreditCardForm, type CardValues } from "@/components/finance/CreditCardForm";
@@ -13,8 +14,10 @@ import { Avatar } from "@/components/shell/Avatar";
 import { toast } from "@/components/ui/toast-store";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useTheme } from "@/hooks/useTheme";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateDisplayName, updateNotificationPrefs } from "@/lib/firestore/profile";
+import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs } from "@/lib/firestore/profile";
+import { LANGUAGES, REGIONS, CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
 
@@ -40,6 +43,10 @@ export function SettingsView() {
 
       <Section icon={Palette} title="Appearance">
         <AppearanceControl />
+      </Section>
+
+      <Section icon={Globe} title="Region & Language">
+        {uid && <RegionLanguageControl uid={uid} />}
       </Section>
 
       <Section icon={Bell} title="Notifications">
@@ -133,6 +140,104 @@ function NotificationPrefsControl({ uid, prefs }: { uid: string; prefs: Notifica
           <Switch label={row.label} checked={prefs[row.key]} onChange={(v) => toggle(row.key, v)} />
         </div>
       ))}
+    </div>
+  );
+}
+
+const COMMON_TIMEZONES = [
+  "UTC", "America/New_York", "America/Chicago", "America/Denver",
+  "America/Los_Angeles", "America/Sao_Paulo", "America/Mexico_City",
+  "Europe/London", "Europe/Paris", "Europe/Berlin", "Europe/Madrid",
+  "Europe/Moscow", "Africa/Cairo", "Africa/Lagos", "Africa/Johannesburg",
+  "Asia/Dubai", "Asia/Karachi", "Asia/Kolkata", "Asia/Dhaka", "Asia/Bangkok",
+  "Asia/Singapore", "Asia/Shanghai", "Asia/Tokyo", "Asia/Seoul",
+  "Australia/Sydney", "Pacific/Auckland",
+];
+
+function RegionLanguageControl({ uid }: { uid: string }) {
+  const { prefs, t } = useLocale();
+  const [language, setLanguage] = useState(prefs.language);
+  const [region, setRegion] = useState(prefs.region);
+  const [currency, setCurrency] = useState(prefs.currency);
+  const [timezone, setTimezone] = useState(prefs.timezone);
+  const [weekStart, setWeekStart] = useState<WeekStart>(prefs.weekStart);
+  const [saving, setSaving] = useState(false);
+
+  // When the region changes, follow its conventional currency + week start
+  // (the user can still override currency below).
+  function onRegionChange(next: string) {
+    setRegion(next);
+    setCurrency(REGION_CURRENCY[next] ?? currency);
+    setWeekStart(weekStartFor(next));
+  }
+
+  const tzOptions = Array.from(new Set([prefs.timezone, ...COMMON_TIMEZONES]))
+    .filter(Boolean)
+    .map((z) => ({ value: z, label: z.replace(/_/g, " ") }));
+
+  async function save() {
+    setSaving(true);
+    try {
+      await updateLocalePrefs(uid, {
+        locale: language,
+        region,
+        currency,
+        timezone,
+        weekStart,
+        hour12: hour12For(region),
+      });
+      toast({ title: t("settings.region.saved"), variant: "success" });
+    } catch {
+      toast({ title: "Couldn't save preferences", variant: "error" });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid gap-4 sm:grid-cols-2">
+        <Select
+          label={t("settings.region.language")}
+          value={language}
+          onChange={(e) => setLanguage(e.target.value)}
+          options={LANGUAGES.map((l) => ({ value: l.code, label: `${l.native} · ${l.label}` }))}
+        />
+        <Select
+          label={t("settings.region.region")}
+          value={region}
+          onChange={(e) => onRegionChange(e.target.value)}
+          options={REGIONS.map((r) => ({ value: r.code, label: r.label }))}
+        />
+        <Select
+          label={t("settings.region.currency")}
+          value={currency}
+          onChange={(e) => setCurrency(e.target.value)}
+          options={CURRENCY_CODES.map((c) => ({ value: c, label: c }))}
+        />
+        <Select
+          label={t("settings.region.timezone")}
+          value={timezone}
+          onChange={(e) => setTimezone(e.target.value)}
+          options={tzOptions}
+        />
+        <Select
+          label={t("settings.region.weekStart")}
+          value={String(weekStart)}
+          onChange={(e) => setWeekStart(Number(e.target.value) === 1 ? 1 : 0)}
+          options={[
+            { value: "0", label: t("settings.region.weekStart.sunday") },
+            { value: "1", label: t("settings.region.weekStart.monday") },
+          ]}
+        />
+      </div>
+      <p className="text-muted text-xs">{t("settings.region.hint")}</p>
+      <div className="flex justify-end">
+        <AnimatedButton onClick={save} loading={saving}>
+          <Check className="size-4" />
+          {t("common.save")}
+        </AnimatedButton>
+      </div>
     </div>
   );
 }

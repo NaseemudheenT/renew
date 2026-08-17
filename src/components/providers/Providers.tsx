@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { MotionConfig } from "framer-motion";
 import { QueryProvider } from "./QueryProvider";
 import { AuthProvider } from "./AuthProvider";
+import { LocaleProvider } from "./LocaleProvider";
 import { Toaster } from "@/components/ui/Toaster";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 
@@ -13,9 +14,11 @@ export function Providers({ children }: { children: ReactNode }) {
     <MotionConfig reducedMotion="user">
       <QueryProvider>
         <AuthProvider>
-          {children}
-          <Toaster />
-          <ServiceWorkerRegister />
+          <LocaleProvider>
+            {children}
+            <Toaster />
+            <ServiceWorkerRegister />
+          </LocaleProvider>
         </AuthProvider>
       </QueryProvider>
     </MotionConfig>

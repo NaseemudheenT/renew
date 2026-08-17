@@ -26,6 +26,17 @@ export interface ProfileDoc {
   onboarded: boolean;
   notificationPrefs?: NotificationPrefs;
   createdAt?: number;
+  /* ---- Locale & region (all optional; auto-detected until overridden) ---- */
+  /** BCP-47 language subtag, e.g. "en", "es". */
+  locale?: string;
+  /** ISO-3166 region, e.g. "US", "IN". */
+  region?: string;
+  /** ISO-4217 display currency, e.g. "USD". */
+  currency?: string;
+  /** 0 = Sunday, 1 = Monday. */
+  weekStart?: 0 | 1;
+  /** 12-hour clock preference. */
+  hour12?: boolean;
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

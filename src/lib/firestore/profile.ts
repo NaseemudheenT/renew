@@ -26,6 +26,26 @@ export async function updateTimezone(uid: string, timezone: string): Promise<voi
   await updateDoc(profileRef(uid), { timezone, updatedAt: serverTimestamp() });
 }
 
+/** Locale/region override the user can set in Settings → Region & Language. */
+export interface LocalePrefsPatch {
+  locale?: string;
+  region?: string;
+  currency?: string;
+  timezone?: string;
+  weekStart?: 0 | 1;
+  hour12?: boolean;
+}
+
+export async function updateLocalePrefs(
+  uid: string,
+  patch: LocalePrefsPatch,
+): Promise<void> {
+  await updateDoc(profileRef(uid), {
+    ...patch,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function updateNotificationPrefs(
   uid: string,
   prefs: NotificationPrefs,
