@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { NotificationBell } from "./NotificationBell";
+import { GlobalSearch } from "./GlobalSearch";
 import { AccountMenu } from "./AccountMenu";
 import type { ShellUser } from "./shell-types";
 import { titleKeyForPath } from "@/lib/nav";
@@ -36,6 +37,7 @@ export function TopBar({ user }: { user: ShellUser }) {
       </Link>
       <h1 className="text-strong hidden text-lg font-medium lg:block">{title}</h1>
       <div className="flex items-center gap-2 sm:gap-3">
+        <GlobalSearch />
         <NotificationBell />
         <div className="lg:hidden">
           <AccountMenu user={user} />

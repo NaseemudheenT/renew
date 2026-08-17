@@ -24,6 +24,9 @@ export const EN = {
   "common.retry": "Try again",
   "common.saving": "Saving…",
   "common.search": "Search",
+  "search.placeholder": "Search transactions, bills, goals…",
+  "search.empty": "No matches",
+  "search.hint": "Search across your whole account",
 
   "date.today": "Today",
   "date.tomorrow": "Tomorrow",
