@@ -53,6 +53,12 @@ export default function TermsPage() {
         let you know in the app.
       </p>
 
+      <h2>Contact</h2>
+      <p>
+        For any service, question or help, email us at{" "}
+        <a href="mailto:meetzapstudio@gmail.com">meetzapstudio@gmail.com</a>.
+      </p>
+
       <p className="lead">
         This document is a plain-language starting point and not legal advice; adapt it to your
         jurisdiction before launch.

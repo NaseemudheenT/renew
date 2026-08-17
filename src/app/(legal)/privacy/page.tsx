@@ -59,7 +59,8 @@ export default function PrivacyPage() {
 
       <h2>Contact</h2>
       <p>
-        Questions about your privacy? Reach us through the support channel listed in the app.
+        Questions about your privacy, or need help with any service? Email us at{" "}
+        <a href="mailto:meetzapstudio@gmail.com">meetzapstudio@gmail.com</a>.
       </p>
 
       <p className="lead">
