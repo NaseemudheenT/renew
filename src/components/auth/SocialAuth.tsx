@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AlertCircle } from "lucide-react";
-import { motion } from "framer-motion";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { GlassButton } from "@/components/ui/liquid-glass";
 import { FadeScale } from "@/components/motion";
 import { GoogleIcon } from "@/components/brand/GoogleIcon";
 import { AppleIcon } from "@/components/brand/AppleIcon";
@@ -94,20 +94,16 @@ function SocialButton({
   label: string;
 }) {
   return (
-    <motion.button
+    <GlassButton
       type="button"
+      variant="neutral"
+      fullWidth
       onClick={onClick}
       disabled={disabled}
-      whileHover={disabled ? undefined : { y: -2 }}
-      whileTap={disabled ? undefined : { scale: 0.98 }}
-      transition={{ type: "spring", stiffness: 500, damping: 30 }}
-      className={cn(
-        "glass !rounded-full flex h-12 w-full items-center justify-center gap-2.5",
-        "text-[0.95rem] font-medium text-[var(--text-strong)] disabled:opacity-55",
-      )}
+      className={cn("h-12 gap-2.5 text-[0.95rem] font-medium")}
     >
       {icon}
       {loading ? "Connecting…" : label}
-    </motion.button>
+    </GlassButton>
   );
 }
