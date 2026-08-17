@@ -2,7 +2,7 @@
 
 import { useMemo } from "react";
 import { orderBy } from "firebase/firestore";
-import { subMonths, format } from "date-fns";
+import { subMonths } from "date-fns";
 import { motion, useReducedMotion } from "framer-motion";
 import { BarChart3, ArrowDownLeft, ArrowUpRight, PiggyBank } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -10,7 +10,8 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useUserCollection } from "@/hooks/useUserCollection";
-import { catMeta, monthRange } from "@/lib/finance";
+import { monthRange } from "@/lib/finance";
+import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
@@ -19,6 +20,9 @@ const MONTHS = 6;
 
 export function AnalyticsView() {
   const { prefs, money, t } = useLocale();
+  const { resolve } = useCategories();
+  const loc = `${prefs.language}-${prefs.region}`;
+  const monthFmt = useMemo(() => new Intl.DateTimeFormat(loc, { month: "short" }), [loc]);
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading } = useUserCollection<Transaction>("transactions", txC);
   const reduced = useReducedMotion();
@@ -31,10 +35,10 @@ export function AnalyticsView() {
       const { start, end } = monthRange(ref);
       let income = 0, expense = 0;
       for (const t of data) if (t.date >= start && t.date < end) { if (t.type === "income") income += t.amount; else expense += t.amount; }
-      out.push({ label: format(ref, "MMM"), income, expense });
+      out.push({ label: monthFmt.format(ref), income, expense });
     }
     return out;
-  }, [data]);
+  }, [data, monthFmt]);
 
   const thisMonth = months[months.length - 1] ?? { income: 0, expense: 0 };
   const savingsRate = thisMonth.income > 0 ? Math.round(((thisMonth.income - thisMonth.expense) / thisMonth.income) * 100) : 0;
@@ -59,7 +63,7 @@ export function AnalyticsView() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title="Analytics" subtitle="A clear, honest picture of your money." />
+      <PageHeader title={t("nav.analytics")} subtitle="A clear, honest picture of your money." />
       <StaggerContainer className="flex flex-col gap-6" stagger={0.07}>
         <StaggerItem>
           <div className="grid grid-cols-3 gap-3">
@@ -99,7 +103,7 @@ export function AnalyticsView() {
             ) : (
               <div className="flex flex-col gap-3">
                 {byCategory.map((d, i) => {
-                  const meta = catMeta(d.category);
+                  const meta = resolve(d.category);
                   const Icon = meta.icon;
                   return (
                     <div key={d.category} className="flex items-center gap-3">
