@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, isSameMonth, isSameDay, format } from "date-fns";
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, isSameMonth, isSameDay } from "date-fns";
 import { ChevronLeft, ChevronRight, Bell, ListTodo, Wallet } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -40,6 +40,7 @@ export function CalendarView() {
     () => new Intl.DateTimeFormat(loc, { weekday: "long", day: "numeric", month: "long" }),
     [loc],
   );
+  const numFmt = useMemo(() => new Intl.NumberFormat(loc), [loc]);
   const weekdayLabels = useMemo(() => {
     const fmt = new Intl.DateTimeFormat(loc, { weekday: "short" });
     const names: string[] = [];
@@ -101,7 +102,7 @@ export function CalendarView() {
               return (
                 <button key={day.toISOString()} type="button" onClick={() => setSelected(day)} aria-label={dayAria.format(day)} aria-pressed={isSel}
                   className={cn("relative flex aspect-square flex-col items-center justify-start gap-1 rounded-xl p-1.5 text-sm transition-colors", inMonth ? "text-[var(--text-body)]" : "text-[var(--text-muted)]/50", isSel ? "bg-[var(--glass-bg-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]" : "hover:bg-[var(--glass-bg-soft)]")}>
-                  <span className={cn("grid size-6 place-items-center rounded-full text-xs tabular-nums", today && "bg-gradient-to-b from-gold-300 to-gold-500 font-semibold text-[var(--text-onGold)]", isSel && !today && "font-semibold text-[var(--text-strong)]")}>{format(day, "d")}</span>
+                  <span className={cn("grid size-6 place-items-center rounded-full text-xs tabular-nums", today && "bg-gradient-to-b from-gold-300 to-gold-500 font-semibold text-[var(--text-onGold)]", isSel && !today && "font-semibold text-[var(--text-strong)]")}>{numFmt.format(day.getDate())}</span>
                   {dayItems.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-0.5">
                       {dayItems.slice(0, 3).map((it) => <span key={it.id} className={cn("size-1.5 rounded-full", KIND_META[it.kind].dot)} />)}
