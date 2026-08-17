@@ -33,6 +33,12 @@ describe("computeDesired — budgets", () => {
     const out = computeDesired({ ...empty, budgets, transactions: [tx("food", 130)] }, { ...allPrefs, budgets: false });
     expect(out.some((d) => d.type === "budget")).toBe(false);
   });
+  it("localizes titles/bodies to the given language", () => {
+    const out = computeDesired({ ...empty, budgets, transactions: [tx("food", 130)] }, allPrefs, "es");
+    const hit = out.find((d) => d.type === "budget");
+    expect(hit?.title).toBe("Presupuesto superado");
+    expect(hit?.body).toContain("Food & Drink");
+  });
 });
 
 describe("computeDesired — savings", () => {

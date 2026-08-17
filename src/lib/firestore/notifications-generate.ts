@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { userCollection } from "@/lib/firestore/db";
 import { todayEnd, daysUntil } from "@/lib/dates";
 import { catMeta, monthRange } from "@/lib/finance";
+import { translate } from "@/lib/i18n/messages";
 import type {
   Reminder,
   Task,
@@ -62,10 +63,13 @@ export function computeDesired(
     budgets: true,
     savings: true,
   },
+  language = "en",
 ): Desired[] {
   const out: Desired[] = [];
   const end = todayEnd();
   const monthKey = dayKey(monthRange().start).slice(0, 7); // yyyy-MM
+  const tr = (key: Parameters<typeof translate>[1], vars?: Record<string, string | number>) =>
+    translate(language, key, vars);
 
   if (prefs.reminders) {
     for (const r of input.reminders) {
@@ -75,7 +79,7 @@ export function computeDesired(
         out.push({
           id: `reminder_${r.id}_${dayKey(r.dueAt)}`,
           type: "reminder",
-          title: overdue ? "Reminder overdue" : "Reminder due today",
+          title: tr(overdue ? "notif.reminder.overdue" : "notif.reminder.due"),
           body: r.title,
           href: "/reminders",
           sourceId: r.id,
@@ -92,7 +96,7 @@ export function computeDesired(
         out.push({
           id: `task_${t.id}_${dayKey(t.dueAt)}`,
           type: "task",
-          title: overdue ? "Task overdue" : "Task due today",
+          title: tr(overdue ? "notif.task.overdue" : "notif.task.due"),
           body: t.title,
           href: "/tasks",
           sourceId: t.id,
@@ -109,7 +113,7 @@ export function computeDesired(
         out.push({
           id: `payment_${p.id}_${dayKey(p.dueAt)}`,
           type: "payment",
-          title: d < 0 ? "Payment overdue" : "Payment due soon",
+          title: tr(d < 0 ? "notif.payment.overdue" : "notif.payment.due"),
           body: p.name,
           href: "/payments",
           sourceId: p.id,
@@ -126,7 +130,7 @@ export function computeDesired(
         out.push({
           id: `document_${doc.id}_${dayKey(doc.expiresAt)}`,
           type: "document",
-          title: d < 0 ? "Document expired" : "Document expiring soon",
+          title: tr(d < 0 ? "notif.document.overdue" : "notif.document.due"),
           body: doc.name,
           href: "/documents",
           sourceId: doc.id,
@@ -153,8 +157,8 @@ export function computeDesired(
         out.push({
           id: `budget_over_${b.id}_${monthKey}`,
           type: "budget",
-          title: "Budget exceeded",
-          body: `You've gone over your ${label} budget this month.`,
+          title: tr("notif.budget.over.title"),
+          body: tr("notif.budget.over.body", { category: label }),
           href: "/budget",
           sourceId: b.id,
         });
@@ -162,8 +166,8 @@ export function computeDesired(
         out.push({
           id: `budget_warn_${b.id}_${monthKey}`,
           type: "budget",
-          title: "Budget almost reached",
-          body: `You've used ${Math.round(ratio * 100)}% of your ${label} budget.`,
+          title: tr("notif.budget.warn.title"),
+          body: tr("notif.budget.warn.body", { percent: Math.round(ratio * 100), category: label }),
           href: "/budget",
           sourceId: b.id,
         });
@@ -178,8 +182,8 @@ export function computeDesired(
         out.push({
           id: `savings_reached_${g.id}`,
           type: "savings",
-          title: "Savings goal reached",
-          body: `You've reached your goal: ${g.name}. 🎉`,
+          title: tr("notif.savings.reached.title"),
+          body: tr("notif.savings.reached.body", { name: g.name }),
           href: "/savings",
           sourceId: g.id,
         });

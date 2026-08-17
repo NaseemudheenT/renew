@@ -75,6 +75,7 @@ export function NotificationSync() {
         transactions: transactions.data,
       },
       prefs,
+      profile?.locale ?? "en",
     );
 
     // Skip ids already present or already attempted this session.
@@ -103,6 +104,7 @@ export function NotificationSync() {
     transactions.data,
     notifications.data,
     prefs,
+    profile?.locale,
   ]);
 
   return null;
