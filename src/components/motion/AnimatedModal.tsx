@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  motion,
-  AnimatePresence,
-  useReducedMotion,
-} from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import {
   useCallback,
   useEffect,
@@ -24,16 +20,11 @@ export interface AnimatedModalProps {
   title?: string;
   description?: string;
   className?: string;
-  /** Hide the default close button (e.g. for forced flows). */
   hideClose?: boolean;
-  /** Prevent closing on backdrop click / escape. */
   dismissible?: boolean;
 }
 
-/**
- * Accessible, animated dialog. Renders in a portal, traps focus, restores
- * focus on close, closes on Escape / backdrop, and respects reduced motion.
- */
+/** Accessible, focus-trapped liquid-glass dialog rendered in a portal. */
 export function AnimatedModal({
   open,
   onClose,
@@ -54,13 +45,11 @@ export function AnimatedModal({
     if (dismissible) onClose();
   }, [dismissible, onClose]);
 
-  // Lock scroll + remember focus while open.
   useEffect(() => {
     if (!open) return;
     lastFocused.current = document.activeElement as HTMLElement | null;
-    const prevOverflow = document.body.style.overflow;
+    const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
-    // Focus the panel on next frame.
     const raf = requestAnimationFrame(() => {
       const focusable = panelRef.current?.querySelector<HTMLElement>(
         'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
@@ -69,7 +58,7 @@ export function AnimatedModal({
     });
     return () => {
       cancelAnimationFrame(raf);
-      document.body.style.overflow = prevOverflow;
+      document.body.style.overflow = prev;
       lastFocused.current?.focus?.();
     };
   }, [open]);
@@ -82,7 +71,6 @@ export function AnimatedModal({
         return;
       }
       if (e.key !== "Tab") return;
-      // Simple focus trap.
       const nodes = panelRef.current?.querySelectorAll<HTMLElement>(
         'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
       );
@@ -114,7 +102,7 @@ export function AnimatedModal({
           onKeyDown={onKeyDown}
         >
           <motion.div
-            className="absolute inset-0 bg-[rgba(20,17,10,0.42)] backdrop-blur-sm"
+            className="absolute inset-0 bg-[rgba(8,6,3,0.5)] backdrop-blur-sm"
             variants={backdropVariants}
             initial="hidden"
             animate="show"
@@ -145,10 +133,7 @@ export function AnimatedModal({
               </button>
             )}
             {title && (
-              <h2
-                id={labelId}
-                className="text-strong pr-8 text-lg font-medium"
-              >
+              <h2 id={labelId} className="text-strong pr-8 text-lg font-medium">
                 {title}
               </h2>
             )}
@@ -157,9 +142,7 @@ export function AnimatedModal({
                 {description}
               </p>
             )}
-            <div className={cn((title || description) && "mt-5")}>
-              {children}
-            </div>
+            <div className={cn((title || description) && "mt-5")}>{children}</div>
           </motion.div>
         </div>
       )}

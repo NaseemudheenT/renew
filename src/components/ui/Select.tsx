@@ -2,14 +2,12 @@ import { forwardRef, useId, type SelectHTMLAttributes } from "react";
 import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface SelectProps
-  extends SelectHTMLAttributes<HTMLSelectElement> {
+export interface SelectProps extends SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
   options: { value: string; label: string }[];
 }
 
-/** Glassy native select — accessible, themeable, with a custom chevron. */
 export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select(
   { label, error, options, className, id, ...props },
   ref,
@@ -19,10 +17,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
   return (
     <div className="w-full">
       {label && (
-        <label
-          htmlFor={selectId}
-          className="mb-2 block text-sm font-medium text-[var(--text-body)]"
-        >
+        <label htmlFor={selectId} className="mb-2 block text-sm font-medium text-[var(--text-body)]">
           {label}
         </label>
       )}

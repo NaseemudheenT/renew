@@ -16,12 +16,10 @@ export function VerifyClient({ email }: { email: string }) {
   const [code, setCode] = useState("");
   const [phase, setPhase] = useState<Phase>("input");
   const [error, setError] = useState<string | null>(null);
-  // A code is sent on arrival from sign-up, so start the resend cooldown.
   const [cooldown, setCooldown] = useState(30);
   const [resending, setResending] = useState(false);
   const submittedFor = useRef<string>("");
 
-  // Resend cooldown ticker.
   useEffect(() => {
     if (cooldown <= 0) return;
     const t = setTimeout(() => setCooldown((c) => c - 1), 1000);
@@ -29,7 +27,7 @@ export function VerifyClient({ email }: { email: string }) {
   }, [cooldown]);
 
   async function verify(value: string) {
-    if (phase === "verifying" || phase === "success") return;
+    if (phase !== "input") return;
     if (submittedFor.current === value) return;
     submittedFor.current = value;
     setError(null);
@@ -45,7 +43,6 @@ export function VerifyClient({ email }: { email: string }) {
       submittedFor.current = "";
     }
   }
-
   async function resend() {
     if (cooldown > 0 || resending) return;
     setError(null);
@@ -60,7 +57,6 @@ export function VerifyClient({ email }: { email: string }) {
       setResending(false);
     }
   }
-
   async function useDifferentAccount() {
     await signOutUser();
     router.replace("/sign-in");
@@ -71,85 +67,43 @@ export function VerifyClient({ email }: { email: string }) {
       <GlassCard padded className="text-center">
         <AnimatePresence mode="wait">
           {phase === "success" ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center gap-4 py-4"
-            >
-              <SuccessTransition size={84} label="Email verified" />
+            <motion.div key="ok" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-4 py-4">
+              <SuccessTransition size={84} label="Verified" />
               <div>
                 <h1 className="text-strong text-xl font-medium">Verified</h1>
                 <p className="text-muted mt-1 text-sm">Taking you in…</p>
               </div>
             </motion.div>
           ) : (
-            <motion.div
-              key="input"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
+            <motion.div key="in" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
               <h1 className="text-strong text-xl font-medium">Verify your email</h1>
               <p className="text-muted mx-auto mt-1 max-w-xs text-sm">
-                We sent a 6-digit code to{" "}
-                <span className="text-body font-medium">{email || "your email"}</span>.
+                We sent a 6-digit code to <span className="text-body font-medium">{email || "your email"}</span>.
               </p>
-
               <div className="mt-7">
-                <OtpInput
-                  value={code}
-                  onChange={setCode}
-                  onComplete={verify}
-                  disabled={phase === "verifying"}
-                  error={Boolean(error)}
-                  autoFocus
-                />
+                <OtpInput value={code} onChange={setCode} onComplete={verify} disabled={phase === "verifying"} error={Boolean(error)} autoFocus />
               </div>
-
               {error && (
-                <div
-                  role="alert"
-                  className="mx-auto mt-4 flex max-w-xs items-center justify-center gap-2 text-sm text-rose-600 dark:text-rose-300"
-                >
+                <div role="alert" className="mx-auto mt-4 flex max-w-xs items-center justify-center gap-2 text-sm text-rose-600 dark:text-rose-300">
                   <AlertCircle className="size-4 shrink-0" />
                   <span>{error}</span>
                 </div>
               )}
-
               <div className="mt-7">
-                <AnimatedButton
-                  size="lg"
-                  fullWidth
-                  loading={phase === "verifying"}
-                  disabled={code.length !== 6}
-                  onClick={() => verify(code)}
-                >
+                <AnimatedButton size="lg" fullWidth loading={phase === "verifying"} disabled={code.length !== 6} onClick={() => verify(code)}>
                   Verify
                 </AnimatedButton>
               </div>
-
               <div className="text-muted mt-5 text-sm">
                 {cooldown > 0 ? (
                   <span>Resend code in {cooldown}s</span>
                 ) : (
-                  <button
-                    type="button"
-                    onClick={resend}
-                    disabled={resending}
-                    className="font-medium text-[var(--color-gold-600)] hover:underline disabled:opacity-60"
-                  >
+                  <button type="button" onClick={resend} disabled={resending} className="font-medium text-[var(--color-gold-600)] hover:underline disabled:opacity-60">
                     {resending ? "Sending…" : "Resend code"}
                   </button>
                 )}
               </div>
-
-              <button
-                type="button"
-                onClick={useDifferentAccount}
-                className="text-muted mt-4 text-xs hover:text-[var(--text-strong)]"
-              >
+              <button type="button" onClick={useDifferentAccount} className="text-muted mt-4 text-xs hover:text-[var(--text-strong)]">
                 Use a different account
               </button>
             </motion.div>

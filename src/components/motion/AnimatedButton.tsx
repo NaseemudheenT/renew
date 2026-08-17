@@ -21,7 +21,7 @@ export interface AnimatedButtonProps
 const base =
   "relative inline-flex items-center justify-center gap-2 font-medium select-none " +
   "rounded-full whitespace-nowrap disabled:opacity-55 disabled:pointer-events-none " +
-  "transition-colors duration-300 ease-[var(--ease-calm)] focus-visible:outline-2";
+  "transition-[color,background,filter] duration-300 ease-[var(--ease-calm)]";
 
 const sizes: Record<Size, string> = {
   sm: "h-9 px-4 text-sm",
@@ -30,65 +30,47 @@ const sizes: Record<Size, string> = {
 };
 
 const variants: Record<Variant, string> = {
-  // Champagne liquid-glass — the primary, meaningful action.
-  primary: "glass glass-primary !rounded-full font-semibold hover:brightness-[1.06]",
+  primary: "glass glass-primary !rounded-full font-semibold hover:brightness-[1.07]",
   glass: "glass !rounded-full text-[var(--text-strong)]",
   ghost:
     "text-[var(--text-body)] hover:text-[var(--text-strong)] hover:bg-[var(--glass-bg-soft)]",
-  // Destructive stays solid for unmistakable, accessible signalling.
   danger:
     "text-white bg-gradient-to-b from-rose-400 to-rose-600 " +
     "hover:from-rose-300 hover:to-rose-500 shadow-[0_6px_20px_rgba(200,60,80,0.28)]",
 };
 
-/**
- * Button with physical press + hover motion. Falls back to no transform under
- * reduced motion. For non-animated needs use the plain <Button> primitive.
- */
-export const AnimatedButton = forwardRef<
-  HTMLButtonElement,
-  AnimatedButtonProps
->(function AnimatedButton(
-  {
-    variant = "primary",
-    size = "md",
-    loading = false,
-    fullWidth = false,
-    className,
-    children,
-    disabled,
-    ...props
-  },
-  ref,
-) {
-  const reduced = useReducedMotion();
-  const motionProps = reduced
-    ? {}
-    : {
-        whileHover: { y: -2 },
-        whileTap: { scale: 0.97 },
-        transition: spring.snappy,
-      };
+/** Liquid-glass button with physical press + hover. Reduced-motion aware. */
+export const AnimatedButton = forwardRef<HTMLButtonElement, AnimatedButtonProps>(
+  function AnimatedButton(
+    {
+      variant = "primary",
+      size = "md",
+      loading = false,
+      fullWidth = false,
+      className,
+      children,
+      disabled,
+      ...props
+    },
+    ref,
+  ) {
+    const reduced = useReducedMotion();
+    const motionProps = reduced
+      ? {}
+      : { whileHover: { y: -2 }, whileTap: { scale: 0.97 }, transition: spring.snappy };
 
-  return (
-    <motion.button
-      ref={ref}
-      disabled={disabled || loading}
-      aria-busy={loading}
-      className={cn(
-        base,
-        sizes[size],
-        variants[variant],
-        fullWidth && "w-full",
-        className,
-      )}
-      {...motionProps}
-      {...props}
-    >
-      {loading && (
-        <Loader2 className="size-4 animate-spin" aria-hidden="true" />
-      )}
-      <span className={cn(loading && "opacity-90")}>{children}</span>
-    </motion.button>
-  );
-});
+    return (
+      <motion.button
+        ref={ref}
+        disabled={disabled || loading}
+        aria-busy={loading}
+        className={cn(base, sizes[size], variants[variant], fullWidth && "w-full", className)}
+        {...motionProps}
+        {...props}
+      >
+        {loading && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
+        <span className={cn(loading && "opacity-90")}>{children}</span>
+      </motion.button>
+    );
+  },
+);

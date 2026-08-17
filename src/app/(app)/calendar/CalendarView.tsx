@@ -3,17 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
-  eachDayOfInterval,
-  addMonths,
-  isSameMonth,
-  isSameDay,
-  format,
-} from "date-fns";
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, isSameMonth, isSameDay, format } from "date-fns";
 import { ChevronLeft, ChevronRight, Bell, ListTodo, Wallet } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -25,40 +15,25 @@ import type { Reminder, Task, Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Kind = "reminder" | "task" | "payment";
-interface CalItem {
-  id: string;
-  kind: Kind;
-  title: string;
-  at: number;
-  href: string;
-}
-
-const KIND_META: Record<Kind, { icon: typeof Bell; dot: string; href: string }> = {
-  reminder: { icon: Bell, dot: "bg-[var(--color-gold-400)]", href: "/reminders" },
-  task: { icon: ListTodo, dot: "bg-sky-400", href: "/tasks" },
-  payment: { icon: Wallet, dot: "bg-emerald-400", href: "/payments" },
+interface CalItem { id: string; kind: Kind; title: string; at: number; href: string }
+const KIND_META: Record<Kind, { icon: typeof Bell; dot: string }> = {
+  reminder: { icon: Bell, dot: "bg-[var(--color-gold-400)]" },
+  task: { icon: ListTodo, dot: "bg-sky-400" },
+  payment: { icon: Wallet, dot: "bg-emerald-400" },
 };
 
 export function CalendarView() {
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => new Date());
-
   const reminders = useUserCollection<Reminder>("reminders");
   const tasks = useUserCollection<Task>("tasks");
   const payments = useUserCollection<Payment>("payments");
 
   const items: CalItem[] = useMemo(() => {
     const out: CalItem[] = [];
-    reminders.data.forEach((r) =>
-      out.push({ id: r.id, kind: "reminder", title: r.title, at: r.dueAt, href: "/reminders" }),
-    );
-    tasks.data.forEach((t) => {
-      if (t.dueAt)
-        out.push({ id: t.id, kind: "task", title: t.title, at: t.dueAt, href: "/tasks" });
-    });
-    payments.data.forEach((p) =>
-      out.push({ id: p.id, kind: "payment", title: p.name, at: p.dueAt, href: "/payments" }),
-    );
+    reminders.data.forEach((r) => out.push({ id: r.id, kind: "reminder", title: r.title, at: r.dueAt, href: "/reminders" }));
+    tasks.data.forEach((t) => { if (t.dueAt) out.push({ id: t.id, kind: "task", title: t.title, at: t.dueAt, href: "/tasks" }); });
+    payments.data.forEach((p) => out.push({ id: p.id, kind: "payment", title: p.name, at: p.dueAt, href: "/payments" }));
     return out;
   }, [reminders.data, tasks.data, payments.data]);
 
@@ -79,107 +54,36 @@ export function CalendarView() {
     return eachDayOfInterval({ start: gridStart, end: gridEnd });
   }, [cursor]);
 
-  const selectedItems = useMemo(
-    () => (byDay.get(dayStart(selected.getTime())) ?? []).sort((a, b) => a.at - b.at),
-    [byDay, selected],
-  );
+  const selectedItems = useMemo(() => (byDay.get(dayStart(selected.getTime())) ?? []).sort((a, b) => a.at - b.at), [byDay, selected]);
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader
-        title="Calendar"
-        subtitle="Your reminders, tasks and payments on one timeline."
-        action={
-          <AnimatedButton
-            variant="glass"
-            size="sm"
-            onClick={() => {
-              const now = new Date();
-              setCursor(now);
-              setSelected(now);
-            }}
-          >
-            Today
-          </AnimatedButton>
-        }
-      />
-
+      <PageHeader title="Calendar" subtitle="Your reminders, tasks and payments on one timeline." action={<AnimatedButton variant="glass" size="sm" onClick={() => { const now = new Date(); setCursor(now); setSelected(now); }}>Today</AnimatedButton>} />
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <GlassCard padded>
-          {/* Month nav */}
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-strong text-lg font-medium">
-              {format(cursor, "MMMM yyyy")}
-            </h2>
+            <h2 className="text-strong text-lg font-medium">{format(cursor, "MMMM yyyy")}</h2>
             <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setCursor((c) => addMonths(c, -1))}
-                aria-label="Previous month"
-                className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
-              >
-                <ChevronLeft className="size-5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setCursor((c) => addMonths(c, 1))}
-                aria-label="Next month"
-                className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
-              >
-                <ChevronRight className="size-5" />
-              </button>
+              <button type="button" onClick={() => setCursor((c) => addMonths(c, -1))} aria-label="Previous month" className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"><ChevronLeft className="size-5" /></button>
+              <button type="button" onClick={() => setCursor((c) => addMonths(c, 1))} aria-label="Next month" className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"><ChevronRight className="size-5" /></button>
             </div>
           </div>
-
-          {/* Weekday labels */}
           <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-[var(--text-muted)]">
-            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-              <div key={d} className="py-1">
-                {d}
-              </div>
-            ))}
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => <div key={d} className="py-1">{d}</div>)}
           </div>
-
-          {/* Day grid */}
           <div className="grid grid-cols-7 gap-1">
             {days.map((day) => {
               const inMonth = isSameMonth(day, cursor);
               const isSel = isSameDay(day, selected);
-              const isToday = isSameDay(day, new Date());
+              const today = isSameDay(day, new Date());
               const dayItems = byDay.get(dayStart(day.getTime())) ?? [];
               return (
-                <button
-                  key={day.toISOString()}
-                  type="button"
-                  onClick={() => setSelected(day)}
-                  aria-label={format(day, "EEEE, d MMMM")}
-                  aria-pressed={isSel}
-                  className={cn(
-                    "relative flex aspect-square flex-col items-center justify-start gap-1 rounded-xl p-1.5 text-sm transition-colors",
-                    inMonth ? "text-[var(--text-body)]" : "text-[var(--text-muted)]/50",
-                    isSel
-                      ? "bg-[var(--glass-bg-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]"
-                      : "hover:bg-[var(--glass-bg-soft)]",
-                  )}
-                >
-                  <span
-                    className={cn(
-                      "grid size-6 place-items-center rounded-full text-xs tabular-nums",
-                      isToday &&
-                        "bg-gradient-to-b from-gold-300 to-gold-500 font-semibold text-[var(--text-onGold)]",
-                      isSel && !isToday && "font-semibold text-[var(--text-strong)]",
-                    )}
-                  >
-                    {format(day, "d")}
-                  </span>
+                <button key={day.toISOString()} type="button" onClick={() => setSelected(day)} aria-label={format(day, "EEEE, d MMMM")} aria-pressed={isSel}
+                  className={cn("relative flex aspect-square flex-col items-center justify-start gap-1 rounded-xl p-1.5 text-sm transition-colors", inMonth ? "text-[var(--text-body)]" : "text-[var(--text-muted)]/50", isSel ? "bg-[var(--glass-bg-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]" : "hover:bg-[var(--glass-bg-soft)]")}>
+                  <span className={cn("grid size-6 place-items-center rounded-full text-xs tabular-nums", today && "bg-gradient-to-b from-gold-300 to-gold-500 font-semibold text-[var(--text-onGold)]", isSel && !today && "font-semibold text-[var(--text-strong)]")}>{format(day, "d")}</span>
                   {dayItems.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-0.5">
-                      {dayItems.slice(0, 3).map((it) => (
-                        <span
-                          key={it.id}
-                          className={cn("size-1.5 rounded-full", KIND_META[it.kind].dot)}
-                        />
-                      ))}
+                      {dayItems.slice(0, 3).map((it) => <span key={it.id} className={cn("size-1.5 rounded-full", KIND_META[it.kind].dot)} />)}
                     </div>
                   )}
                 </button>
@@ -187,21 +91,11 @@ export function CalendarView() {
             })}
           </div>
         </GlassCard>
-
-        {/* Selected day */}
         <GlassCard padded className="h-max">
-          <h2 className="text-strong text-base font-medium">
-            {format(selected, "EEEE, d MMMM")}
-          </h2>
+          <h2 className="text-strong text-base font-medium">{format(selected, "EEEE, d MMMM")}</h2>
           <div className="mt-4">
             <AnimatePresence mode="wait">
-              <motion.div
-                key={selected.toISOString()}
-                initial={{ opacity: 0, y: 8 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -8 }}
-                transition={{ duration: 0.2 }}
-              >
+              <motion.div key={selected.toISOString()} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
                 {selectedItems.length === 0 ? (
                   <EmptyState compact icon={Bell} title="Nothing scheduled" />
                 ) : (
@@ -210,17 +104,10 @@ export function CalendarView() {
                       const Icon = KIND_META[it.kind].icon;
                       return (
                         <li key={`${it.kind}-${it.id}`}>
-                          <Link
-                            href={it.href}
-                            className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3 transition-colors hover:border-[var(--focus-ring)]/50"
-                          >
+                          <Link href={it.href} className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3 transition-colors hover:border-[var(--focus-ring)]/50">
                             <Icon className="size-4 shrink-0 text-[var(--color-gold-500)]" />
-                            <span className="text-body min-w-0 flex-1 truncate text-sm">
-                              {it.title}
-                            </span>
-                            <span className="text-muted text-xs">
-                              {dueLabel(it.at)}
-                            </span>
+                            <span className="text-body min-w-0 flex-1 truncate text-sm">{it.title}</span>
+                            <span className="text-muted text-xs">{dueLabel(it.at)}</span>
                           </Link>
                         </li>
                       );

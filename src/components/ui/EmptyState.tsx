@@ -5,11 +5,7 @@ import type { ReactNode } from "react";
 import { FadeScale } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
-/**
- * A warm, non-dead empty state. Always explains what to do next and, ideally,
- * offers the action inline. Reused by every feature so "nothing here yet" feels
- * intentional rather than broken.
- */
+/** Warm, non-dead empty state — always explains the next step. */
 export function EmptyState({
   icon: Icon,
   title,
@@ -39,9 +35,7 @@ export function EmptyState({
       <div>
         <h3 className="text-strong text-base font-medium">{title}</h3>
         {description && (
-          <p className="text-muted mx-auto mt-1 max-w-sm text-sm leading-relaxed">
-            {description}
-          </p>
+          <p className="text-muted mx-auto mt-1 max-w-sm text-sm leading-relaxed">{description}</p>
         )}
       </div>
       {action && <div className="mt-1">{action}</div>}

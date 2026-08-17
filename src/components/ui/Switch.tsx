@@ -32,10 +32,7 @@ export function Switch({
       <motion.span
         layout
         transition={{ type: "spring", stiffness: 500, damping: 34 }}
-        className={cn(
-          "absolute size-4.5 rounded-full bg-white shadow-sm",
-          checked ? "right-1" : "left-1",
-        )}
+        className={cn("absolute size-4.5 rounded-full bg-white shadow-sm", checked ? "right-1" : "left-1")}
       />
     </button>
   );

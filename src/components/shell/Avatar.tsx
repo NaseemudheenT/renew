@@ -5,18 +5,9 @@ import { useState } from "react";
 import { initialsOf, type ShellUser } from "./shell-types";
 import { cn } from "@/lib/utils";
 
-export function Avatar({
-  user,
-  size = 36,
-  className,
-}: {
-  user: ShellUser;
-  size?: number;
-  className?: string;
-}) {
+export function Avatar({ user, size = 36, className }: { user: ShellUser; size?: number; className?: string }) {
   const [broken, setBroken] = useState(false);
   const showImage = user.photoURL && !broken;
-
   return (
     <span
       className={cn(

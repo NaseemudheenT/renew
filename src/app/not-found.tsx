@@ -11,15 +11,8 @@ export default function NotFound() {
       <Wordmark sizeClassName="text-xl" />
       <div className="glass max-w-sm p-6 sm:p-8">
         <h1 className="text-strong text-lg font-medium">Page not found</h1>
-        <p className="text-muted mt-2 text-sm">
-          The page you&apos;re looking for doesn&apos;t exist or has moved.
-        </p>
-        <Link
-          href="/"
-          className="mt-5 inline-flex h-11 items-center rounded-full bg-gradient-to-b from-gold-200 to-gold-400 px-6 text-sm font-medium text-[var(--text-onGold)]"
-        >
-          Back to Renew
-        </Link>
+        <p className="text-muted mt-2 text-sm">The page you&apos;re looking for doesn&apos;t exist or has moved.</p>
+        <Link href="/" className="mt-5 inline-flex h-11 items-center rounded-full bg-gradient-to-b from-gold-200 to-gold-400 px-6 text-sm font-medium text-[var(--text-onGold)]">Back to Renew</Link>
       </div>
     </main>
   );

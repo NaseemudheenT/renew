@@ -1,9 +1,10 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   RENEW — Design tokens
-   Calm · real · cinematic. Floating liquid glass on warm, soft light.
-   Light theme is primary (daytime); dark is the same peaceful world at night.
+   RENEW — Liquid-glass design system.
+   A deep champagne-gold / warm-charcoal world (dark) and a warm champagne
+   daylight (light). Real material glass: blur, refraction, specular light,
+   internal highlights, depth. Every token is theme-aware.
    ========================================================================== */
 
 @theme {
@@ -11,7 +12,7 @@
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-brand: var(--font-jost), var(--font-inter), ui-sans-serif, sans-serif;
 
-  /* Champagne gold — used ONLY for meaning (brand, primary, active). */
+  /* Champagne gold — meaning only (brand, primary, active). */
   --color-gold-50: #fbf6ea;
   --color-gold-100: #f4e9cf;
   --color-gold-200: #e9d3a3;
@@ -23,105 +24,51 @@
   --color-gold-800: #5f4a2b;
   --color-gold-900: #3d301c;
 
-  --radius-glass: 1.5rem;
-  --radius-glass-lg: 2rem;
+  --radius-glass: 1.25rem;
+  --radius-glass-lg: 1.75rem;
 
   --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-glass: cubic-bezier(0.175, 0.885, 0.32, 1.4);
 }
 
-/* ---- Semantic theme variables ------------------------------------------- */
+/* ---- DARK (default): deep warm charcoal with champagne gold ------------- */
 :root,
-:root[data-theme="light"] {
-  color-scheme: light;
-
-  /* Cinematic background — warm champagne-gold daylight (never pure white).
-     A golden, premium light world that echoes the dark champagne-gold night. */
-  --bg-base: #ede2ca; /* warm champagne */
-  --bg-tint-1: #f5ecd8; /* golden highlight */
-  --bg-tint-2: #e8dcc0; /* soft sand-gold */
-  --bg-tint-3: #efe4c9; /* warm gold depth (replaces cool lavender) */
-  --bokeh-1: rgba(214, 176, 104, 0.52); /* champagne gold pool */
-  --bokeh-2: rgba(238, 220, 176, 0.6); /* soft golden daylight */
-  --bokeh-3: rgba(206, 174, 116, 0.4); /* warm gold depth */
-  --grain-opacity: 0.05;
-  --vignette: rgba(120, 92, 50, 0.16);
-
-  /* Text */
-  --text-strong: #2a2a2e;
-  --text-body: #454239;
-  --text-muted: #6b6458; /* darkened for AA contrast on the ivory background */
-  --text-onGold: #2a2113;
-
-  /* Liquid glass */
-  --glass-bg: rgba(255, 255, 255, 0.5);
-  --glass-bg-strong: rgba(255, 255, 255, 0.66);
-  --glass-bg-soft: rgba(255, 255, 255, 0.32);
-  --glass-border: rgba(255, 255, 255, 0.75);
-  --glass-edge: rgba(255, 255, 255, 0.95); /* bright top highlight */
-  --glass-inner-shadow: rgba(120, 105, 75, 0.08);
-  --glass-shadow:
-    0 1px 1px rgba(60, 50, 30, 0.04), 0 8px 24px rgba(70, 58, 34, 0.1),
-    0 24px 60px rgba(70, 58, 34, 0.12);
-  --glass-blur: 20px;
-  --glass-saturate: 150%;
-
-  --field-bg: rgba(255, 255, 255, 0.55);
-  --field-border: rgba(120, 100, 70, 0.34); /* stronger so inputs read clearly */
-  --focus-ring: rgba(180, 140, 70, 0.6);
-
-  /* Brand — deeper champagne in light so the mark & wordmark never wash out */
-  --mark-gold-1: #dcb96f;
-  --mark-gold-2: #c6a15b;
-  --mark-gold-3: #a5824a;
-  --mark-gold-4: #7d6035;
-  --wordmark-from: #b58f4c;
-  --wordmark-to: #77592e;
-
-  /* Liquid-glass primary button */
-  --glass-gold-hi: rgba(224, 196, 140, 0.36);
-  --glass-gold-lo: rgba(165, 130, 74, 0.2);
-  --btn-gold-text: #6a5225;
-}
-
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Cinematic background — deep champagne-gold / bronze night. A very dark warm
-     gold-black base with muted champagne light pools glowing through. Premium
-     and subtle — never bright yellow, orange, or neon. */
-  --bg-base: #17130a; /* deep warm gold-black */
-  --bg-tint-1: #221a0c; /* warm bronze lift */
-  --bg-tint-2: #1b1608; /* espresso gold */
-  --bg-tint-3: #251c0d; /* faint amber depth */
-  --bokeh-1: rgba(198, 161, 91, 0.3); /* champagne gold pool */
-  --bokeh-2: rgba(150, 112, 55, 0.22); /* deep amber pool */
-  --bokeh-3: rgba(224, 196, 140, 0.16); /* soft gold light */
-  --grain-opacity: 0.06;
+  --bg-base: #0d1016;
+  --bg-tint-1: #141821;
+  --bg-tint-2: #101319;
+  --bg-tint-3: #17140e;
+  --bokeh-1: rgba(198, 161, 91, 0.26);
+  --bokeh-2: rgba(150, 112, 55, 0.2);
+  --bokeh-3: rgba(224, 196, 140, 0.14);
+  --grain-opacity: 0.055;
   --vignette: rgba(0, 0, 0, 0.5);
 
   --text-strong: #f4efe3;
-  --text-body: #d3ccbb;
-  --text-muted: #948b76;
+  --text-body: #d2ccbe;
+  --text-muted: #948d7c;
   --text-onGold: #201804;
 
-  /* Warm charcoal-gold glass so surfaces sit naturally on the gold-black world */
-  --glass-bg: rgba(46, 40, 27, 0.5);
-  --glass-bg-strong: rgba(54, 46, 30, 0.64);
-  --glass-bg-soft: rgba(46, 40, 27, 0.3);
+  /* Liquid glass — warm charcoal-gold translucency */
+  --glass-bg: rgba(30, 28, 22, 0.42);
+  --glass-bg-strong: rgba(38, 35, 26, 0.6);
+  --glass-bg-soft: rgba(30, 28, 22, 0.26);
   --glass-border: rgba(255, 240, 210, 0.14);
-  --glass-edge: rgba(255, 244, 216, 0.24); /* warm top highlight */
-  --glass-inner-shadow: rgba(0, 0, 0, 0.28);
+  --glass-edge: rgba(255, 246, 222, 0.28);
+  --glass-inner-shadow: rgba(0, 0, 0, 0.3);
+  --glass-highlight: rgba(255, 244, 220, 0.5);
   --glass-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.22), 0 10px 30px rgba(0, 0, 0, 0.38),
+    0 1px 1px rgba(0, 0, 0, 0.22), 0 12px 34px rgba(0, 0, 0, 0.4),
     0 30px 70px rgba(0, 0, 0, 0.5);
-  --glass-blur: 22px;
-  --glass-saturate: 145%;
+  --glass-blur: 20px;
+  --glass-saturate: 150%;
 
-  --field-bg: rgba(28, 23, 13, 0.5);
+  --field-bg: rgba(20, 18, 12, 0.5);
   --field-border: rgba(255, 240, 210, 0.16);
-  --focus-ring: rgba(214, 184, 122, 0.5);
+  --focus-ring: rgba(214, 184, 122, 0.55);
 
-  /* Brand — bright champagne on the dark night world */
   --mark-gold-1: #f3dca4;
   --mark-gold-2: #e4c88a;
   --mark-gold-3: #c6a15b;
@@ -129,22 +76,67 @@
   --wordmark-from: #f4e9cf;
   --wordmark-to: #d0a959;
 
-  /* Liquid-glass primary button */
   --glass-gold-hi: rgba(233, 211, 163, 0.22);
-  --glass-gold-lo: rgba(198, 161, 91, 0.14);
-  --btn-gold-text: #f4e9cf;
+  --glass-gold-lo: rgba(198, 161, 91, 0.13);
+  --btn-gold-text: #f6ecd4;
 }
 
-/* ---- Base ---------------------------------------------------------------- */
+/* ---- LIGHT: warm champagne daylight ------------------------------------- */
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --bg-base: #ece2ca;
+  --bg-tint-1: #f5ecd8;
+  --bg-tint-2: #e7dcc0;
+  --bg-tint-3: #efe5cb;
+  --bokeh-1: rgba(214, 176, 104, 0.5);
+  --bokeh-2: rgba(238, 220, 176, 0.6);
+  --bokeh-3: rgba(206, 174, 116, 0.4);
+  --grain-opacity: 0.045;
+  --vignette: rgba(120, 92, 50, 0.16);
+
+  --text-strong: #2a2a2e;
+  --text-body: #454239;
+  --text-muted: #6b6458;
+  --text-onGold: #2a2113;
+
+  --glass-bg: rgba(255, 253, 248, 0.5);
+  --glass-bg-strong: rgba(255, 254, 250, 0.68);
+  --glass-bg-soft: rgba(255, 253, 248, 0.34);
+  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-edge: rgba(255, 255, 255, 0.95);
+  --glass-inner-shadow: rgba(120, 100, 60, 0.08);
+  --glass-highlight: rgba(255, 255, 255, 0.9);
+  --glass-shadow:
+    0 1px 1px rgba(70, 55, 25, 0.05), 0 10px 28px rgba(80, 62, 30, 0.12),
+    0 26px 60px rgba(80, 62, 30, 0.14);
+  --glass-blur: 18px;
+  --glass-saturate: 140%;
+
+  --field-bg: rgba(255, 255, 255, 0.6);
+  --field-border: rgba(120, 100, 70, 0.32);
+  --focus-ring: rgba(180, 140, 70, 0.6);
+
+  --mark-gold-1: #dcb96f;
+  --mark-gold-2: #c6a15b;
+  --mark-gold-3: #a5824a;
+  --mark-gold-4: #7d6035;
+  --wordmark-from: #b58f4c;
+  --wordmark-to: #77592e;
+
+  --glass-gold-hi: rgba(224, 196, 140, 0.4);
+  --glass-gold-lo: rgba(165, 130, 74, 0.22);
+  --btn-gold-text: #6a5225;
+}
+
+/* ---- Base --------------------------------------------------------------- */
 * {
   border-color: var(--glass-border);
 }
-
 html {
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
 }
-
 body {
   background-color: var(--bg-base);
   color: var(--text-body);
@@ -152,20 +144,17 @@ body {
   min-height: 100dvh;
   overflow-x: hidden;
 }
-
 ::selection {
   background: var(--color-gold-300);
   color: var(--text-onGold);
 }
-
-/* Accessible focus — champagne ring, never removed */
 :focus-visible {
   outline: 2px solid var(--focus-ring);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
-/* ---- Liquid glass utilities --------------------------------------------- */
+/* ---- Liquid-glass material --------------------------------------------- */
 @layer components {
   .glass {
     position: relative;
@@ -177,8 +166,7 @@ body {
     border-radius: var(--radius-glass);
     box-shadow: var(--glass-shadow);
   }
-
-  /* Bright thin top highlight edge — the "liquid" light on glass. */
+  /* Bright refractive top edge — the liquid light on glass. */
   .glass::before {
     content: "";
     position: absolute;
@@ -188,8 +176,8 @@ body {
     background: linear-gradient(
       to bottom,
       var(--glass-edge),
-      transparent 40%,
-      transparent 85%,
+      transparent 42%,
+      transparent 82%,
       var(--glass-inner-shadow)
     );
     -webkit-mask:
@@ -200,45 +188,42 @@ body {
     pointer-events: none;
     z-index: 1;
   }
-
+  /* Inner specular sheen (top-left light source). */
+  .glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: radial-gradient(
+      120% 80% at 15% 0%,
+      var(--glass-highlight),
+      transparent 55%
+    );
+    opacity: 0.35;
+    pointer-events: none;
+    z-index: 1;
+  }
   .glass-strong {
     background: var(--glass-bg-strong);
   }
-
   .glass-soft {
     background: var(--glass-bg-soft);
   }
+  .glass > * {
+    position: relative;
+    z-index: 2;
+  }
 
-  /* Champagne liquid-glass — the primary action. Translucent + blurred (from
-     .glass) with a subtle gold tint layered over it and readable gold text.
-     Theme-aware via the --glass-gold-* / --btn-gold-text tokens. */
+  /* Champagne liquid-glass — primary action surface. */
   .glass-primary {
     background:
       linear-gradient(to bottom, var(--glass-gold-hi), var(--glass-gold-lo)),
       var(--glass-bg-strong);
     color: var(--btn-gold-text);
   }
-
-  /* Content above the ::before highlight layer */
-  .glass > * {
-    position: relative;
-    z-index: 2;
-  }
 }
 
-/* ---- Motion preferences -------------------------------------------------- */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.001ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.001ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Utility: text that breathes */
+/* ---- Text utilities ----------------------------------------------------- */
 .text-strong {
   color: var(--text-strong);
 }
@@ -249,7 +234,7 @@ body {
   color: var(--text-muted);
 }
 
-/* ---- Long-form / legal prose -------------------------------------------- */
+/* ---- Long-form / legal prose ------------------------------------------- */
 .prose-renew h1 {
   color: var(--text-strong);
   font-size: 1.75rem;
@@ -291,4 +276,26 @@ body {
 .prose-renew strong {
   color: var(--text-strong);
   font-weight: 600;
+}
+
+/* ---- Keyframes (supplied reference) ------------------------------------- */
+@keyframes moveBackground {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 0% -1000%;
+  }
+}
+
+/* ---- Motion preferences ------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

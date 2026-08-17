@@ -12,7 +12,6 @@ export interface RowMenuItem {
   danger?: boolean;
 }
 
-/** A compact kebab menu for list rows. Closes on outside click / Escape. */
 export function RowMenu({ items, label = "More actions" }: { items: RowMenuItem[]; label?: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);

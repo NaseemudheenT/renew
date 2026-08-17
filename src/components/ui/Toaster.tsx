@@ -6,11 +6,7 @@ import { CheckCircle2, AlertCircle, Info, X } from "lucide-react";
 import { useToastStore, type Toast } from "./toast-store";
 import { cn } from "@/lib/utils";
 
-const icons = {
-  default: Info,
-  success: CheckCircle2,
-  error: AlertCircle,
-} as const;
+const icons = { default: Info, success: CheckCircle2, error: AlertCircle } as const;
 
 function ToastRow({ toast }: { toast: Toast }) {
   const dismiss = useToastStore((s) => s.dismiss);
@@ -36,15 +32,12 @@ function ToastRow({ toast }: { toast: Toast }) {
           "mt-0.5 size-5 shrink-0",
           toast.variant === "success" && "text-emerald-500",
           toast.variant === "error" && "text-rose-500",
-          (!toast.variant || toast.variant === "default") &&
-            "text-[var(--color-gold-500)]",
+          (!toast.variant || toast.variant === "default") && "text-[var(--color-gold-500)]",
         )}
       />
       <div className="min-w-0 flex-1">
         <p className="text-strong text-sm font-medium">{toast.title}</p>
-        {toast.description && (
-          <p className="text-muted mt-0.5 text-xs">{toast.description}</p>
-        )}
+        {toast.description && <p className="text-muted mt-0.5 text-xs">{toast.description}</p>}
       </div>
       {toast.action && (
         <button

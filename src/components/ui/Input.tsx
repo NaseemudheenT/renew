@@ -8,15 +8,14 @@ import {
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export interface InputProps
-  extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
+export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
   label?: string;
   error?: string;
   hint?: string;
   icon?: ReactNode;
 }
 
-/** Glassy but perfectly legible text field with floating-label affordance. */
+/** Glassy, legible field with theme-aware surface + focus ring. */
 export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   { label, error, hint, icon, className, id, type = "text", ...props },
   ref,
@@ -30,19 +29,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
   return (
     <div className="w-full">
       {label && (
-        <label
-          htmlFor={inputId}
-          className="mb-2 block text-sm font-medium text-[var(--text-body)]"
-        >
+        <label htmlFor={inputId} className="mb-2 block text-sm font-medium text-[var(--text-body)]">
           {label}
         </label>
       )}
       <div className="relative">
         {icon && (
-          <span
-            className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]"
-            aria-hidden="true"
-          >
+          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
             {icon}
           </span>
         )}
@@ -51,13 +44,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           id={inputId}
           type={resolvedType}
           aria-invalid={error ? true : undefined}
-          aria-describedby={
-            error
-              ? `${inputId}-error`
-              : hint
-                ? `${inputId}-hint`
-                : undefined
-          }
+          aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           className={cn(
             "h-12 w-full rounded-2xl border bg-[var(--field-bg)] text-[var(--text-strong)]",
             "backdrop-blur-md placeholder:text-[var(--text-muted)]",
@@ -78,27 +65,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[var(--text-muted)] hover:text-[var(--text-strong)]"
             aria-label={show ? "Hide password" : "Show password"}
           >
-            {show ? (
-              <EyeOff className="size-4.5" />
-            ) : (
-              <Eye className="size-4.5" />
-            )}
+            {show ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
           </button>
         )}
       </div>
       {error ? (
-        <p
-          id={`${inputId}-error`}
-          className="mt-1.5 text-sm text-rose-500"
-          role="alert"
-        >
+        <p id={`${inputId}-error`} className="mt-1.5 text-sm text-rose-500" role="alert">
           {error}
         </p>
       ) : hint ? (
-        <p
-          id={`${inputId}-hint`}
-          className="mt-1.5 text-sm text-[var(--text-muted)]"
-        >
+        <p id={`${inputId}-hint`} className="mt-1.5 text-sm text-[var(--text-muted)]">
           {hint}
         </p>
       ) : null}

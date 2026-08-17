@@ -7,11 +7,7 @@ import {
   type HTMLMotionProps,
   type Variants,
 } from "framer-motion";
-import {
-  forwardRef,
-  type ElementType,
-  type ReactNode,
-} from "react";
+import { forwardRef, type ElementType, type ReactNode } from "react";
 import {
   fadeScale,
   rise,
@@ -21,20 +17,13 @@ import {
 } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-/**
- * When the user prefers reduced motion we collapse every variant to a plain
- * opacity fade with no transform — content still appears, nothing moves.
- */
-const reduced_: Variants = {
+const REDUCED: Variants = {
   hidden: { opacity: 0 },
   show: { opacity: 1, transition: { duration: 0.001 } },
   exit: { opacity: 0, transition: { duration: 0.001 } },
 };
-function reduce(_variants: Variants): Variants {
-  return reduced_;
-}
+const pick = (v: Variants, reduced: boolean | null) => (reduced ? REDUCED : v);
 
-/* ---- PageTransition ------------------------------------------------------ */
 export function PageTransition({
   children,
   className,
@@ -46,7 +35,7 @@ export function PageTransition({
   return (
     <motion.div
       className={cn(className)}
-      variants={reduced ? reduce(pageVariants) : pageVariants}
+      variants={pick(pageVariants, reduced)}
       initial="hidden"
       animate="show"
       exit="exit"
@@ -56,7 +45,6 @@ export function PageTransition({
   );
 }
 
-/* ---- FadeScale ----------------------------------------------------------- */
 export interface MotionBoxProps extends HTMLMotionProps<"div"> {
   as?: ElementType;
   delay?: number;
@@ -69,7 +57,7 @@ export const FadeScale = forwardRef<HTMLDivElement, MotionBoxProps>(
       <motion.div
         ref={ref}
         className={className}
-        variants={reduced ? reduce(fadeScale) : fadeScale}
+        variants={pick(fadeScale, reduced)}
         initial="hidden"
         animate="show"
         exit="exit"
@@ -82,7 +70,6 @@ export const FadeScale = forwardRef<HTMLDivElement, MotionBoxProps>(
   },
 );
 
-/* ---- Rise (fade + lift) -------------------------------------------------- */
 export const Rise = forwardRef<HTMLDivElement, MotionBoxProps>(function Rise(
   { children, className, delay = 0, ...props },
   ref,
@@ -92,7 +79,7 @@ export const Rise = forwardRef<HTMLDivElement, MotionBoxProps>(function Rise(
     <motion.div
       ref={ref}
       className={className}
-      variants={reduced ? reduce(rise) : rise}
+      variants={pick(rise, reduced)}
       initial="hidden"
       animate="show"
       exit="exit"
@@ -104,7 +91,6 @@ export const Rise = forwardRef<HTMLDivElement, MotionBoxProps>(function Rise(
   );
 });
 
-/* ---- SlideReveal --------------------------------------------------------- */
 export function SlideReveal({
   children,
   className,
@@ -123,7 +109,7 @@ export function SlideReveal({
   return (
     <motion.div
       className={className}
-      variants={reduced ? reduce(v) : v}
+      variants={pick(v, reduced)}
       initial="hidden"
       animate="show"
       exit="exit"
@@ -134,7 +120,6 @@ export function SlideReveal({
   );
 }
 
-/* ---- StaggerContainer + StaggerItem -------------------------------------- */
 export function StaggerContainer({
   children,
   className,
@@ -170,7 +155,7 @@ export const StaggerItem = forwardRef<HTMLDivElement, MotionBoxProps>(
       <motion.div
         ref={ref}
         className={className}
-        variants={reduced ? reduce(rise) : rise}
+        variants={pick(rise, reduced)}
         {...props}
       >
         {children}
@@ -179,11 +164,6 @@ export const StaggerItem = forwardRef<HTMLDivElement, MotionBoxProps>(
   },
 );
 
-/* ---- AnimatedList -------------------------------------------------------- */
-/**
- * A list where items enter, exit, and re-order with physical layout motion.
- * Wrap items in <AnimatePresence> and give each a stable `key`.
- */
 export function AnimatedList({
   children,
   className,
@@ -208,7 +188,7 @@ export const AnimatedListItem = forwardRef<HTMLDivElement, MotionBoxProps>(
         ref={ref}
         layout={reduced ? false : "position"}
         className={className}
-        variants={reduced ? reduce(rise) : rise}
+        variants={pick(rise, reduced)}
         initial="hidden"
         animate="show"
         exit="exit"

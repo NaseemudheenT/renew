@@ -30,11 +30,9 @@ export const useToastStore = create<ToastStore>((set) => ({
     set((s) => ({ toasts: [...s.toasts, { ...t, id, duration }] }));
     return id;
   },
-  dismiss: (id) =>
-    set((s) => ({ toasts: s.toasts.filter((x) => x.id !== id) })),
+  dismiss: (id) => set((s) => ({ toasts: s.toasts.filter((x) => x.id !== id) })),
 }));
 
-/** Imperative helper: `toast({ title: "Saved" })`. */
 export function toast(t: Omit<Toast, "id" | "duration"> & { duration?: number }) {
   return useToastStore.getState().push(t);
 }

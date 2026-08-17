@@ -5,11 +5,7 @@ import { Check } from "lucide-react";
 import { spring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
-/* ---- SuccessTransition --------------------------------------------------- */
-/**
- * A champagne ring that draws itself and pops a checkmark — used after a
- * meaningful action completes (verification, save, payment).
- */
+/** Champagne ring that draws itself + pops a checkmark. */
 export function SuccessTransition({
   size = 72,
   className,
@@ -21,11 +17,7 @@ export function SuccessTransition({
 }) {
   const reduced = useReducedMotion();
   return (
-    <div
-      className={cn("grid place-items-center", className)}
-      role="status"
-      aria-label={label}
-    >
+    <div className={cn("grid place-items-center", className)} role="status" aria-label={label}>
       <motion.svg
         width={size}
         height={size}
@@ -37,9 +29,9 @@ export function SuccessTransition({
       >
         <defs>
           <linearGradient id="success-gold" x1="20" y1="14" x2="80" y2="88">
-            <stop offset="0" stopColor="#F3DCA4" />
-            <stop offset="0.6" stopColor="#C6A15B" />
-            <stop offset="1" stopColor="#A5824A" />
+            <stop offset="0" stopColor="var(--mark-gold-1, #F3DCA4)" />
+            <stop offset="0.6" stopColor="var(--mark-gold-3, #C6A15B)" />
+            <stop offset="1" stopColor="var(--mark-gold-4, #A5824A)" />
           </linearGradient>
         </defs>
         <motion.circle
@@ -62,19 +54,14 @@ export function SuccessTransition({
           strokeLinejoin="round"
           initial={reduced ? { pathLength: 1 } : { pathLength: 0 }}
           animate={{ pathLength: 1 }}
-          transition={{
-            duration: reduced ? 0 : 0.35,
-            delay: reduced ? 0 : 0.45,
-            ease: [0.22, 1, 0.36, 1],
-          }}
+          transition={{ duration: reduced ? 0 : 0.35, delay: reduced ? 0 : 0.45, ease: [0.22, 1, 0.36, 1] }}
         />
       </motion.svg>
     </div>
   );
 }
 
-/* ---- LoadingTransition --------------------------------------------------- */
-/** Three champagne dots breathing — calm, non-blocking loading feedback. */
+/** Three champagne dots breathing — calm loading. */
 export function LoadingTransition({
   className,
   label = "Loading",
@@ -84,22 +71,13 @@ export function LoadingTransition({
 }) {
   const reduced = useReducedMotion();
   return (
-    <div
-      className={cn("flex items-center gap-2", className)}
-      role="status"
-      aria-label={label}
-    >
+    <div className={cn("flex items-center gap-2", className)} role="status" aria-label={label}>
       {[0, 1, 2].map((i) => (
         <motion.span
           key={i}
           className="size-2 rounded-full bg-[var(--color-gold-400)]"
           animate={reduced ? undefined : { opacity: [0.3, 1, 0.3], y: [0, -3, 0] }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-            delay: i * 0.15,
-            ease: "easeInOut",
-          }}
+          transition={{ duration: 1, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }}
         />
       ))}
       <span className="sr-only">{label}</span>
@@ -107,8 +85,7 @@ export function LoadingTransition({
   );
 }
 
-/* ---- CheckPop ------------------------------------------------------------ */
-/** Small inline success checkmark for list items / toggles. */
+/** Small inline success check for list items/toggles. */
 export function CheckPop({ className }: { className?: string }) {
   const reduced = useReducedMotion();
   return (

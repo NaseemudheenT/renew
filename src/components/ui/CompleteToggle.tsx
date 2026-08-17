@@ -34,11 +34,7 @@ export function CompleteToggle({
     >
       <motion.span
         initial={false}
-        animate={
-          reduced
-            ? { opacity: completed ? 1 : 0 }
-            : { scale: completed ? 1 : 0, opacity: completed ? 1 : 0 }
-        }
+        animate={reduced ? { opacity: completed ? 1 : 0 } : { scale: completed ? 1 : 0, opacity: completed ? 1 : 0 }}
         transition={{ type: "spring", stiffness: 500, damping: 28 }}
       >
         <Check className="size-3.5" strokeWidth={3} />

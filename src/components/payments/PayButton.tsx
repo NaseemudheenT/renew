@@ -7,17 +7,8 @@ import { cn } from "@/lib/utils";
 
 type Phase = "idle" | "processing" | "success";
 
-/**
- * A control that transforms through its own states: Mark paid → Processing →
- * Paid. The morph communicates the state change instead of an abrupt swap.
- */
-export function PayButton({
-  onPay,
-  size = "md",
-}: {
-  onPay: () => Promise<void>;
-  size?: "sm" | "md";
-}) {
+/** A control that morphs through Mark paid → Paying → Paid. */
+export function PayButton({ onPay, size = "md" }: { onPay: () => Promise<void>; size?: "sm" | "md" }) {
   const reduced = useReducedMotion();
   const [phase, setPhase] = useState<Phase>("idle");
 
@@ -27,7 +18,6 @@ export function PayButton({
     try {
       await onPay();
       setPhase("success");
-      // The row usually unmounts/moves after success; reset just in case.
       setTimeout(() => setPhase("idle"), 1200);
     } catch {
       setPhase("idle");
@@ -51,39 +41,16 @@ export function PayButton({
     >
       <AnimatePresence mode="wait" initial={false}>
         {phase === "idle" && (
-          <motion.span
-            key="idle"
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.16 }}
-          >
-            Mark paid
-          </motion.span>
+          <motion.span key="idle" initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -6 }} transition={{ duration: 0.16 }}>Mark paid</motion.span>
         )}
         {phase === "processing" && (
-          <motion.span
-            key="processing"
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            className="flex items-center gap-1.5"
-          >
-            <Loader2 className="size-4 animate-spin" />
-            Paying
+          <motion.span key="proc" initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="flex items-center gap-1.5">
+            <Loader2 className="size-4 animate-spin" />Paying
           </motion.span>
         )}
         {phase === "success" && (
-          <motion.span
-            key="success"
-            initial={{ opacity: 0, scale: 0.6 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ type: "spring", stiffness: 500, damping: 24 }}
-            className="flex items-center gap-1.5"
-          >
-            <Check className="size-4" strokeWidth={3} />
-            Paid
+          <motion.span key="ok" initial={{ opacity: 0, scale: 0.6 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ type: "spring", stiffness: 500, damping: 24 }} className="flex items-center gap-1.5">
+            <Check className="size-4" strokeWidth={3} />Paid
           </motion.span>
         )}
       </AnimatePresence>

@@ -1,8 +1,7 @@
 import { forwardRef, useId, type TextareaHTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-export interface TextareaProps
-  extends TextareaHTMLAttributes<HTMLTextAreaElement> {
+export interface TextareaProps extends TextareaHTMLAttributes<HTMLTextAreaElement> {
   label?: string;
   error?: string;
 }
@@ -14,10 +13,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     return (
       <div className="w-full">
         {label && (
-          <label
-            htmlFor={areaId}
-            className="mb-2 block text-sm font-medium text-[var(--text-body)]"
-          >
+          <label htmlFor={areaId} className="mb-2 block text-sm font-medium text-[var(--text-body)]">
             {label}
           </label>
         )}

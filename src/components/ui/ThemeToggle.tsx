@@ -20,18 +20,8 @@ export function ThemeToggle({ className }: { className?: string }) {
         className,
       )}
     >
-      <Sun
-        className={cn(
-          "size-5 transition-all duration-500 ease-[var(--ease-calm)]",
-          isDark ? "scale-0 opacity-0 rotate-90 absolute" : "scale-100 opacity-100",
-        )}
-      />
-      <Moon
-        className={cn(
-          "size-5 transition-all duration-500 ease-[var(--ease-calm)]",
-          isDark ? "scale-100 opacity-100" : "scale-0 opacity-0 -rotate-90 absolute",
-        )}
-      />
+      <Sun className={cn("size-5 transition-all duration-500", isDark ? "scale-0 opacity-0 rotate-90 absolute" : "scale-100 opacity-100")} />
+      <Moon className={cn("size-5 transition-all duration-500", isDark ? "scale-100 opacity-100" : "scale-0 opacity-0 -rotate-90 absolute")} />
     </button>
   );
 }

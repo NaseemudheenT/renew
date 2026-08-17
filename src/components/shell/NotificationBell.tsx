@@ -4,13 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Bell, Check, Bell as BellIcon } from "lucide-react";
+import { Bell, Check } from "lucide-react";
 import { orderBy, limit } from "firebase/firestore";
 import { useUserCollection } from "@/hooks/useUserCollection";
-import {
-  markAllNotificationsRead,
-  markNotificationRead,
-} from "@/lib/firestore/notifications";
+import { markAllNotificationsRead, markNotificationRead } from "@/lib/firestore/notifications";
 import { relativeTime } from "@/lib/dates";
 import type { AppNotification } from "@/lib/types";
 import { cn } from "@/lib/utils";
@@ -19,15 +16,8 @@ export function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  const constraints = useMemo(
-    () => [orderBy("createdAt", "desc"), limit(20)],
-    [],
-  );
-  const { data, uid } = useUserCollection<AppNotification>(
-    "notifications",
-    constraints,
-  );
+  const constraints = useMemo(() => [orderBy("createdAt", "desc"), limit(20)], []);
+  const { data, uid } = useUserCollection<AppNotification>("notifications", constraints);
   const unread = data.filter((n) => !n.read).length;
 
   useEffect(() => {
@@ -44,7 +34,7 @@ export function NotificationBell() {
     };
   }, [open]);
 
-  async function onOpenNotification(n: AppNotification) {
+  async function openNotification(n: AppNotification) {
     if (uid && !n.read) await markNotificationRead(uid, n.id).catch(() => {});
     setOpen(false);
     if (n.href) router.push(n.href);
@@ -84,21 +74,16 @@ export function NotificationBell() {
             <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
               <span className="text-strong text-sm font-medium">Notifications</span>
               {unread > 0 && uid && (
-                <button
-                  type="button"
-                  onClick={() => markAllNotificationsRead(uid).catch(() => {})}
-                  className="flex items-center gap-1 text-xs text-[var(--color-gold-600)] hover:underline"
-                >
+                <button type="button" onClick={() => markAllNotificationsRead(uid).catch(() => {})} className="flex items-center gap-1 text-xs text-[var(--color-gold-600)] hover:underline">
                   <Check className="size-3.5" />
                   Mark all read
                 </button>
               )}
             </div>
-
             <div className="overflow-y-auto">
               {data.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-                  <BellIcon className="size-7 text-[var(--text-muted)]" />
+                  <Bell className="size-7 text-[var(--text-muted)]" />
                   <p className="text-muted text-sm">You&apos;re all caught up.</p>
                 </div>
               ) : (
@@ -106,41 +91,20 @@ export function NotificationBell() {
                   <button
                     key={n.id}
                     type="button"
-                    onClick={() => onOpenNotification(n)}
-                    className={cn(
-                      "flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--glass-bg-soft)]",
-                      !n.read && "bg-[var(--glass-bg-soft)]",
-                    )}
+                    onClick={() => openNotification(n)}
+                    className={cn("flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--glass-bg-soft)]", !n.read && "bg-[var(--glass-bg-soft)]")}
                   >
-                    <span
-                      className={cn(
-                        "mt-1.5 size-2 shrink-0 rounded-full",
-                        n.read ? "bg-transparent" : "bg-[var(--color-gold-400)]",
-                      )}
-                    />
+                    <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.read ? "bg-transparent" : "bg-[var(--color-gold-400)]")} />
                     <span className="min-w-0 flex-1">
-                      <span className="text-body block text-sm font-medium">
-                        {n.title}
-                      </span>
-                      {n.body && (
-                        <span className="text-muted block truncate text-xs">
-                          {n.body}
-                        </span>
-                      )}
-                      <span className="text-muted mt-0.5 block text-[11px]">
-                        {relativeTime(n.createdAt)}
-                      </span>
+                      <span className="text-body block text-sm font-medium">{n.title}</span>
+                      {n.body && <span className="text-muted block truncate text-xs">{n.body}</span>}
+                      <span className="text-muted mt-0.5 block text-[11px]">{relativeTime(n.createdAt)}</span>
                     </span>
                   </button>
                 ))
               )}
             </div>
-
-            <Link
-              href="/notifications"
-              onClick={() => setOpen(false)}
-              className="border-t border-[var(--glass-border)] px-4 py-2.5 text-center text-xs font-medium text-[var(--color-gold-600)] hover:bg-[var(--glass-bg-soft)]"
-            >
+            <Link href="/notifications" onClick={() => setOpen(false)} className="border-t border-[var(--glass-border)] px-4 py-2.5 text-center text-xs font-medium text-[var(--color-gold-600)] hover:bg-[var(--glass-bg-soft)]">
               See all notifications
             </Link>
           </motion.div>
