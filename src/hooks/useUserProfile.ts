@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { doc, onSnapshot } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/AuthProvider";
+import type { CustomCategory } from "@/lib/types";
 
 export interface NotificationPrefs {
   reminders: boolean;
@@ -37,6 +38,8 @@ export interface ProfileDoc {
   weekStart?: 0 | 1;
   /** 12-hour clock preference. */
   hour12?: boolean;
+  /** User-defined income/expense categories. */
+  customCategories?: CustomCategory[];
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

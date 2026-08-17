@@ -140,6 +140,13 @@ export interface AppNotification {
 
 export type TxType = "income" | "expense";
 
+/** A user-defined category stored on their profile (see lib/finance). */
+export interface CustomCategory {
+  id: string;
+  label: string;
+  type: TxType;
+}
+
 export interface Transaction {
   id: string;
   type: TxType;

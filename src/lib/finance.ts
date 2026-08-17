@@ -1,10 +1,10 @@
 import {
   Briefcase, Laptop, Building2, TrendingUp, Gift, RotateCcw,
   Utensils, Car, ReceiptText, ShoppingBag, Clapperboard, HeartPulse,
-  GraduationCap, Repeat, Home, ShoppingCart, Coins, Bitcoin, LineChart, PiggyBank, Landmark,
+  GraduationCap, Repeat, Home, ShoppingCart, Coins, Bitcoin, LineChart, PiggyBank, Landmark, Tag,
   type LucideIcon,
 } from "lucide-react";
-import type { TxType, InvestmentType } from "@/lib/types";
+import type { TxType, InvestmentType, CustomCategory } from "@/lib/types";
 
 export interface CatMeta {
   id: string;
@@ -46,6 +46,34 @@ export function categoriesFor(type: TxType): CatMeta[] {
 }
 export function catMeta(id: string): CatMeta {
   return byId.get(id) ?? { id, label: "Other", icon: Coins, tone: "text-[var(--text-muted)]" };
+}
+
+/** Meta for a user-defined category. */
+export function customCatMeta(cat: CustomCategory): CatMeta {
+  return {
+    id: cat.id,
+    label: cat.label,
+    icon: Tag,
+    tone: cat.type === "income" ? "text-emerald-400" : "text-rose-400",
+  };
+}
+
+/** Resolve any category id — built-in first, then the user's custom set. */
+export function resolveCatMeta(
+  id: string,
+  custom: CustomCategory[] = [],
+): CatMeta {
+  const builtin = byId.get(id);
+  if (builtin) return builtin;
+  const c = custom.find((x) => x.id === id);
+  if (c) return customCatMeta(c);
+  return { id, label: "Other", icon: Coins, tone: "text-[var(--text-muted)]" };
+}
+
+/** A short, filesystem/id-safe slug for generating custom category ids. */
+export function makeCustomCategoryId(label: string, type: TxType): string {
+  const slug = label.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 24) || "cat";
+  return `custom_${type}_${slug}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
 export const INVESTMENT_TYPES: { value: InvestmentType; label: string; icon: LucideIcon }[] = [

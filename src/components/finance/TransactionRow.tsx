@@ -3,7 +3,7 @@
 import { motion } from "framer-motion";
 import { Pencil, Trash2, ArrowDownLeft, ArrowUpRight } from "lucide-react";
 import { RowMenu } from "@/components/ui/RowMenu";
-import { catMeta } from "@/lib/finance";
+import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
@@ -18,7 +18,8 @@ export function TransactionRow({
   onDelete: () => void;
 }) {
   const { money, dueLabel } = useLocale();
-  const meta = catMeta(tx.category);
+  const { resolve } = useCategories();
+  const meta = resolve(tx.category);
   const Icon = meta.icon;
   const income = tx.type === "income";
 

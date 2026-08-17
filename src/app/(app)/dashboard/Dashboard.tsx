@@ -14,14 +14,16 @@ import { TransactionForm } from "@/components/finance/TransactionForm";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
-import { catMeta, monthRange } from "@/lib/finance";
+import { monthRange } from "@/lib/finance";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useCategories } from "@/hooks/useCategories";
 import { cn } from "@/lib/utils";
 import type { Transaction, SavingsGoal, Investment, Payment } from "@/lib/types";
 
 export function Dashboard({ firstName }: { firstName: string }) {
-  const { prefs, money, dueLabel } = useLocale();
+  const { prefs, money, dueLabel, date } = useLocale();
+  const { resolve } = useCategories();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const recentC = useMemo(() => [orderBy("date", "desc"), limit(6)], []);
   const upcomingC = useMemo(() => [where("status", "in", ["upcoming", "overdue"])], []);
@@ -77,7 +79,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
         <StaggerItem>
           <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
             <div>
-              <p className="text-muted text-sm">{new Date().toLocaleDateString(undefined, { weekday: "long", day: "numeric", month: "long" })}</p>
+              <p className="text-muted text-sm capitalize">{date(new Date(), { weekday: "long", day: "numeric", month: "long" })}</p>
               <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">Hello, {firstName}.</h1>
             </div>
             <AnimatedButton onClick={() => setModalOpen(true)}><Plus className="size-4" />Add transaction</AnimatedButton>
@@ -117,7 +119,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
                   ) : (
                     <ul className="mt-3 flex flex-col gap-2">
                       {recent.data.map((t) => {
-                        const meta = catMeta(t.category);
+                        const meta = resolve(t.category);
                         const Icon = meta.icon;
                         const income = t.type === "income";
                         return (

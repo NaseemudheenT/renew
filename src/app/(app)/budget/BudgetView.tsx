@@ -14,13 +14,15 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createBudget, updateBudget, deleteBudget } from "@/lib/firestore/budgets";
-import { EXPENSE_CATEGORIES, catMeta, monthRange } from "@/lib/finance";
+import { monthRange } from "@/lib/finance";
+import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
 export function BudgetView() {
   const { money } = useLocale();
+  const { resolve } = useCategories();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data: budgets, loading, uid } = useUserCollection<Budget>("budgets");
   const { data: txs } = useUserCollection<Transaction>("transactions", txC);
@@ -47,7 +49,7 @@ export function BudgetView() {
         <div className="flex flex-col gap-3">
           <AnimatePresence initial={false}>
             {budgets.map((b) => {
-              const meta = catMeta(b.category);
+              const meta = resolve(b.category);
               const Icon = meta.icon;
               const spent = spentByCat.get(b.category) ?? 0;
               const pct = Math.min(100, Math.round((spent / b.amount) * 100));
@@ -79,6 +81,7 @@ export function BudgetView() {
 
 function BudgetModal({ open, onClose, uid, editing }: { open: boolean; onClose: () => void; uid: string | null; editing: Budget | null }) {
   const { prefs } = useLocale();
+  const { forType } = useCategories();
   const [category, setCategory] = useState("food");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState(prefs.currency);
@@ -110,7 +113,7 @@ function BudgetModal({ open, onClose, uid, editing }: { open: boolean; onClose: 
   return (
     <AnimatedModal open={open} onClose={() => { setInitId(null); onClose(); }} title={editing ? "Edit budget" : "New budget"}>
       <form onSubmit={save} className="flex flex-col gap-4">
-        <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value)} options={EXPENSE_CATEGORIES.map((c) => ({ value: c.id, label: c.label }))} />
+        <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value)} options={forType("expense").map((c) => ({ value: c.id, label: c.label }))} />
         <div className="grid grid-cols-[1fr_7rem] gap-3">
           <Input label="Monthly limit" type="number" min="0" step="0.01" placeholder="0.00" value={amount} autoFocus onChange={(e) => setAmount(e.target.value)} />
           <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Tags, X } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -19,7 +19,8 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { toCSV, downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs } from "@/lib/firestore/profile";
+import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
+import { useCategories } from "@/hooks/useCategories";
 import { LANGUAGES, REGIONS, CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
 import { cn } from "@/lib/utils";
@@ -58,6 +59,10 @@ export function SettingsView() {
 
       <Section icon={CreditCard} title="Billing">
         <BillingControl />
+      </Section>
+
+      <Section icon={Tags} title="Categories">
+        {uid && <CategoriesControl uid={uid} />}
       </Section>
 
       <Section icon={Database} title="Data">
@@ -285,6 +290,50 @@ function BillingControl() {
       >
         <CreditCardForm onSubmit={handleSaveCard} />
       </AnimatedModal>
+    </div>
+  );
+}
+
+function CategoriesControl({ uid }: { uid: string }) {
+  const { custom } = useCategories();
+
+  async function remove(cat: (typeof custom)[number]) {
+    try {
+      await removeCustomCategory(uid, cat);
+      toast({ title: "Category removed", variant: "success" });
+    } catch {
+      toast({ title: "Couldn't remove category", variant: "error" });
+    }
+  }
+
+  if (custom.length === 0) {
+    return (
+      <p className="text-muted text-xs">
+        You haven&apos;t added any custom categories yet. Create one from the
+        &ldquo;New category&rdquo; option when adding a transaction.
+      </p>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap gap-2">
+      {custom.map((c) => (
+        <span
+          key={c.id}
+          className="glass inline-flex items-center gap-2 !rounded-full py-1.5 pl-3.5 pr-2 text-sm text-[var(--text-strong)]"
+        >
+          <span className={cn("size-1.5 rounded-full", c.type === "income" ? "bg-emerald-400" : "bg-rose-400")} />
+          {c.label}
+          <button
+            type="button"
+            onClick={() => remove(c)}
+            aria-label={`Remove ${c.label}`}
+            className="grid size-5 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-strong)] hover:text-[var(--text-strong)]"
+          >
+            <X className="size-3.5" />
+          </button>
+        </span>
+      ))}
     </div>
   );
 }

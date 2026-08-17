@@ -2,12 +2,17 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { Plus, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
-import { categoriesFor } from "@/lib/finance";
+import { makeCustomCategoryId } from "@/lib/finance";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useCategories } from "@/hooks/useCategories";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { addCustomCategory } from "@/lib/firestore/profile";
+import { toast } from "@/components/ui/toast-store";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Transaction, TxType } from "@/lib/types";
 import type { TransactionInput } from "@/lib/firestore/transactions";
@@ -26,19 +31,37 @@ export function TransactionForm({
   onCancel: () => void;
 }) {
   const { prefs } = useLocale();
+  const { user } = useAuth();
+  const { forType } = useCategories();
   const [type, setType] = useState<TxType>(initial?.type ?? "expense");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
-  const [category, setCategory] = useState(initial?.category ?? categoriesFor(initial?.type ?? "expense")[0]!.id);
+  const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? "expense")[0]!.id);
   const [date, setDate] = useState(() => toDateInput(initial?.date ?? Date.now()));
   const [note, setNote] = useState(initial?.note ?? "");
   const [error, setError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+  const [newCat, setNewCat] = useState("");
 
-  const cats = categoriesFor(type);
+  const cats = forType(type);
 
   function switchType(t: TxType) {
     setType(t);
-    setCategory(categoriesFor(t)[0]!.id);
+    setCategory(forType(t)[0]!.id);
+  }
+
+  async function saveCustom() {
+    const label = newCat.trim();
+    if (!label || !user) return;
+    const cat = { id: makeCustomCategoryId(label, type), label, type };
+    try {
+      await addCustomCategory(user.uid, cat);
+      setCategory(cat.id);
+      setNewCat("");
+      setAdding(false);
+    } catch {
+      toast({ title: "Couldn't add category", variant: "error" });
+    }
   }
 
   function submit(e: React.FormEvent) {
@@ -69,7 +92,26 @@ export function TransactionForm({
         <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
       </div>
 
-      <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value)} options={cats.map((c) => ({ value: c.id, label: c.label }))} />
+      <div>
+        <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value)} options={cats.map((c) => ({ value: c.id, label: c.label }))} />
+        {adding ? (
+          <div className="mt-2 flex items-center gap-2">
+            <Input
+              placeholder="New category name"
+              value={newCat}
+              autoFocus
+              onChange={(e) => setNewCat(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustom(); } }}
+            />
+            <AnimatedButton type="button" size="sm" onClick={saveCustom} disabled={!newCat.trim()} aria-label="Save category"><Check className="size-4" /></AnimatedButton>
+            <AnimatedButton type="button" size="sm" variant="ghost" onClick={() => { setAdding(false); setNewCat(""); }} aria-label="Cancel"><X className="size-4" /></AnimatedButton>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setAdding(true)} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-gold-600)] hover:underline">
+            <Plus className="size-3.5" /> New category
+          </button>
+        )}
+      </div>
       <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       <Input label="Note (optional)" placeholder="e.g. Lunch with team" value={note} onChange={(e) => setNote(e.target.value)} />
 

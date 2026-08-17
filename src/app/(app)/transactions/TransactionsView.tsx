@@ -15,9 +15,9 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import {
   createTransaction, updateTransaction, deleteTransaction, restoreTransaction, type TransactionInput,
 } from "@/lib/firestore/transactions";
-import { catMeta } from "@/lib/finance";
 import { dayStart } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useCategories } from "@/hooks/useCategories";
 import type { Transaction, TxType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -25,6 +25,7 @@ type Filter = "all" | TxType;
 
 export function TransactionsView() {
   const { prefs } = useLocale();
+  const { resolve } = useCategories();
   const loc = `${prefs.language}-${prefs.region}`;
   const groupHeaderFmt = useMemo(
     () => new Intl.DateTimeFormat(loc, { weekday: "long", day: "numeric", month: "short", year: "numeric" }),
@@ -42,8 +43,8 @@ export function TransactionsView() {
     const query = q.trim().toLowerCase();
     return data
       .filter((t) => (filter === "all" ? true : t.type === filter))
-      .filter((t) => (query ? (t.note ?? "").toLowerCase().includes(query) || catMeta(t.category).label.toLowerCase().includes(query) : true));
-  }, [data, filter, q]);
+      .filter((t) => (query ? (t.note ?? "").toLowerCase().includes(query) || resolve(t.category).label.toLowerCase().includes(query) : true));
+  }, [data, filter, q, resolve]);
 
   const groups = useMemo(() => {
     const map = new Map<number, Transaction[]>();

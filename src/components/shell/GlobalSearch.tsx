@@ -6,7 +6,8 @@ import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Search, CornerDownLeft, type LucideIcon } from "lucide-react";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { catMeta, investmentMeta } from "@/lib/finance";
+import { useCategories } from "@/hooks/useCategories";
+import { investmentMeta } from "@/lib/finance";
 import { categoryMeta } from "@/lib/categories";
 import type { MessageKey } from "@/lib/i18n/messages";
 import type {
@@ -67,6 +68,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const reduced = useReducedMotion();
   const { t, money } = useLocale();
+  const { resolve } = useCategories();
   const inputRef = useRef<HTMLInputElement>(null);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
@@ -84,7 +86,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   const hits = useMemo<Hit[]>(() => {
     const out: Hit[] = [];
     for (const tx of transactions.data) {
-      const meta = catMeta(tx.category);
+      const meta = resolve(tx.category);
       const amount = money(tx.amount, tx.currency);
       out.push({
         id: `tx-${tx.id}`,
@@ -113,7 +115,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
       out.push({
         id: `sav-${g.id}`,
         groupKey: "nav.savings",
-        icon: catMeta("other_income").icon,
+        icon: resolve("other_income").icon,
         label: g.name,
         sub: `${money(g.current, g.currency)} / ${money(g.target, g.currency)}`,
         href: "/savings",
@@ -133,7 +135,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
       });
     }
     for (const b of budgets.data) {
-      const meta = catMeta(b.category);
+      const meta = resolve(b.category);
       out.push({
         id: `bud-${b.id}`,
         groupKey: "nav.budget",
@@ -145,7 +147,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
       });
     }
     return out;
-  }, [transactions.data, payments.data, savings.data, investments.data, budgets.data, money]);
+  }, [transactions.data, payments.data, savings.data, investments.data, budgets.data, money, resolve]);
 
   const results = useMemo(() => {
     const query = q.trim().toLowerCase();

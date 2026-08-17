@@ -1,11 +1,12 @@
 "use client";
 
-import { updateDoc, serverTimestamp } from "firebase/firestore";
+import { updateDoc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 import type { NotificationPrefs } from "@/hooks/useUserProfile";
+import type { CustomCategory } from "@/lib/types";
 
 function profileRef(uid: string) {
   return doc(getDb(), "users", uid);
@@ -42,6 +43,28 @@ export async function updateLocalePrefs(
 ): Promise<void> {
   await updateDoc(profileRef(uid), {
     ...patch,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Add a user-defined category to the profile. */
+export async function addCustomCategory(
+  uid: string,
+  cat: CustomCategory,
+): Promise<void> {
+  await updateDoc(profileRef(uid), {
+    customCategories: arrayUnion(cat),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Remove a user-defined category (existing transactions keep their id). */
+export async function removeCustomCategory(
+  uid: string,
+  cat: CustomCategory,
+): Promise<void> {
+  await updateDoc(profileRef(uid), {
+    customCategories: arrayRemove(cat),
     updatedAt: serverTimestamp(),
   });
 }
