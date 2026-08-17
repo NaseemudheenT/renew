@@ -28,6 +28,11 @@ export const EN = {
   "search.empty": "No matches",
   "search.hint": "Search across your whole account",
 
+  "install.cta": "Install Renew",
+  "install.ios.title": "Install Renew",
+  "install.ios.body": "Tap the Share button, then choose “Add to Home Screen” to install Renew.",
+  "install.ios.gotit": "Got it",
+
   "date.today": "Today",
   "date.tomorrow": "Tomorrow",
   "date.yesterday": "Yesterday",

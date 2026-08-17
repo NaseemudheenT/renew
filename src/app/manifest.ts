@@ -8,10 +8,10 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Renew — Never forget what matters",
+    name: "Renew — Your money, beautifully clear",
     short_name: "Renew",
     description:
-      "A calm, premium companion for life's renewals — reminders, documents, payments and more.",
+      "A calm, premium personal finance companion — track balances, transactions, budgets, savings, investments and bills in one place.",
     start_url: "/dashboard",
     scope: "/",
     display: "standalone",
