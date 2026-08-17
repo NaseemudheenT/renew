@@ -1,6 +1,5 @@
-// Placeholder — old UI removed for the redesign; new screen to be built here.
+import { PaymentsView } from "./PaymentsView";
 export const dynamic = "force-dynamic";
-
-export default function Page() {
-  return null;
+export default function PaymentsPage() {
+  return <PaymentsView />;
 }

@@ -1,6 +1,5 @@
-// Placeholder — old UI removed for the redesign; new screen to be built here.
+import { CalendarView } from "./CalendarView";
 export const dynamic = "force-dynamic";
-
-export default function Page() {
-  return null;
+export default function CalendarPage() {
+  return <CalendarView />;
 }
