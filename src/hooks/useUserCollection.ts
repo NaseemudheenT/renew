@@ -36,7 +36,7 @@ const EMPTY: never[] = [];
  */
 export function useUserCollection<T>(
   name: CollectionName,
-  constraints: QueryConstraint[] = [],
+  constraints: QueryConstraint[] = EMPTY,
 ): CollectionState<T> {
   const { user, loading: authLoading } = useAuth();
   const uid = user?.uid ?? null;
