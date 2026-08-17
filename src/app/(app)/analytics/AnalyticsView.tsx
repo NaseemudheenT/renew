@@ -18,7 +18,7 @@ import type { Transaction } from "@/lib/types";
 const MONTHS = 6;
 
 export function AnalyticsView() {
-  const { prefs, money } = useLocale();
+  const { prefs, money, t } = useLocale();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading } = useUserCollection<Transaction>("transactions", txC);
   const reduced = useReducedMotion();
@@ -51,7 +51,7 @@ export function AnalyticsView() {
   if (!loading && data.length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
-        <PageHeader title="Analytics" />
+        <PageHeader title={t("nav.analytics")} />
         <GlassCard padded><EmptyState icon={BarChart3} title="Nothing to chart yet" description="Add income and expenses and Renew builds a clear picture of your money — always from your real data." /></GlassCard>
       </div>
     );

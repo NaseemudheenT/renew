@@ -19,7 +19,7 @@ import { CURRENCIES, cn } from "@/lib/utils";
 import type { Investment, InvestmentType } from "@/lib/types";
 
 export function InvestmentsView() {
-  const { prefs, money } = useLocale();
+  const { prefs, money, t } = useLocale();
   const { data, loading, uid } = useUserCollection<Investment>("investments");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Investment | null>(null);
@@ -34,7 +34,7 @@ export function InvestmentsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Investments" subtitle="Track what you hold and how it's doing." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />Add holding</AnimatedButton>} />
+      <PageHeader title={t("nav.investments")} subtitle="Track what you hold and how it's doing." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />Add holding</AnimatedButton>} />
       {isEmpty ? (
         <GlassCard padded><EmptyState icon={TrendingUp} title="No investments tracked" description="Add a stock, fund or crypto holding with its quantity and prices — Renew shows your value and gain." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />Add holding</AnimatedButton>} /></GlassCard>
       ) : (

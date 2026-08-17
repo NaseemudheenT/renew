@@ -11,6 +11,7 @@ import { PaymentRow } from "@/components/payments/PaymentRow";
 import { PaymentForm } from "@/components/payments/PaymentForm";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { createPayment, updatePayment, deletePayment, markPaid, markUnpaid, restorePayment, type PaymentInput } from "@/lib/firestore/payments";
 import { dueLabel, isOverdue } from "@/lib/dates";
 import type { Payment } from "@/lib/types";
@@ -19,6 +20,7 @@ import { cn } from "@/lib/utils";
 type Tab = "upcoming" | "paid";
 
 export function PaymentsView() {
+  const { t } = useLocale();
   const { data, loading, uid } = useUserCollection<Payment>("payments");
   const [tab, setTab] = useState<Tab>("upcoming");
   const [modalOpen, setModalOpen] = useState(false);
@@ -72,7 +74,7 @@ export function PaymentsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Bills" subtitle="Recurring bills and payments — never miss a due date." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />New bill</AnimatedButton>} />
+      <PageHeader title={t("nav.payments")} subtitle="Recurring bills and payments — never miss a due date." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />New bill</AnimatedButton>} />
 
       {!isEmpty && (
         <div className="mb-5 grid grid-cols-2 gap-3">

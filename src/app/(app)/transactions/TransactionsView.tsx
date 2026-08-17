@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 type Filter = "all" | TxType;
 
 export function TransactionsView() {
-  const { prefs } = useLocale();
+  const { prefs, t } = useLocale();
   const { resolve } = useCategories();
   const loc = `${prefs.language}-${prefs.region}`;
   const groupHeaderFmt = useMemo(
@@ -92,7 +92,7 @@ export function TransactionsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Transactions" subtitle="Every amount in and out — captured in seconds." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton>} />
+      <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton>} />
 
       {!isEmpty && (
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">

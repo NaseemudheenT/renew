@@ -19,7 +19,7 @@ import { CURRENCIES, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
 
 export function SavingsView() {
-  const { money, shortDate } = useLocale();
+  const { money, shortDate, t } = useLocale();
   const { data, loading, uid } = useUserCollection<SavingsGoal>("savings");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<SavingsGoal | null>(null);
@@ -29,7 +29,7 @@ export function SavingsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Savings" subtitle="Set goals, watch them fill." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New goal</AnimatedButton>} />
+      <PageHeader title={t("nav.savings")} subtitle="Set goals, watch them fill." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New goal</AnimatedButton>} />
       {isEmpty ? (
         <GlassCard padded><EmptyState icon={PiggyBank} title="No savings goals yet" description="Create a goal like an emergency fund or a trip, set a target, and track your progress." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New goal</AnimatedButton>} /></GlassCard>
       ) : (

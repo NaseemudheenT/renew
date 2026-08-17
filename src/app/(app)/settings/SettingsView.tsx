@@ -29,12 +29,13 @@ import { cn } from "@/lib/utils";
 
 export function SettingsView() {
   const { user } = useAuth();
+  const { t } = useLocale();
   const { profile, uid } = useUserProfile();
   const shellUser = { uid: user?.uid ?? "", email: user?.email ?? null, displayName: user?.displayName ?? null, photoURL: user?.photoURL ?? null };
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      <PageHeader title="Settings" subtitle="Make Renew feel like yours." />
+      <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
       <Section icon={UserIcon} title="Profile">
         <div className="flex items-center gap-4">
@@ -51,7 +52,7 @@ export function SettingsView() {
         <AppearanceControl />
       </Section>
 
-      <Section icon={Globe} title="Region & Language">
+      <Section icon={Globe} title={t("settings.region.title")}>
         {uid && <RegionLanguageControl uid={uid} />}
       </Section>
 

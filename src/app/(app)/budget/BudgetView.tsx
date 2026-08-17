@@ -21,7 +21,7 @@ import { CURRENCIES, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
 export function BudgetView() {
-  const { money } = useLocale();
+  const { money, t } = useLocale();
   const { resolve } = useCategories();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data: budgets, loading, uid } = useUserCollection<Budget>("budgets");
@@ -40,7 +40,7 @@ export function BudgetView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Budget" subtitle="Set a monthly limit per category — see what's left at a glance." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New budget</AnimatedButton>} />
+      <PageHeader title={t("nav.budget")} subtitle="Set a monthly limit per category — see what's left at a glance." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New budget</AnimatedButton>} />
       {isEmpty ? (
         <GlassCard padded>
           <EmptyState icon={Target} title="No budgets yet" description="Create a budget for a category like Food or Transport and Renew tracks your spending against it automatically." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New budget</AnimatedButton>} />

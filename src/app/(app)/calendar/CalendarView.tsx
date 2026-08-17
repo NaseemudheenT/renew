@@ -24,7 +24,7 @@ const KIND_META: Record<Kind, { icon: typeof Bell; dot: string }> = {
 };
 
 export function CalendarView() {
-  const { prefs, dueLabel } = useLocale();
+  const { prefs, dueLabel, t } = useLocale();
   const loc = `${prefs.language}-${prefs.region}`;
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => new Date());
@@ -79,7 +79,7 @@ export function CalendarView() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Calendar" subtitle="Your reminders, tasks and payments on one timeline." action={<AnimatedButton variant="glass" size="sm" onClick={() => { const now = new Date(); setCursor(now); setSelected(now); }}>Today</AnimatedButton>} />
+      <PageHeader title={t("nav.calendar")} subtitle="Your reminders, tasks and payments on one timeline." action={<AnimatedButton variant="glass" size="sm" onClick={() => { const now = new Date(); setCursor(now); setSelected(now); }}>Today</AnimatedButton>} />
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <GlassCard padded>
           <div className="mb-4 flex items-center justify-between">
