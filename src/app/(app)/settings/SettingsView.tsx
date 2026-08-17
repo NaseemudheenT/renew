@@ -56,7 +56,7 @@ export function SettingsView() {
       </Section>
 
       <Section icon={Bell} title="Notifications">
-        {uid && <NotificationPrefsControl uid={uid} prefs={profile?.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS} />}
+        {uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}
       </Section>
 
       <Section icon={CreditCard} title="Billing">
@@ -134,7 +134,9 @@ function AppearanceControl() {
 const PREF_ROWS: { key: keyof NotificationPrefs; label: string; desc: string }[] = [
   { key: "reminders", label: "Reminders", desc: "When a reminder is due or overdue" },
   { key: "tasks", label: "Tasks", desc: "When a task is due or overdue" },
-  { key: "payments", label: "Payments", desc: "When a payment is due soon or overdue" },
+  { key: "payments", label: "Bills", desc: "When a bill is due soon or overdue" },
+  { key: "budgets", label: "Budgets", desc: "When you're close to or over a budget" },
+  { key: "savings", label: "Savings", desc: "When a savings goal is reached" },
   { key: "documents", label: "Documents", desc: "When a document is expiring" },
 ];
 

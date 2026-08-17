@@ -4,11 +4,15 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { format } from "date-fns";
 import { userCollection } from "@/lib/firestore/db";
 import { todayEnd, daysUntil } from "@/lib/dates";
+import { catMeta, monthRange } from "@/lib/finance";
 import type {
   Reminder,
   Task,
   Payment,
   DocItem,
+  Budget,
+  SavingsGoal,
+  Transaction,
   AppNotification,
   NotificationType,
 } from "@/lib/types";
@@ -36,6 +40,8 @@ export interface NotificationPrefsInput {
   tasks: boolean;
   payments: boolean;
   documents: boolean;
+  budgets: boolean;
+  savings: boolean;
 }
 
 export function computeDesired(
@@ -44,16 +50,22 @@ export function computeDesired(
     tasks: Task[];
     payments: Payment[];
     documents: DocItem[];
+    budgets?: Budget[];
+    savings?: SavingsGoal[];
+    transactions?: Transaction[];
   },
   prefs: NotificationPrefsInput = {
     reminders: true,
     tasks: true,
     payments: true,
     documents: true,
+    budgets: true,
+    savings: true,
   },
 ): Desired[] {
   const out: Desired[] = [];
   const end = todayEnd();
+  const monthKey = dayKey(monthRange().start).slice(0, 7); // yyyy-MM
 
   if (prefs.reminders) {
     for (const r of input.reminders) {
@@ -118,6 +130,58 @@ export function computeDesired(
           body: doc.name,
           href: "/documents",
           sourceId: doc.id,
+        });
+      }
+    }
+  }
+
+  // Budget warnings — spend for this month vs. each category's limit.
+  if (prefs.budgets && input.budgets?.length && input.transactions) {
+    const { start, end: monthEnd } = monthRange();
+    const spent = new Map<string, number>();
+    for (const t of input.transactions) {
+      if (t.type === "expense" && t.date >= start && t.date < monthEnd) {
+        spent.set(t.category, (spent.get(t.category) ?? 0) + t.amount);
+      }
+    }
+    for (const b of input.budgets) {
+      if (b.amount <= 0) continue;
+      const used = spent.get(b.category) ?? 0;
+      const ratio = used / b.amount;
+      const label = catMeta(b.category).label;
+      if (ratio >= 1) {
+        out.push({
+          id: `budget_over_${b.id}_${monthKey}`,
+          type: "budget",
+          title: "Budget exceeded",
+          body: `You've gone over your ${label} budget this month.`,
+          href: "/budget",
+          sourceId: b.id,
+        });
+      } else if (ratio >= 0.9) {
+        out.push({
+          id: `budget_warn_${b.id}_${monthKey}`,
+          type: "budget",
+          title: "Budget almost reached",
+          body: `You've used ${Math.round(ratio * 100)}% of your ${label} budget.`,
+          href: "/budget",
+          sourceId: b.id,
+        });
+      }
+    }
+  }
+
+  // Savings milestones — a goal reaching its target.
+  if (prefs.savings && input.savings?.length) {
+    for (const g of input.savings) {
+      if (g.target > 0 && g.current >= g.target) {
+        out.push({
+          id: `savings_reached_${g.id}`,
+          type: "savings",
+          title: "Savings goal reached",
+          body: `You've reached your goal: ${g.name}. 🎉`,
+          href: "/savings",
+          sourceId: g.id,
         });
       }
     }

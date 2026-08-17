@@ -11,6 +11,8 @@ export interface NotificationPrefs {
   tasks: boolean;
   payments: boolean;
   documents: boolean;
+  budgets: boolean;
+  savings: boolean;
 }
 
 export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
@@ -18,6 +20,8 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   tasks: true,
   payments: true,
   documents: true,
+  budgets: true,
+  savings: true,
 };
 
 export interface ProfileDoc {

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { orderBy, limit } from "firebase/firestore";
-import { Bell, ListTodo, Wallet, FileText, ShieldCheck, Check, Trash2, type LucideIcon } from "lucide-react";
+import { Bell, ListTodo, Wallet, FileText, ShieldCheck, Target, PiggyBank, Check, Trash2, type LucideIcon } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -22,6 +22,8 @@ const TYPE_ICON: Record<NotificationType, LucideIcon> = {
   payment: Wallet,
   document: FileText,
   account: ShieldCheck,
+  budget: Target,
+  savings: PiggyBank,
 };
 
 export function NotificationsView() {

@@ -13,6 +13,9 @@ import type {
   Task,
   Payment,
   DocItem,
+  Budget,
+  SavingsGoal,
+  Transaction,
   AppNotification,
 } from "@/lib/types";
 
@@ -27,6 +30,9 @@ export function NotificationSync() {
   const tasks = useUserCollection<Task>("tasks");
   const payments = useUserCollection<Payment>("payments");
   const documents = useUserCollection<DocItem>("documents");
+  const budgets = useUserCollection<Budget>("budgets");
+  const savings = useUserCollection<SavingsGoal>("savings");
+  const transactions = useUserCollection<Transaction>("transactions");
   const notifConstraints = useMemo(
     () => [orderBy("createdAt", "desc"), limit(100)],
     [],
@@ -38,7 +44,7 @@ export function NotificationSync() {
 
   const { profile } = useUserProfile();
   const prefs = useMemo(
-    () => profile?.notificationPrefs ?? DEFAULT_NOTIFICATION_PREFS,
+    () => ({ ...DEFAULT_NOTIFICATION_PREFS, ...profile?.notificationPrefs }),
     [profile?.notificationPrefs],
   );
 
@@ -49,6 +55,9 @@ export function NotificationSync() {
     tasks.loading ||
     payments.loading ||
     documents.loading ||
+    budgets.loading ||
+    savings.loading ||
+    transactions.loading ||
     notifications.loading;
 
   useEffect(() => {
@@ -61,6 +70,9 @@ export function NotificationSync() {
         tasks: tasks.data,
         payments: payments.data,
         documents: documents.data,
+        budgets: budgets.data,
+        savings: savings.data,
+        transactions: transactions.data,
       },
       prefs,
     );
@@ -86,6 +98,9 @@ export function NotificationSync() {
     tasks.data,
     payments.data,
     documents.data,
+    budgets.data,
+    savings.data,
+    transactions.data,
     notifications.data,
     prefs,
   ]);

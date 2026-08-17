@@ -121,7 +121,9 @@ export type NotificationType =
   | "task"
   | "payment"
   | "document"
-  | "account";
+  | "account"
+  | "budget"
+  | "savings";
 
 export interface AppNotification {
   id: string;
