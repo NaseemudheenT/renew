@@ -27,6 +27,7 @@ import {
   formatRelative as fmtRelative,
 } from "@/lib/i18n/format";
 import { translate, type MessageKey } from "@/lib/i18n/messages";
+import { isToday, isTomorrow, isYesterday } from "date-fns";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 export interface LocaleContextValue {
@@ -43,6 +44,10 @@ export interface LocaleContextValue {
   time: (value: number | Date) => string;
   dateTime: (value: number | Date) => string;
   relative: (value: number | Date, now?: number) => string;
+  /** Localized Today / Tomorrow / Yesterday / "Mon, 4 Aug", optional time. */
+  dueLabel: (value: number | Date, hasTime?: boolean) => string;
+  /** Localized short date, e.g. "4 Aug 2026". */
+  shortDate: (value: number | Date) => string;
 }
 
 const LocaleContext = createContext<LocaleContextValue | null>(null);
@@ -118,6 +123,19 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       time: (v) => fmtTime(v, prefs),
       dateTime: (v) => fmtDateTime(v, prefs),
       relative: (v, now) => fmtRelative(v, prefs, now),
+      dueLabel: (v, hasTime = false) => {
+        const d = v instanceof Date ? v : new Date(v);
+        const suffix = hasTime ? ` · ${fmtTime(d, prefs)}` : "";
+        if (isToday(d)) return translate(prefs.language, "date.today") + suffix;
+        if (isTomorrow(d)) return translate(prefs.language, "date.tomorrow") + suffix;
+        if (isYesterday(d)) return translate(prefs.language, "date.yesterday") + suffix;
+        return (
+          fmtDate(d, prefs, { weekday: "short", day: "numeric", month: "short" }) +
+          suffix
+        );
+      },
+      shortDate: (v) =>
+        fmtDate(v, prefs, { day: "numeric", month: "short", year: "numeric" }),
     };
   }, [prefs, ready]);
 

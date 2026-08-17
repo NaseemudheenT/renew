@@ -13,13 +13,13 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createSavings, updateSavings, deleteSavings, addToSavings } from "@/lib/firestore/savings";
-import { toDateInput, fromDateTimeInputs, shortDate } from "@/lib/dates";
+import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
 
 export function SavingsView() {
-  const { money } = useLocale();
+  const { money, shortDate } = useLocale();
   const { data, loading, uid } = useUserCollection<SavingsGoal>("savings");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<SavingsGoal | null>(null);

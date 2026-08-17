@@ -25,6 +25,10 @@ export const EN = {
   "common.saving": "Saving…",
   "common.search": "Search",
 
+  "date.today": "Today",
+  "date.tomorrow": "Tomorrow",
+  "date.yesterday": "Yesterday",
+
   "nav.dashboard": "Overview",
   "nav.transactions": "Transactions",
   "nav.budget": "Budget",

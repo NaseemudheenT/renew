@@ -5,7 +5,7 @@ import { Pencil, Trash2, RotateCcw, Repeat } from "lucide-react";
 import { PayButton } from "./PayButton";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { categoryMeta } from "@/lib/categories";
-import { dueLabel, isOverdue } from "@/lib/dates";
+import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 import type { Payment } from "@/lib/types";
@@ -23,7 +23,7 @@ export function PaymentRow({
   onEdit: () => void;
   onDelete: () => void;
 }) {
-  const { money } = useLocale();
+  const { money, dueLabel } = useLocale();
   const meta = categoryMeta(payment.category);
   const Icon = meta.icon;
   const paid = payment.status === "paid";

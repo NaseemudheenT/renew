@@ -15,13 +15,13 @@ import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { catMeta, monthRange } from "@/lib/finance";
-import { dueLabel, isOverdue } from "@/lib/dates";
+import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 import type { Transaction, SavingsGoal, Investment, Payment } from "@/lib/types";
 
 export function Dashboard({ firstName }: { firstName: string }) {
-  const { prefs, money } = useLocale();
+  const { prefs, money, dueLabel } = useLocale();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const recentC = useMemo(() => [orderBy("date", "desc"), limit(6)], []);
   const upcomingC = useMemo(() => [where("status", "in", ["upcoming", "overdue"])], []);
