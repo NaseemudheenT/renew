@@ -61,6 +61,13 @@ export const EN = {
   "settings.region.hint":
     "Auto-detected from your device. Change anything — your choices are saved to your account.",
   "settings.region.saved": "Region & language updated",
+
+  "settings.data.title": "Data",
+  "settings.data.hint": "Download a copy of your financial data. It stays on your device — Renew never sells or shares it.",
+  "settings.data.exportJson": "Export all (JSON)",
+  "settings.data.exportCsv": "Export transactions (CSV)",
+  "settings.data.exported": "Export ready — check your downloads",
+  "settings.data.empty": "Nothing to export yet",
 } as const;
 
 /** Non-English catalogs. Partial by design; English fills every gap. */

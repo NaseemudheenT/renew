@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -15,6 +15,9 @@ import { toast } from "@/components/ui/toast-store";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useUserCollection } from "@/hooks/useUserCollection";
+import { toCSV, downloadFile, fileDateStamp } from "@/lib/export";
+import type { Transaction, Budget, SavingsGoal, Investment, Payment } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs } from "@/lib/firestore/profile";
 import { LANGUAGES, REGIONS, CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
@@ -55,6 +58,10 @@ export function SettingsView() {
 
       <Section icon={CreditCard} title="Billing">
         <BillingControl />
+      </Section>
+
+      <Section icon={Database} title="Data">
+        <DataControl />
       </Section>
 
       <Section icon={ShieldCheck} title="Security">
@@ -278,6 +285,57 @@ function BillingControl() {
       >
         <CreditCardForm onSubmit={handleSaveCard} />
       </AnimatedModal>
+    </div>
+  );
+}
+
+function DataControl() {
+  const { t } = useLocale();
+  const transactions = useUserCollection<Transaction>("transactions");
+  const budgets = useUserCollection<Budget>("budgets");
+  const savings = useUserCollection<SavingsGoal>("savings");
+  const investments = useUserCollection<Investment>("investments");
+  const payments = useUserCollection<Payment>("payments");
+
+  const total =
+    transactions.data.length + budgets.data.length + savings.data.length +
+    investments.data.length + payments.data.length;
+
+  function exportJson() {
+    if (total === 0) return toast({ title: t("settings.data.empty") });
+    const payload = {
+      app: "Renew",
+      exportedAt: new Date().toISOString(),
+      transactions: transactions.data,
+      budgets: budgets.data,
+      savings: savings.data,
+      investments: investments.data,
+      payments: payments.data,
+    };
+    downloadFile(`renew-export-${fileDateStamp()}.json`, JSON.stringify(payload, null, 2), "application/json");
+    toast({ title: t("settings.data.exported"), variant: "success" });
+  }
+
+  function exportCsv() {
+    if (transactions.data.length === 0) return toast({ title: t("settings.data.empty") });
+    const csv = toCSV(transactions.data as unknown as Record<string, unknown>[]);
+    downloadFile(`renew-transactions-${fileDateStamp()}.csv`, csv, "text/csv");
+    toast({ title: t("settings.data.exported"), variant: "success" });
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <p className="text-muted text-xs">{t("settings.data.hint")}</p>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <AnimatedButton variant="glass" fullWidth onClick={exportJson}>
+          <Download className="size-4" />
+          {t("settings.data.exportJson")}
+        </AnimatedButton>
+        <AnimatedButton variant="glass" fullWidth onClick={exportCsv}>
+          <Download className="size-4" />
+          {t("settings.data.exportCsv")}
+        </AnimatedButton>
+      </div>
     </div>
   );
 }
