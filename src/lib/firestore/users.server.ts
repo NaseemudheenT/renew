@@ -55,6 +55,12 @@ export interface OnboardingInput {
   displayName: string;
   timezone: string;
   focus: string[];
+  /* Locale/region (optional; auto-detected on the client). */
+  locale?: string;
+  region?: string;
+  currency?: string;
+  weekStart?: 0 | 1;
+  hour12?: boolean;
 }
 
 /** Persist onboarding answers and flip the onboarded flag. */
@@ -62,17 +68,19 @@ export async function completeOnboarding(
   uid: string,
   input: OnboardingInput,
 ): Promise<void> {
-  await getAdminDb()
-    .collection("users")
-    .doc(uid)
-    .set(
-      {
-        displayName: input.displayName,
-        timezone: input.timezone,
-        focus: input.focus,
-        onboarded: true,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+  const doc: Record<string, unknown> = {
+    displayName: input.displayName,
+    timezone: input.timezone,
+    focus: input.focus,
+    onboarded: true,
+    updatedAt: FieldValue.serverTimestamp(),
+  };
+  // Only persist locale fields that were provided.
+  if (input.locale) doc.locale = input.locale;
+  if (input.region) doc.region = input.region;
+  if (input.currency) doc.currency = input.currency;
+  if (input.weekStart !== undefined) doc.weekStart = input.weekStart;
+  if (input.hour12 !== undefined) doc.hour12 = input.hour12;
+
+  await getAdminDb().collection("users").doc(uid).set(doc, { merge: true });
 }

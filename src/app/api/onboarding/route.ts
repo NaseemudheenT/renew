@@ -9,6 +9,11 @@ const bodySchema = z.object({
   displayName: z.string().trim().min(1).max(80),
   timezone: z.string().trim().min(1).max(64),
   focus: z.array(z.string().min(1).max(40)).max(12),
+  locale: z.string().trim().min(2).max(8).optional(),
+  region: z.string().trim().min(2).max(3).optional(),
+  currency: z.string().trim().length(3).optional(),
+  weekStart: z.union([z.literal(0), z.literal(1)]).optional(),
+  hour12: z.boolean().optional(),
 });
 
 /** Persist minimal onboarding answers and flip the onboarded flag. */

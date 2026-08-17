@@ -8,7 +8,12 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
+import {
+  detectPrefs, LANGUAGES, REGIONS, CURRENCY_CODES, REGION_CURRENCY,
+  weekStartFor, hour12For, type WeekStart,
+} from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
 const FOCUS = [
@@ -29,22 +34,28 @@ const slide = {
   transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
 };
 
+const STEPS = 3;
+
 export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const router = useRouter();
+  const detected = useMemo(() => detectPrefs(), []);
   const [step, setStep] = useState(0);
   const [name, setName] = useState(defaultName);
+  const [language, setLanguage] = useState(detected.language);
+  const [region, setRegion] = useState(detected.region);
+  const [currency, setCurrency] = useState(detected.currency);
+  const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
   const [focus, setFocus] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const timezone = useMemo(() => {
-    try {
-      return Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
-    } catch {
-      return "UTC";
-    }
-  }, []);
+  const timezone = detected.timezone;
 
+  function onRegionChange(next: string) {
+    setRegion(next);
+    setCurrency(REGION_CURRENCY[next] ?? currency);
+    setWeekStart(weekStartFor(next));
+  }
   function toggle(id: string) {
     setFocus((p) => (p.includes(id) ? p.filter((f) => f !== id) : [...p, id]));
   }
@@ -54,7 +65,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
       return;
     }
     setError(null);
-    setStep(1);
+    setStep((s) => Math.min(s + 1, STEPS - 1));
   }
   async function finish() {
     setError(null);
@@ -63,7 +74,16 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ displayName: name.trim(), timezone, focus }),
+        body: JSON.stringify({
+          displayName: name.trim(),
+          timezone,
+          focus,
+          locale: language,
+          region,
+          currency,
+          weekStart,
+          hour12: hour12For(region),
+        }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
@@ -79,7 +99,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   return (
     <GlassCard padded>
       <div className="mb-6 flex items-center gap-2" aria-hidden="true">
-        {[0, 1].map((i) => (
+        {Array.from({ length: STEPS }, (_, i) => (
           <div key={i} className="h-1 flex-1 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
             <motion.div
               className="h-full rounded-full bg-gradient-to-r from-gold-300 to-gold-500"
@@ -92,7 +112,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
       </div>
 
       <AnimatePresence mode="wait" initial={false}>
-        {step === 0 ? (
+        {step === 0 && (
           <motion.div key="s0" {...slide}>
             <h1 className="text-strong text-xl font-medium">Welcome to Renew</h1>
             <p className="text-muted mt-1 text-sm">First, what should we call you?</p>
@@ -107,8 +127,41 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
               />
             </div>
           </motion.div>
-        ) : (
+        )}
+        {step === 1 && (
           <motion.div key="s1" {...slide}>
+            <h1 className="text-strong text-xl font-medium">Set your region</h1>
+            <p className="text-muted mt-1 text-sm">Auto-detected from your device — change anything. You can update it later in Settings.</p>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2">
+              <Select
+                label="Language"
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                options={LANGUAGES.map((l) => ({ value: l.code, label: `${l.native} · ${l.label}` }))}
+              />
+              <Select
+                label="Country / region"
+                value={region}
+                onChange={(e) => onRegionChange(e.target.value)}
+                options={REGIONS.map((r) => ({ value: r.code, label: r.label }))}
+              />
+              <Select
+                label="Currency"
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                options={CURRENCY_CODES.map((c) => ({ value: c, label: c }))}
+              />
+              <Select
+                label="Week starts on"
+                value={String(weekStart)}
+                onChange={(e) => setWeekStart(Number(e.target.value) === 1 ? 1 : 0)}
+                options={[{ value: "0", label: "Sunday" }, { value: "1", label: "Monday" }]}
+              />
+            </div>
+          </motion.div>
+        )}
+        {step === 2 && (
+          <motion.div key="s2" {...slide}>
             <h1 className="text-strong text-xl font-medium">What would you like to stay on top of?</h1>
             <p className="text-muted mt-1 text-sm">Optional — pick a few. You can change these anytime.</p>
             <div className="mt-6 grid grid-cols-2 gap-3">
@@ -148,12 +201,12 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
       )}
 
       <div className="mt-7 flex items-center gap-3">
-        {step === 1 && (
-          <AnimatedButton variant="ghost" onClick={() => setStep(0)} disabled={submitting}>
+        {step > 0 && (
+          <AnimatedButton variant="ghost" onClick={() => setStep((s) => s - 1)} disabled={submitting}>
             Back
           </AnimatedButton>
         )}
-        {step === 0 ? (
+        {step < STEPS - 1 ? (
           <AnimatedButton size="lg" fullWidth onClick={next}>Continue</AnimatedButton>
         ) : (
           <AnimatedButton size="lg" fullWidth loading={submitting} onClick={finish}>Enter Renew</AnimatedButton>
