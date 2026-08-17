@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
+import { CreditCardForm, type CardValues } from "@/components/finance/CreditCardForm";
 import { Avatar } from "@/components/shell/Avatar";
 import { toast } from "@/components/ui/toast-store";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -137,6 +138,19 @@ function NotificationPrefsControl({ uid, prefs }: { uid: string; prefs: Notifica
 }
 
 function BillingControl() {
+  const [methodOpen, setMethodOpen] = useState(false);
+
+  function handleSaveCard(_values: CardValues) {
+    // Provider boundary: raw card details are NEVER stored by Renew. When a live
+    // Stripe publishable key + checkout are configured, this hands the values to
+    // Stripe Elements to tokenize. Until then, we do not persist anything.
+    setMethodOpen(false);
+    toast({
+      title: "Payment provider not connected yet",
+      description: "Card details are never stored by Renew. Paid plans arrive with secure Stripe checkout.",
+    });
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-4">
@@ -147,6 +161,18 @@ function BillingControl() {
         <span className="rounded-full bg-[var(--glass-bg-strong)] px-3 py-1 text-xs font-medium text-[var(--text-strong)]">Current</span>
       </div>
       <p className="text-muted text-xs">You&apos;re all set — there&apos;s nothing to pay. Paid plans will appear here when they launch; you&apos;ll never be charged without opting in.</p>
+      <AnimatedButton variant="glass" onClick={() => setMethodOpen(true)}>
+        <CreditCard className="size-4" />
+        Add payment method
+      </AnimatedButton>
+      <AnimatedModal
+        open={methodOpen}
+        onClose={() => setMethodOpen(false)}
+        title="Payment method"
+        description="Saved securely with our payment provider. Renew never stores your card number or CVC."
+      >
+        <CreditCardForm onSubmit={handleSaveCard} />
+      </AnimatedModal>
     </div>
   );
 }
