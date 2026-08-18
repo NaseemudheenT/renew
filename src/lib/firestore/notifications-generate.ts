@@ -4,7 +4,7 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import { format } from "date-fns";
 import { userCollection } from "@/lib/firestore/db";
 import { todayEnd, daysUntil } from "@/lib/dates";
-import { catMeta, monthRange } from "@/lib/finance";
+import { resolveCatMeta, monthRange } from "@/lib/finance";
 import { translate } from "@/lib/i18n/messages";
 import type {
   Reminder,
@@ -14,6 +14,7 @@ import type {
   Budget,
   SavingsGoal,
   Transaction,
+  CustomCategory,
   AppNotification,
   NotificationType,
 } from "@/lib/types";
@@ -54,6 +55,7 @@ export function computeDesired(
     budgets?: Budget[];
     savings?: SavingsGoal[];
     transactions?: Transaction[];
+    customCategories?: CustomCategory[];
   },
   prefs: NotificationPrefsInput = {
     reminders: true,
@@ -142,17 +144,20 @@ export function computeDesired(
   // Budget warnings — spend for this month vs. each category's limit.
   if (prefs.budgets && input.budgets?.length && input.transactions) {
     const { start, end: monthEnd } = monthRange();
+    // Key spend by category AND currency so budgets are only compared against
+    // spend in the same currency (never sum mixed currencies as raw numbers).
     const spent = new Map<string, number>();
     for (const t of input.transactions) {
       if (t.type === "expense" && t.date >= start && t.date < monthEnd) {
-        spent.set(t.category, (spent.get(t.category) ?? 0) + t.amount);
+        const key = `${t.category}|${t.currency}`;
+        spent.set(key, (spent.get(key) ?? 0) + t.amount);
       }
     }
     for (const b of input.budgets) {
       if (b.amount <= 0) continue;
-      const used = spent.get(b.category) ?? 0;
+      const used = spent.get(`${b.category}|${b.currency}`) ?? 0;
       const ratio = used / b.amount;
-      const label = catMeta(b.category).label;
+      const label = resolveCatMeta(b.category, input.customCategories ?? []).label;
       if (ratio >= 1) {
         out.push({
           id: `budget_over_${b.id}_${monthKey}`,

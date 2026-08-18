@@ -73,6 +73,7 @@ export function NotificationSync() {
         budgets: budgets.data,
         savings: savings.data,
         transactions: transactions.data,
+        customCategories: profile?.customCategories ?? [],
       },
       prefs,
       profile?.locale ?? "en",
@@ -105,6 +106,7 @@ export function NotificationSync() {
     notifications.data,
     prefs,
     profile?.locale,
+    profile?.customCategories,
   ]);
 
   return null;

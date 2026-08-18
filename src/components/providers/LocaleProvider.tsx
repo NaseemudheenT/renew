@@ -27,7 +27,6 @@ import {
   formatRelative as fmtRelative,
 } from "@/lib/i18n/format";
 import { translate, type MessageKey } from "@/lib/i18n/messages";
-import { isToday, isTomorrow, isYesterday } from "date-fns";
 import { useUserProfile } from "@/hooks/useUserProfile";
 
 export interface LocaleContextValue {
@@ -126,9 +125,20 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       dueLabel: (v, hasTime = false) => {
         const d = v instanceof Date ? v : new Date(v);
         const suffix = hasTime ? ` · ${fmtTime(d, prefs)}` : "";
-        if (isToday(d)) return translate(prefs.language, "date.today") + suffix;
-        if (isTomorrow(d)) return translate(prefs.language, "date.tomorrow") + suffix;
-        if (isYesterday(d)) return translate(prefs.language, "date.yesterday") + suffix;
+        // Decide Today/Tomorrow/Yesterday by the calendar day in the profile
+        // timezone — the SAME frame the formatted date uses — so the word and
+        // the date never disagree near midnight across timezones.
+        const dayInTz = new Intl.DateTimeFormat("en-CA", {
+          timeZone: prefs.timezone,
+          year: "numeric",
+          month: "2-digit",
+          day: "2-digit",
+        });
+        const nowMs = new Date().getTime();
+        const target = dayInTz.format(d);
+        if (target === dayInTz.format(nowMs)) return translate(prefs.language, "date.today") + suffix;
+        if (target === dayInTz.format(nowMs + 86_400_000)) return translate(prefs.language, "date.tomorrow") + suffix;
+        if (target === dayInTz.format(nowMs - 86_400_000)) return translate(prefs.language, "date.yesterday") + suffix;
         return (
           fmtDate(d, prefs, { weekday: "short", day: "numeric", month: "short" }) +
           suffix

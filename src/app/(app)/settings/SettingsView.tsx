@@ -180,6 +180,21 @@ function RegionLanguageControl({ uid }: { uid: string }) {
   const [weekStart, setWeekStart] = useState<WeekStart>(prefs.weekStart);
   const [saving, setSaving] = useState(false);
 
+  // Re-sync the form when the resolved prefs change (e.g. the saved profile
+  // arrives after a cold load) so we never persist stale, browser-detected
+  // values over the user's real saved preferences. This is React's
+  // "adjust state during render" pattern — not a setState-in-effect.
+  const prefsSig = `${prefs.language}|${prefs.region}|${prefs.currency}|${prefs.timezone}|${prefs.weekStart}`;
+  const [seed, setSeed] = useState(prefsSig);
+  if (seed !== prefsSig) {
+    setSeed(prefsSig);
+    setLanguage(prefs.language);
+    setRegion(prefs.region);
+    setCurrency(prefs.currency);
+    setTimezone(prefs.timezone);
+    setWeekStart(prefs.weekStart);
+  }
+
   // When the region changes, follow its conventional currency + week start
   // (the user can still override currency below).
   function onRegionChange(next: string) {

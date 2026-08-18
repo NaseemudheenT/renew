@@ -22,7 +22,7 @@ describe("toCSV", () => {
 });
 
 describe("fileDateStamp", () => {
-  it("formats yyyy-mm-dd", () => {
-    expect(fileDateStamp(new Date(Date.UTC(2026, 7, 17)))).toBe("2026-08-17");
+  it("formats yyyy-mm-dd from the local date", () => {
+    expect(fileDateStamp(new Date(2026, 7, 17, 12, 0))).toBe("2026-08-17");
   });
 });

@@ -9,9 +9,9 @@ const allPrefs = {
   documents: true, budgets: true, savings: true,
 };
 
-function tx(category: string, amount: number): Transaction {
+function tx(category: string, amount: number, currency = "USD"): Transaction {
   const mid = (monthRange().start + monthRange().end) / 2;
-  return { id: Math.random().toString(), type: "expense", amount, currency: "USD", category, date: mid, createdAt: mid, updatedAt: mid };
+  return { id: Math.random().toString(), type: "expense", amount, currency, category, date: mid, createdAt: mid, updatedAt: mid };
 }
 
 describe("computeDesired — budgets", () => {
@@ -32,6 +32,27 @@ describe("computeDesired — budgets", () => {
   it("respects the budgets pref being off", () => {
     const out = computeDesired({ ...empty, budgets, transactions: [tx("food", 130)] }, { ...allPrefs, budgets: false });
     expect(out.some((d) => d.type === "budget")).toBe(false);
+  });
+  it("does not sum other-currency spend against a budget", () => {
+    // 60 USD + 50 EUR on 'food'; a 100 USD budget must see only 60 USD.
+    const out = computeDesired(
+      { ...empty, budgets, transactions: [tx("food", 60, "USD"), tx("food", 50, "EUR")] },
+      allPrefs,
+    );
+    expect(out.some((d) => d.type === "budget")).toBe(false);
+  });
+  it("labels a custom-category budget with its real name", () => {
+    const customBudgets: Budget[] = [{ id: "bc", category: "custom_expense_gym_ab12x", amount: 100, currency: "USD", createdAt: 0, updatedAt: 0 }];
+    const out = computeDesired(
+      {
+        ...empty,
+        budgets: customBudgets,
+        transactions: [tx("custom_expense_gym_ab12x", 130)],
+        customCategories: [{ id: "custom_expense_gym_ab12x", label: "Gym", type: "expense" }],
+      },
+      allPrefs,
+    );
+    expect(out.find((d) => d.type === "budget")?.body).toContain("Gym");
   });
   it("localizes titles/bodies to the given language", () => {
     const out = computeDesired({ ...empty, budgets, transactions: [tx("food", 130)] }, allPrefs, "es");

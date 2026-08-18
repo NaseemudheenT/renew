@@ -47,7 +47,10 @@ export function downloadFile(
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-/** yyyy-mm-dd for filenames (local date). */
+/** yyyy-mm-dd for filenames, in the user's local date. */
 export function fileDateStamp(now: Date = new Date()): string {
-  return now.toISOString().slice(0, 10);
+  const y = now.getFullYear();
+  const m = String(now.getMonth() + 1).padStart(2, "0");
+  const d = String(now.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
