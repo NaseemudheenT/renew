@@ -15,35 +15,35 @@ import AnimatedGradient, {
  */
 
 const DARK: GradientCustomConfig = {
-  color1: "#0b0d12",
-  color2: "#6b4e1c",
-  color3: "#b98f45",
+  color1: "#090b10",
+  color2: "#7a5820",
+  color3: "#d0a862",
   rotation: 24,
-  proportion: 42,
+  proportion: 44,
   scale: 0.5,
-  speed: 7,
-  distortion: 3,
-  swirl: 42,
-  swirlIterations: 6,
-  softness: 100,
-  shape: "Edge",
-  shapeSize: 40,
-};
-
-const LIGHT: GradientCustomConfig = {
-  color1: "#e9dcbf",
-  color2: "#d3ad63",
-  color3: "#f5edda",
-  rotation: 24,
-  proportion: 46,
-  scale: 0.5,
-  speed: 6,
-  distortion: 3,
-  swirl: 38,
-  swirlIterations: 6,
+  speed: 9,
+  distortion: 4,
+  swirl: 52,
+  swirlIterations: 7,
   softness: 100,
   shape: "Edge",
   shapeSize: 42,
+};
+
+const LIGHT: GradientCustomConfig = {
+  color1: "#eaddbf",
+  color2: "#d3ac5f",
+  color3: "#f7efd9",
+  rotation: 24,
+  proportion: 47,
+  scale: 0.5,
+  speed: 7,
+  distortion: 4,
+  swirl: 44,
+  swirlIterations: 7,
+  softness: 100,
+  shape: "Edge",
+  shapeSize: 44,
 };
 
 export function RenewBackground() {
@@ -70,7 +70,7 @@ export function RenewBackground() {
       {live ? (
         <AnimatedGradient
           config={config}
-          className="opacity-70 mix-blend-soft-light"
+          className="opacity-80 mix-blend-soft-light"
           style={{ inset: "-10%" }}
         />
       ) : (
@@ -87,12 +87,21 @@ export function RenewBackground() {
       )}
 
       {live && (
-        <motion.div
-          className="absolute -left-[8%] -top-[12%] h-[52vmax] w-[52vmax] rounded-full blur-[90px]"
-          style={{ background: "radial-gradient(circle, var(--bokeh-1), transparent 66%)" }}
-          animate={{ x: [0, 50, -20, 0], y: [0, 36, 8, 0] }}
-          transition={{ duration: 40, repeat: Infinity, ease: "easeInOut" }}
-        />
+        <>
+          <motion.div
+            className="absolute -left-[8%] -top-[12%] h-[52vmax] w-[52vmax] rounded-full blur-[90px]"
+            style={{ background: "radial-gradient(circle, var(--bokeh-1), transparent 66%)" }}
+            animate={{ x: [0, 50, -20, 0], y: [0, 36, 8, 0] }}
+            transition={{ duration: 40, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* Second, deeper champagne aurora drifting the opposite way */}
+          <motion.div
+            className="absolute right-[-12%] bottom-[-14%] h-[48vmax] w-[48vmax] rounded-full blur-[110px]"
+            style={{ background: "radial-gradient(circle, var(--bokeh-3), transparent 68%)" }}
+            animate={{ x: [0, -40, 16, 0], y: [0, -30, -8, 0], opacity: [0.55, 0.85, 0.55] }}
+            transition={{ duration: 52, repeat: Infinity, ease: "easeInOut" }}
+          />
+        </>
       )}
 
       <div
