@@ -29,10 +29,15 @@ export function BudgetView() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
 
+  // Spend is keyed by category AND currency so a budget only counts spend in
+  // its own currency — mixed currencies are never summed as identical.
   const spentByCat = useMemo(() => {
     const { start, end } = monthRange();
     const m = new Map<string, number>();
-    for (const t of txs) if (t.type === "expense" && t.date >= start && t.date < end) m.set(t.category, (m.get(t.category) ?? 0) + t.amount);
+    for (const t of txs) if (t.type === "expense" && t.date >= start && t.date < end) {
+      const key = `${t.category}|${t.currency}`;
+      m.set(key, (m.get(key) ?? 0) + t.amount);
+    }
     return m;
   }, [txs]);
 
@@ -51,7 +56,7 @@ export function BudgetView() {
             {budgets.map((b) => {
               const meta = resolve(b.category);
               const Icon = meta.icon;
-              const spent = spentByCat.get(b.category) ?? 0;
+              const spent = spentByCat.get(`${b.category}|${b.currency}`) ?? 0;
               const pct = Math.min(100, Math.round((spent / b.amount) * 100));
               const over = spent > b.amount;
               return (
