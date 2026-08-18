@@ -123,7 +123,8 @@ export type NotificationType =
   | "document"
   | "account"
   | "budget"
-  | "savings";
+  | "savings"
+  | "subscription";
 
 export interface AppNotification {
   id: string;

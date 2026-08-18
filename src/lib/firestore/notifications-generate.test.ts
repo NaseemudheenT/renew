@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { computeDesired } from "@/lib/firestore/notifications-generate";
 import { monthRange } from "@/lib/finance";
-import type { Budget, SavingsGoal, Transaction } from "@/lib/types";
+import type { Budget, SavingsGoal, Transaction, Subscription } from "@/lib/types";
 
 const empty = { reminders: [], tasks: [], payments: [], documents: [] };
 const allPrefs = {
@@ -59,6 +59,22 @@ describe("computeDesired — budgets", () => {
     const hit = out.find((d) => d.type === "budget");
     expect(hit?.title).toBe("Presupuesto superado");
     expect(hit?.body).toContain("Food & Drink");
+  });
+});
+
+describe("computeDesired — subscriptions", () => {
+  const soon = Date.now() + 2 * 24 * 60 * 60 * 1000;
+  const far = Date.now() + 30 * 24 * 60 * 60 * 1000;
+  function sub(id: string, nextBillingAt: number, status: "active" | "cancelled" = "active"): Subscription {
+    return { id, name: `Svc ${id}`, price: 10, currency: "USD", cycle: "monthly", nextBillingAt, category: "subscriptions", status, createdAt: 0, updatedAt: 0 };
+  }
+  it("notifies when a subscription renews within 3 days", () => {
+    const out = computeDesired({ ...empty, subscriptions: [sub("s1", soon)] }, allPrefs);
+    expect(out.some((d) => d.type === "subscription" && d.sourceId === "s1")).toBe(true);
+  });
+  it("stays quiet for far-off or cancelled subscriptions", () => {
+    const out = computeDesired({ ...empty, subscriptions: [sub("s2", far), sub("s3", soon, "cancelled")] }, allPrefs);
+    expect(out.some((d) => d.type === "subscription")).toBe(false);
   });
 });
 

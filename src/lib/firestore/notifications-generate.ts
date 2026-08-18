@@ -14,6 +14,7 @@ import type {
   Budget,
   SavingsGoal,
   Transaction,
+  Subscription,
   CustomCategory,
   AppNotification,
   NotificationType,
@@ -55,6 +56,7 @@ export function computeDesired(
     budgets?: Budget[];
     savings?: SavingsGoal[];
     transactions?: Transaction[];
+    subscriptions?: Subscription[];
     customCategories?: CustomCategory[];
   },
   prefs: NotificationPrefsInput = {
@@ -175,6 +177,24 @@ export function computeDesired(
           body: tr("notif.budget.warn.body", { percent: Math.round(ratio * 100), category: label }),
           href: "/budget",
           sourceId: b.id,
+        });
+      }
+    }
+  }
+
+  // Subscription renewals — active subs billing within 3 days.
+  if (prefs.payments && input.subscriptions?.length) {
+    for (const s of input.subscriptions) {
+      if (s.status !== "active") continue;
+      const d = daysUntil(s.nextBillingAt);
+      if (d <= 3 && d >= 0) {
+        out.push({
+          id: `subscription_${s.id}_${dayKey(s.nextBillingAt)}`,
+          type: "subscription",
+          title: tr("notif.subscription.due"),
+          body: s.name,
+          href: "/subscriptions",
+          sourceId: s.id,
         });
       }
     }
