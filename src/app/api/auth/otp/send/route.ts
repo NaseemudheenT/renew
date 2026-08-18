@@ -7,8 +7,15 @@ import { isDev } from "@/lib/env";
 
 export const runtime = "nodejs";
 
+/** Parse the first language subtag from an Accept-Language header. */
+function langFromHeader(header: string | null): string {
+  if (!header) return "en";
+  const first = header.split(",")[0]?.split(";")[0]?.trim();
+  return first && first.length >= 2 ? first : "en";
+}
+
 /** Generate + email a fresh verification code to the signed-in user. */
-export async function POST() {
+export async function POST(request: Request) {
   const user = await getSessionUser();
   if (!user) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
@@ -38,7 +45,8 @@ export async function POST() {
     );
   }
 
-  const { subject, html, text } = otpEmail(result.code, user.displayName);
+  const lang = langFromHeader(request.headers.get("accept-language"));
+  const { subject, html, text } = otpEmail(result.code, user.displayName, lang);
   const delivered = await sendEmail({ to: user.email, subject, html, text });
 
   if (!delivered && isDev) {
