@@ -20,4 +20,10 @@ describe("translate", () => {
   it("interpolates named placeholders", () => {
     expect(translate("en", "settings.data.import.done", { count: 5 })).toContain("5");
   });
+  it("has the new-domain keys translated in es/fr", () => {
+    expect(translate("es", "nav.accounts")).toBe("Cuentas");
+    expect(translate("es", "accounts.transfer")).toBe("Transferir");
+    expect(translate("fr", "nav.subscriptions")).toBe("Abonnements");
+    expect(translate("fr", "subs.monthly")).toBe("Mensuel");
+  });
 });
