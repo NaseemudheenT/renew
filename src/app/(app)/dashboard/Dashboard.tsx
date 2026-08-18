@@ -15,11 +15,12 @@ import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange } from "@/lib/finance";
+import { computeAccountBalance, accountTypeMeta } from "@/lib/accounts";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { cn } from "@/lib/utils";
-import type { Transaction, SavingsGoal, Investment, Payment } from "@/lib/types";
+import type { Transaction, SavingsGoal, Investment, Payment, Account, Transfer } from "@/lib/types";
 
 export function Dashboard({ firstName }: { firstName: string }) {
   const { prefs, money, dueLabel, date } = useLocale();
@@ -33,11 +34,13 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const savings = useUserCollection<SavingsGoal>("savings");
   const investments = useUserCollection<Investment>("investments");
   const bills = useUserCollection<Payment>("payments", upcomingC);
+  const accounts = useUserCollection<Account>("accounts");
+  const transfers = useUserCollection<Transfer>("transfers");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const loading = txAll.loading || savings.loading || investments.loading || bills.loading;
+  const loading = txAll.loading || savings.loading || investments.loading || bills.loading || accounts.loading;
   const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
 
   const totals = useMemo(() => {
@@ -56,8 +59,14 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const invGain = invValue - invCost;
   const netWorth = totals.balance + savingsTotal + invValue;
   const upcomingBills = useMemo(() => [...bills.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 4), [bills.data]);
+  const activeAccounts = useMemo(() => accounts.data.filter((a) => a.status === "active"), [accounts.data]);
+  const accountBalances = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const a of activeAccounts) m.set(a.id, computeAccountBalance(a, txAll.data, transfers.data));
+    return m;
+  }, [activeAccounts, txAll.data, transfers.data]);
 
-  const brandNew = !loading && txAll.data.length === 0 && savings.data.length === 0 && investments.data.length === 0 && bills.data.length === 0;
+  const brandNew = !loading && txAll.data.length === 0 && savings.data.length === 0 && investments.data.length === 0 && bills.data.length === 0 && accounts.data.length === 0;
 
   async function quickAdd(input: TransactionInput) {
     if (!txAll.uid) return;
@@ -108,6 +117,30 @@ export function Dashboard({ firstName }: { firstName: string }) {
                 </div>
               </GlassCard>
             </StaggerItem>
+
+            {activeAccounts.length > 0 && (
+              <StaggerItem>
+                <GlassCard padded>
+                  <Heading title="Accounts" href="/accounts" />
+                  <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+                    {activeAccounts.slice(0, 6).map((a) => {
+                      const meta = accountTypeMeta(a.atype);
+                      const AIcon = meta.icon;
+                      const bal = accountBalances.get(a.id) ?? 0;
+                      return (
+                        <li key={a.id}>
+                          <Link href="/accounts" className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--focus-ring)]/50">
+                            <AIcon className="size-4 shrink-0 text-[var(--color-gold-500)]" />
+                            <span className="text-body min-w-0 flex-1 truncate text-sm">{a.name}</span>
+                            <span className={cn("text-sm font-medium tabular-nums", bal < 0 ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(bal, a.currency)}</span>
+                          </Link>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </GlassCard>
+              </StaggerItem>
+            )}
 
             <div className="grid gap-6 lg:grid-cols-2">
               {/* Recent transactions */}

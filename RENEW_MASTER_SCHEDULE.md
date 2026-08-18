@@ -79,6 +79,6 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 ---
 
 ### Immediate next (highest-value, buildable now)
-1. Surface **account balances / net worth by account** on the Dashboard (integrate Accounts into the overview).
-2. Merge the 3 new domains to `main` **after** you deploy the rules.
-3. Then: perf/a11y audit polish, catalog breadth, remaining state coverage.
+1. ✅ Surface **account balances** on the Dashboard (Accounts card, per-account balances).
+2. 🔒 Merge the 3 new domains to `main` **after** you deploy the rules.
+3. ⬜ Then: perf/a11y audit polish, catalog breadth, remaining state coverage.
