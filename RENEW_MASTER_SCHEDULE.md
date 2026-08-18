@@ -75,8 +75,9 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 - ⬜ E2E/workflow tests · 🔒 live-Firebase persistence QA
 
 ## Phase 12 — Deployment & monitoring
-- ✅ GitHub `main` sync — **all 17 commits merged to `main` (`8f5e7ed`)**, reconciled with your `.firebaserc`
-- 🔒 Firestore rules deploy · Vercel deploy · Apple Sign-In — **runbooks in [RENEW_DEPLOYMENT.md](RENEW_DEPLOYMENT.md)** (need your credentials)
+- ✅ GitHub `main` sync — all app code merged to `main` (`bf0e81f`), reconciled with your `.firebaserc`
+- ✅ **Firestore rules DEPLOYED** to `the-zap-e7583` (compiled + released) — new collections now enforced live
+- 🔒 Vercel deploy — CLI present but **not authenticated** (`vercel login` needed); Apple Sign-In — Firebase/Apple console
 - 🟡 Sentry (configured; verify in prod)
 
 ---
@@ -92,8 +93,9 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
   return `permission-denied`.
 
 ### Remaining work → see [RENEW_DEPLOYMENT.md](RENEW_DEPLOYMENT.md)
-- ✅ Merge to `main` (done — `8f5e7ed`)
-- 🔒 **Config only** (no code needed): Firestore rules deploy · Vercel deploy · Apple Sign-In
+- ✅ Merge to `main` (`bf0e81f`) · ✅ Firestore rules deployed
+- 🔒 **Owner login needed**: Vercel deploy (`vercel login` → import repo + env vars) · Apple Sign-In (Apple Developer + Firebase console)
 - 🔒 **Config + future code** (not built): Stripe checkout+webhook · FCM background push · App Check · 2FA/passkeys
-- 🟡 Deferred by you: multi-currency headline aggregation (keep current; decide with rates/product later)
-- 🟡 Optional: full hi/ar catalogs (avoid low-confidence MT), RTL device QA, formal perf audit, E2E harness (needs live app)
+- 🔒 Live E2E QA — needs the deployed app or an owner-driven browser (Google sign-in can't be automated)
+- 🟡 Deferred by you: multi-currency headline aggregation
+- 🟡 Optional: full hi/ar catalogs, RTL device QA, formal perf audit
