@@ -33,9 +33,9 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 - ✅ config/format/messages/LocaleProvider · region→currency (India never default) · RTL `<html dir>`
 - ✅ Presentation everywhere: money, numbers, dates, week-start, nav, page titles, calendar, tx grouping
 - ✅ Settings → Region & Language · localized generated notifications
-- 🟡 Message-catalog breadth (en full; es/fr extended to new domains; de/hi/ar partial → English fallback)
-- ✅ Resend OTP email localized (en/es/fr/de via Accept-Language)
-- ✅ RTL logical-property pass on shared primitives (Input/Select/RowMenu/Modal/Sidebar/dropdowns); 🟡 broader per-screen RTL sweep + device QA remain
+- 🟡 Message-catalog breadth (en full; es/fr/de extended to new domains; hi/ar partial → English fallback; hi/ar left partial to avoid low-confidence machine translations)
+- ✅ Resend OTP email localized (en/es/fr/de) from the user's saved locale
+- ✅ RTL logical-property pass across shared primitives AND all finance screens/rows; 🟡 device visual QA still recommended
 
 ## Phase 5 — Finance core
 - ✅ Dashboard · Transactions (CRUD/search/filter/group/undo/account/custom categories) · Categories + custom
