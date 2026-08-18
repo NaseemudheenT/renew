@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   computeAccountBalance,
-  totalByCurrency,
   subscriptionMonthly,
-  subscriptionAnnual,
   subscriptionTotals,
   advanceBilling,
 } from "@/lib/accounts";
@@ -36,21 +34,12 @@ describe("computeAccountBalance", () => {
   });
 });
 
-describe("totalByCurrency", () => {
-  it("sums only active accounts of the currency", () => {
-    const accounts: Account[] = [acct("a", 100), acct("b", 200), { ...acct("c", 999, "EUR") }];
-    accounts.push({ ...acct("d", 500), status: "archived" });
-    expect(totalByCurrency(accounts, [], [], "USD")).toBe(300);
-  });
-});
-
 describe("subscription totals", () => {
   const monthly: Subscription = { id: "m", name: "A", price: 10, currency: "USD", cycle: "monthly", nextBillingAt: 0, category: "x", status: "active", createdAt: 0, updatedAt: 0 };
   const yearly: Subscription = { ...monthly, id: "y", price: 120, cycle: "yearly" };
-  it("normalizes to monthly and annual", () => {
+  it("normalizes any cycle to a monthly-equivalent cost", () => {
     expect(subscriptionMonthly(monthly)).toBeCloseTo(10);
     expect(subscriptionMonthly(yearly)).toBeCloseTo(10);
-    expect(subscriptionAnnual(monthly)).toBeCloseTo(120);
   });
   it("totals active same-currency subscriptions", () => {
     const t = subscriptionTotals([monthly, yearly, { ...monthly, id: "c", status: "cancelled" }], "USD");

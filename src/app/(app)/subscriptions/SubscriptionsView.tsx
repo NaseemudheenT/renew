@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Pencil, Trash2, RefreshCw, XCircle, PlayCircle } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -17,9 +17,9 @@ import { useLocale } from "@/components/providers/LocaleProvider";
 import {
   createSubscription, updateSubscription, setSubscriptionStatus, deleteSubscription, type SubscriptionInput,
 } from "@/lib/firestore/subscriptions";
-import { BILLING_CYCLES, subscriptionMonthly, subscriptionTotals } from "@/lib/accounts";
+import { BILLING_CYCLES, subscriptionMonthly, subscriptionTotals, advanceBilling } from "@/lib/accounts";
 import { CATEGORIES, categoryMeta } from "@/lib/categories";
-import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
+import { toDateInput, fromDateTimeInputs, todayStart } from "@/lib/dates";
 import { CURRENCIES } from "@/lib/utils";
 import type { Subscription, Account, BillingCycle, Category } from "@/lib/types";
 
@@ -33,6 +33,25 @@ export function SubscriptionsView() {
 
   const active = subs.filter((s) => s.status === "active");
   const cancelled = subs.filter((s) => s.status === "cancelled");
+
+  // Keep active subscriptions' next-billing dates current: if one has passed,
+  // roll it forward by whole cycles to the next future date (they auto-renew).
+  const advancing = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!uid) return;
+    const start = todayStart();
+    for (const s of active) {
+      if (s.nextBillingAt >= start || advancing.current.has(s.id)) continue;
+      let next = s.nextBillingAt;
+      for (let guard = 0; next < start && guard < 600; guard++) next = advanceBilling(next, s.cycle);
+      if (next !== s.nextBillingAt) {
+        advancing.current.add(s.id);
+        updateSubscription(uid, s.id, { nextBillingAt: next })
+          .catch(() => {})
+          .finally(() => advancing.current.delete(s.id));
+      }
+    }
+  }, [active, uid]);
 
   // Per-currency monthly/annual totals — currencies are never summed together.
   const totals = useMemo(() => {
@@ -154,6 +173,7 @@ function SubModal({ open, onClose, uid, editing, accounts, defaultCurrency }: { 
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
+  if (!open && initId !== null) setInitId(null);
   if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setPrice(String(editing.price)); setCurrency(editing.currency); setCycle(editing.cycle); setNextAt(toDateInput(editing.nextBillingAt)); setCategory(editing.category as Category); setAccountId(editing.accountId ?? ""); setNotes(editing.notes ?? ""); }
   if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setPrice(""); setCurrency(defaultCurrency); setCycle("monthly"); setNextAt(todayStr); setCategory("subscriptions"); setAccountId(""); setNotes(""); }
 

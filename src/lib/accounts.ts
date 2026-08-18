@@ -62,18 +62,6 @@ export function computeAccountBalance(
   return balance;
 }
 
-/** Sum of current balances across active accounts sharing a currency. */
-export function totalByCurrency(
-  accounts: Account[],
-  txs: Transaction[],
-  transfers: Transfer[],
-  currency: string,
-): number {
-  return accounts
-    .filter((a) => a.status === "active" && a.currency === currency)
-    .reduce((sum, a) => sum + computeAccountBalance(a, txs, transfers), 0);
-}
-
 /* ---- Subscription metadata ---------------------------------------------- */
 
 export interface BillingCycleMeta {
@@ -99,11 +87,6 @@ export const subscriptionIcon = Repeat;
 /** Monthly-equivalent cost of one subscription. */
 export function subscriptionMonthly(sub: Subscription): number {
   return sub.price * billingCycleMeta(sub.cycle).monthlyFactor;
-}
-
-/** Annual (yearly) cost of one subscription. */
-export function subscriptionAnnual(sub: Subscription): number {
-  return subscriptionMonthly(sub) * 12;
 }
 
 export interface SubscriptionTotals {

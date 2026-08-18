@@ -198,6 +198,7 @@ function AccountModal({ open, onClose, uid, editing, defaultCurrency }: { open: 
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
+  if (!open && initId !== null) setInitId(null);
   if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setAtype(editing.atype); setInstitution(editing.institution ?? ""); setCurrency(editing.currency); setOpening(String(editing.openingBalance)); }
   if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setAtype("bank"); setInstitution(""); setCurrency(defaultCurrency); setOpening("0"); }
 

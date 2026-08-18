@@ -41,6 +41,7 @@ export function TransactionForm({
   const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
   const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? "expense")[0]!.id);
   const [accountId, setAccountId] = useState(initial?.accountId ?? "");
+  const selectedAccount = activeAccounts.find((a) => a.id === accountId);
   const [date, setDate] = useState(() => toDateInput(initial?.date ?? Date.now()));
   const [note, setNote] = useState(initial?.note ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -76,7 +77,10 @@ export function TransactionForm({
       return;
     }
     setError(null);
-    onSubmit({ type, amount: amt, currency, category, note: note.trim() || undefined, date: fromDateTimeInputs(date), accountId: accountId || undefined });
+    // A transaction attributed to an account MUST use that account's currency,
+    // otherwise it silently drops out of the account's balance.
+    const effectiveCurrency = selectedAccount ? selectedAccount.currency : currency;
+    onSubmit({ type, amount: amt, currency: effectiveCurrency, category, note: note.trim() || undefined, date: fromDateTimeInputs(date), accountId: accountId || undefined });
   }
 
   return (
@@ -93,7 +97,7 @@ export function TransactionForm({
 
       <div className="grid grid-cols-[1fr_7rem] gap-3">
         <Input label="Amount" type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00" value={amount} autoFocus onChange={(e) => setAmount(e.target.value)} error={error ?? undefined} />
-        <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
+        <Select label="Currency" value={selectedAccount ? selectedAccount.currency : currency} onChange={(e) => setCurrency(e.target.value)} disabled={!!selectedAccount} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
       </div>
 
       <div>

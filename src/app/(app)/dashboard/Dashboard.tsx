@@ -40,7 +40,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const loading = txAll.loading || savings.loading || investments.loading || bills.loading || accounts.loading;
+  const loading = txAll.loading || savings.loading || investments.loading || bills.loading || accounts.loading || transfers.loading;
   const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
 
   const totals = useMemo(() => {
