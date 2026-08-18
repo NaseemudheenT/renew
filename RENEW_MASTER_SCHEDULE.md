@@ -75,8 +75,9 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 - ⬜ E2E/workflow tests · 🔒 live-Firebase persistence QA
 
 ## Phase 12 — Deployment & monitoring
-- ✅ GitHub main sync (except the 3 new domains, held pending your rules deploy)
-- 🔒 Vercel deploy · 🔒 Firestore rules deploy (commands handed off) · 🟡 Sentry (configured; verify in prod)
+- ✅ GitHub `main` sync — **all 17 commits merged to `main` (`8f5e7ed`)**, reconciled with your `.firebaserc`
+- 🔒 Firestore rules deploy · Vercel deploy · Apple Sign-In — **runbooks in [RENEW_DEPLOYMENT.md](RENEW_DEPLOYMENT.md)** (need your credentials)
+- 🟡 Sentry (configured; verify in prod)
 
 ---
 
@@ -90,10 +91,9 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
   persist live. Until then reads/writes to accounts/transfers/subscriptions
   return `permission-denied`.
 
-### Remaining work (mostly owner-gated)
-- 🔒 Deploy Firestore rules · Vercel deploy · Apple sign-in · Stripe checkout · live QA
-- 🟡 Deferred by you: multi-currency headline aggregation (net worth incl. opening
-  balances) — keep current behavior, decide with rates/product later
-- 🟡/⬜ Lower-value: message-catalog breadth, Resend email localization, deep RTL
-  device polish, browser-push pipeline, formal perf audit, E2E tests
-- 🔒 Merge the branch to `main` after you deploy the rules (I've held it)
+### Remaining work → see [RENEW_DEPLOYMENT.md](RENEW_DEPLOYMENT.md)
+- ✅ Merge to `main` (done — `8f5e7ed`)
+- 🔒 **Config only** (no code needed): Firestore rules deploy · Vercel deploy · Apple Sign-In
+- 🔒 **Config + future code** (not built): Stripe checkout+webhook · FCM background push · App Check · 2FA/passkeys
+- 🟡 Deferred by you: multi-currency headline aggregation (keep current; decide with rates/product later)
+- 🟡 Optional: full hi/ar catalogs (avoid low-confidence MT), RTL device QA, formal perf audit, E2E harness (needs live app)
