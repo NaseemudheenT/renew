@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
+import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createInvestment, updateInvestment, deleteInvestment } from "@/lib/firestore/investments";
@@ -41,9 +42,9 @@ export function InvestmentsView() {
         <>
           <GlassCard padded className="mb-4">
             <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
-              <div><p className="text-muted text-xs">Portfolio value</p><p className="text-strong text-2xl font-light tabular-nums">{money(totals.value, currency)}</p></div>
-              <div><p className="text-muted text-xs">Invested</p><p className="text-body text-xl font-medium tabular-nums">{money(totals.cost, currency)}</p></div>
-              <div><p className="text-muted text-xs">Gain / loss</p><p className={cn("text-xl font-medium tabular-nums", totals.gain >= 0 ? "text-emerald-500" : "text-rose-500")}>{totals.gain >= 0 ? "+" : "−"}{money(Math.abs(totals.gain), currency)}</p></div>
+              <div><p className="text-muted text-xs">Portfolio value</p><p className="text-strong text-2xl font-light tabular-nums"><AnimatedAmount value={totals.value} currency={currency} /></p></div>
+              <div><p className="text-muted text-xs">Invested</p><p className="text-body text-xl font-medium tabular-nums"><AnimatedAmount value={totals.cost} currency={currency} /></p></div>
+              <div><p className="text-muted text-xs">Gain / loss</p><p className={cn("text-xl font-medium tabular-nums", totals.gain >= 0 ? "text-emerald-500" : "text-rose-500")}><AnimatedAmount value={totals.gain} currency={currency} signed /></p></div>
             </div>
           </GlassCard>
           <div className="flex flex-col gap-2">

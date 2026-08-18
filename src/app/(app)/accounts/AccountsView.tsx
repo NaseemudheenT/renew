@@ -11,6 +11,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
+import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -80,7 +81,7 @@ export function AccountsView() {
               <p className="text-muted text-xs">{t("accounts.total")}</p>
               <div className="mt-1 flex flex-wrap items-baseline gap-x-6 gap-y-1">
                 {currencyTotals.map(([cur, total]) => (
-                  <span key={cur} className="text-strong text-2xl font-light tabular-nums">{money(total, cur)}</span>
+                  <AnimatedAmount key={cur} value={total} currency={cur} className="text-strong text-2xl font-light tabular-nums" />
                 ))}
               </div>
             </GlassCard>
