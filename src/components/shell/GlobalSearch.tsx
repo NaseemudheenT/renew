@@ -70,6 +70,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   const { t, money } = useLocale();
   const { resolve } = useCategories();
   const inputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [q, setQ] = useState("");
   const [active, setActive] = useState(0);
 
@@ -80,7 +81,16 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   const payments = useUserCollection<Payment>("payments");
 
   useEffect(() => {
+    // Lock background scroll and restore focus to the trigger on close, to
+    // match the dialog accessibility of AnimatedModal.
+    const lastFocused = document.activeElement as HTMLElement | null;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
     inputRef.current?.focus();
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      lastFocused?.focus?.();
+    };
   }, []);
 
   const hits = useMemo<Hit[]>(() => {
@@ -166,6 +176,23 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   }
 
   function onKeyDown(e: React.KeyboardEvent) {
+    if (e.key === "Tab") {
+      const nodes = dialogRef.current?.querySelectorAll<HTMLElement>(
+        'button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
+      );
+      if (nodes && nodes.length > 0) {
+        const first = nodes[0]!;
+        const last = nodes[nodes.length - 1]!;
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+      return;
+    }
     if (e.key === "Escape") {
       onClose();
     } else if (e.key === "ArrowDown") {
@@ -195,6 +222,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
         className="absolute inset-0 bg-[rgba(0,0,0,0.5)] backdrop-blur-sm"
       />
       <motion.div
+        ref={dialogRef}
         role="dialog"
         aria-modal="true"
         aria-label={t("common.search")}
