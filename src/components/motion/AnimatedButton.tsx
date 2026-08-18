@@ -55,9 +55,15 @@ export const AnimatedButton = forwardRef<HTMLButtonElement, AnimatedButtonProps>
     ref,
   ) {
     const reduced = useReducedMotion();
+    // Match the supplied liquid-glass GlassButton press exactly so every button
+    // across Renew shares the same physical click feel.
     const motionProps = reduced
       ? {}
-      : { whileHover: { y: -2 }, whileTap: { scale: 0.97 }, transition: spring.snappy };
+      : {
+          whileHover: { y: -2, scale: 1.015 },
+          whileTap: { scale: 0.96 },
+          transition: spring.snappy,
+        };
 
     return (
       <motion.button
