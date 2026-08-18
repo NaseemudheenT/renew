@@ -30,6 +30,16 @@ const ERROR_MESSAGES: Record<string, string> = {
     "Apple sign-in isn't enabled for this project yet.",
   "auth/account-exists-with-different-credential":
     "This email is already linked to a different sign-in method.",
+  "auth/api-key-not-valid.-please-pass-a-valid-api-key.":
+    "This app's Firebase API key is misconfigured. Please contact support.",
+  "auth/api-key-not-valid":
+    "This app's Firebase API key is misconfigured. Please contact support.",
+  "auth/invalid-api-key":
+    "This app's Firebase API key is misconfigured. Please contact support.",
+  "auth/unauthorized-domain":
+    "This domain isn't authorized for sign-in yet. Please contact support.",
+  "auth/user-disabled": "This account has been disabled.",
+  "auth/requires-recent-login": "Please sign in again to continue.",
 };
 
 export class AuthError extends Error {
@@ -46,7 +56,13 @@ function toAuthError(err: unknown): AuthError {
     typeof err === "object" && err && "code" in err
       ? String((err as { code: unknown }).code)
       : "auth/unknown";
-  return new AuthError(code, ERROR_MESSAGES[code] ?? "Something went wrong. Please try again.");
+  // Show a friendly message when we recognise the code; otherwise surface the
+  // real code so failures are diagnosable instead of hidden behind one string.
+  const fallback =
+    code && code !== "auth/unknown"
+      ? `Sign-in failed (${code}). Please try again.`
+      : "Something went wrong. Please try again.";
+  return new AuthError(code, ERROR_MESSAGES[code] ?? fallback);
 }
 
 /** POST the current user's ID token to mint an httpOnly session cookie. */

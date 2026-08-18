@@ -32,7 +32,14 @@ function parseServiceAccount(): ServiceAccountJson {
   try {
     json = JSON.parse(raw) as ServiceAccountJson;
   } catch {
-    throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON.");
+    // Some platforms hold the key base64-encoded — decode and retry once.
+    try {
+      json = JSON.parse(
+        Buffer.from(raw, "base64").toString("utf8"),
+      ) as ServiceAccountJson;
+    } catch {
+      throw new Error("FIREBASE_SERVICE_ACCOUNT_KEY is not valid JSON.");
+    }
   }
   // Support both literal and escaped newlines in the private key.
   json.private_key = json.private_key.replace(/\\n/g, "\n");

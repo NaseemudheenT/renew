@@ -8,28 +8,51 @@
  * and validate lazily so a missing var never crashes the build/prerender.
  */
 
+/**
+ * Sanitize an env value. Some hosting dashboards (and copy-pasted `.env` lines)
+ * store values WITH their surrounding quotes — e.g. the Firebase API key gets
+ * saved literally as `"AIza…"`, quotes included. dotenv strips those locally, so
+ * it works in dev but ships a corrupted, quote-wrapped value in production
+ * ("API key not valid"). We defensively trim whitespace, a UTF-8 BOM, and a
+ * single matching pair of wrapping single/double quotes so a value is used
+ * exactly as intended no matter how the platform stored it.
+ */
+function clean(value: string | undefined): string {
+  if (!value) return "";
+  let s = value.trim().replace(/^﻿/, "");
+  while (s.length >= 2) {
+    const first = s[0];
+    const last = s[s.length - 1];
+    if ((first === '"' && last === '"') || (first === "'" && last === "'")) {
+      s = s.slice(1, -1).trim();
+    } else {
+      break;
+    }
+  }
+  return s;
+}
+
 /** Browser-safe public config. */
 export const publicEnv = {
-  appName: process.env.NEXT_PUBLIC_APP_NAME ?? "Renew",
-  appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  parentCompany: process.env.NEXT_PUBLIC_PARENT_COMPANY ?? "Zap",
+  appName: clean(process.env.NEXT_PUBLIC_APP_NAME) || "Renew",
+  appUrl: clean(process.env.NEXT_PUBLIC_APP_URL) || "http://localhost:3000",
+  parentCompany: clean(process.env.NEXT_PUBLIC_PARENT_COMPANY) || "Zap",
   firebase: {
-    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? "",
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? "",
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? "",
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? "",
-    messagingSenderId:
-      process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ?? "",
-    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? "",
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID ?? "",
+    apiKey: clean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
+    authDomain: clean(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
+    projectId: clean(process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID),
+    storageBucket: clean(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
+    messagingSenderId: clean(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
+    appId: clean(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
+    measurementId: clean(process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID),
   },
-  cloudinaryCloudName: process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME ?? "",
+  cloudinaryCloudName: clean(process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME),
   posthog: {
-    key: process.env.NEXT_PUBLIC_POSTHOG_KEY ?? "",
-    host: process.env.NEXT_PUBLIC_POSTHOG_HOST ?? "https://us.i.posthog.com",
+    key: clean(process.env.NEXT_PUBLIC_POSTHOG_KEY),
+    host: clean(process.env.NEXT_PUBLIC_POSTHOG_HOST) || "https://us.i.posthog.com",
   },
-  sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? "",
-  stripePublishableKey: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? "",
+  sentryDsn: clean(process.env.NEXT_PUBLIC_SENTRY_DSN),
+  stripePublishableKey: clean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY),
 } as const;
 
 /** True if a value is missing or an obvious placeholder. */
@@ -62,22 +85,22 @@ function requireServer(): void {
 export function getServerEnv() {
   requireServer();
   return {
-    authSecret: process.env.AUTH_SECRET ?? "",
-    firebaseServiceAccountKey: process.env.FIREBASE_SERVICE_ACCOUNT_KEY ?? "",
+    authSecret: clean(process.env.AUTH_SECRET),
+    firebaseServiceAccountKey: clean(process.env.FIREBASE_SERVICE_ACCOUNT_KEY),
     cloudinary: {
-      cloudName: process.env.CLOUDINARY_CLOUD_NAME ?? "",
-      apiKey: process.env.CLOUDINARY_API_KEY ?? "",
-      apiSecret: process.env.CLOUDINARY_API_SECRET ?? "",
+      cloudName: clean(process.env.CLOUDINARY_CLOUD_NAME),
+      apiKey: clean(process.env.CLOUDINARY_API_KEY),
+      apiSecret: clean(process.env.CLOUDINARY_API_SECRET),
     },
     resend: {
-      apiKey: process.env.RESEND_API_KEY ?? "",
-      fromEmail: process.env.RESEND_FROM_EMAIL ?? "",
+      apiKey: clean(process.env.RESEND_API_KEY),
+      fromEmail: clean(process.env.RESEND_FROM_EMAIL),
     },
     stripe: {
-      secretKey: process.env.STRIPE_SECRET_KEY ?? "",
-      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET ?? "",
+      secretKey: clean(process.env.STRIPE_SECRET_KEY),
+      webhookSecret: clean(process.env.STRIPE_WEBHOOK_SECRET),
     },
-    sentryDsn: process.env.SENTRY_DSN ?? "",
+    sentryDsn: clean(process.env.SENTRY_DSN),
   };
 }
 
