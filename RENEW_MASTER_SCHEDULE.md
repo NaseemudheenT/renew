@@ -27,7 +27,7 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 - ✅ WebGL champagne background (RenewBackground) · reduced-motion fallback
 - ✅ Motion primitives · page transitions · cinematic intro/landing
 - ✅ `CreditCardForm` component (Renew glass)
-- 🟡 Horizon-style hero (cinematic landing exists; not the specific Horizon component)
+- ✅ **Horizon-style landing hero** — scroll-driven depth/parallax over the supplied WebGL bg, explains Renew, CTAs via real liquid-glass `GlassButton`, modules grid, footer; reduced-motion + responsive. Supplied background shader + liquid-glass verified as the real source (left unchanged).
 
 ## Phase 4 — Internationalization
 - ✅ config/format/messages/LocaleProvider · region→currency (India never default) · RTL `<html dir>`
