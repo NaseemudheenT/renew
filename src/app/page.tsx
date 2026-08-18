@@ -64,6 +64,7 @@ export default function Home() {
   const markY = useTransform(scrollYProgress, [0, 1], [0, reduced ? 0 : -60]);
   const heroFade = useTransform(scrollYProgress, [0, 0.7], [1, reduced ? 1 : 0]);
   const glowY = useTransform(scrollYProgress, [0, 1], [0, reduced ? 0 : 120]);
+  const glow2Y = useTransform(scrollYProgress, [0, 1], [0, reduced ? 0 : -90]);
 
   function enter() {
     router.push("/sign-in");
@@ -85,19 +86,43 @@ export default function Home() {
           animate={{ opacity: reduced ? 0.45 : [0.3, 0.55, 0.3], scale: 1 }}
           transition={{ duration: reduced ? 0.8 : 7, repeat: reduced ? 0 : Infinity, ease: "easeInOut" }}
         />
+        {/* Deeper second glow, drifting the opposite way on scroll */}
+        <motion.span
+          aria-hidden="true"
+          className="pointer-events-none absolute bottom-[16%] left-[38%] size-[30vmax] -translate-x-1/2 rounded-full blur-[100px]"
+          style={{ background: "radial-gradient(circle, var(--bokeh-2), transparent 68%)", y: glow2Y }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: reduced ? 0.3 : [0.18, 0.4, 0.18] }}
+          transition={{ duration: reduced ? 0.8 : 9, repeat: reduced ? 0 : Infinity, ease: "easeInOut" }}
+        />
 
         <motion.div style={{ opacity: heroFade }} className="relative z-10 flex flex-col items-center">
-          <motion.div
-            style={{ scale: markScale, y: markY }}
-            initial={{ opacity: 0, scale: 0.82, y: 18, filter: "blur(6px)" }}
-            animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
-            transition={{ duration: 1, ease: EASE }}
-          >
+          <motion.div style={{ scale: markScale, y: markY }} className="relative">
+            {/* Slow-rotating champagne halo ring behind the mark */}
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-1/2 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{
+                background:
+                  "conic-gradient(from 0deg, transparent, var(--bokeh-1), transparent 38%, var(--bokeh-3), transparent 72%)",
+                maskImage: "radial-gradient(closest-side, transparent 57%, #000 60%, #000 71%, transparent 74%)",
+                WebkitMaskImage: "radial-gradient(closest-side, transparent 57%, #000 60%, #000 71%, transparent 74%)",
+                opacity: 0.55,
+              }}
+              animate={reduced ? undefined : { rotate: 360 }}
+              transition={{ duration: 28, repeat: Infinity, ease: "linear" }}
+            />
             <motion.div
-              animate={reduced ? undefined : { y: [0, -7, 0] }}
-              transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              initial={{ opacity: 0, scale: 0.82, y: 18, filter: "blur(6px)" }}
+              animate={{ opacity: 1, scale: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 1, ease: EASE }}
             >
-              <RenewMark size={132} className="drop-shadow-[0_14px_46px_rgba(160,120,45,0.34)]" />
+              <motion.div
+                animate={reduced ? undefined : { y: [0, -7, 0] }}
+                transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
+              >
+                <RenewMark size={132} className="drop-shadow-[0_14px_46px_rgba(160,120,45,0.34)]" />
+              </motion.div>
             </motion.div>
           </motion.div>
 
@@ -211,6 +236,7 @@ export default function Home() {
               className="glass flex flex-col items-center gap-2 p-5 text-center"
               initial={{ opacity: 0, scale: 0.94, y: 16 }}
               whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              whileHover={reduced ? undefined : { y: -4, scale: 1.03 }}
               viewport={{ once: true, margin: "-10%" }}
               transition={{ duration: 0.55, delay: reduced ? 0 : i * 0.04, ease: EASE }}
             >

@@ -25,34 +25,35 @@ const appUrl = publicEnv.appUrl;
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Renew — Never forget what matters",
+    default: "Renew — Your money, beautifully clear",
     template: "%s · Renew",
   },
   description:
-    "Renew is a calm, premium companion that makes sure you never lose money, documents, or peace of mind by forgetting a renewal — passports, insurance, licenses, subscriptions, bills and more.",
+    "Renew is a calm, premium personal finance companion — see what you have, where it's going, and what's coming next. Accounts, transactions, budgets, savings, investments, bills and subscriptions in one private place.",
   applicationName: "Renew",
   keywords: [
-    "reminders",
-    "renewals",
-    "document expiry",
-    "insurance",
-    "passport",
+    "personal finance",
+    "budgeting",
+    "money tracker",
+    "savings",
+    "investments",
     "subscriptions",
+    "expense tracker",
   ],
   authors: [{ name: publicEnv.parentCompany }],
   openGraph: {
     type: "website",
     siteName: "Renew",
-    title: "Renew — Never forget what matters",
+    title: "Renew — Your money, beautifully clear",
     description:
-      "A calm, premium companion for life's renewals and commitments.",
+      "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
     url: appUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Renew — Never forget what matters",
+    title: "Renew — Your money, beautifully clear",
     description:
-      "A calm, premium companion for life's renewals and commitments.",
+      "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
   },
   icons: {
     icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
