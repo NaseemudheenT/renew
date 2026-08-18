@@ -27,7 +27,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
           id={selectId}
           aria-invalid={error ? true : undefined}
           className={cn(
-            "h-12 w-full appearance-none rounded-2xl border bg-[var(--field-bg)] pl-4 pr-10",
+            "h-12 w-full appearance-none rounded-2xl border bg-[var(--field-bg)] ps-4 pe-10",
             "text-[0.95rem] text-[var(--text-strong)] backdrop-blur-md transition-all",
             "border-[var(--field-border)] focus:border-[var(--focus-ring)]",
             "focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25",
@@ -42,7 +42,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
             </option>
           ))}
         </select>
-        <ChevronDown className="pointer-events-none absolute right-3.5 top-1/2 size-4.5 -translate-y-1/2 text-[var(--text-muted)]" />
+        <ChevronDown className="pointer-events-none absolute end-3.5 top-1/2 size-4.5 -translate-y-1/2 text-[var(--text-muted)]" />
       </div>
       {error && <p className="mt-1.5 text-sm text-rose-500">{error}</p>}
     </div>

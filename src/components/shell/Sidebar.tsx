@@ -15,7 +15,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const { t } = useLocale();
   return (
-    <aside className="glass fixed inset-y-0 left-0 z-30 hidden w-64 flex-col !rounded-none !rounded-r-glass-lg p-4 lg:flex">
+    <aside className="glass fixed inset-y-0 start-0 z-30 hidden w-64 flex-col !rounded-none !rounded-e-glass-lg p-4 lg:flex">
       <Link href="/dashboard" className="mb-6 flex items-center gap-3 px-2 py-2" aria-label="Renew home">
         <RenewMark size={34} />
         <Wordmark sizeClassName="text-lg" />

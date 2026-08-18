@@ -35,7 +35,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       )}
       <div className="relative">
         {icon && (
-          <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
+          <span className="pointer-events-none absolute start-4 top-1/2 -translate-y-1/2 text-[var(--text-muted)]" aria-hidden="true">
             {icon}
           </span>
         )}
@@ -51,8 +51,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             "px-4 text-[0.95rem] transition-all duration-300 ease-[var(--ease-calm)]",
             "border-[var(--field-border)] focus:border-[var(--focus-ring)]",
             "focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25",
-            icon && "pl-11",
-            isPassword && "pr-11",
+            icon && "ps-11",
+            isPassword && "pe-11",
             error && "border-rose-400/70 focus:ring-rose-400/20",
             className,
           )}
@@ -62,7 +62,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           <button
             type="button"
             onClick={() => setShow((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[var(--text-muted)] hover:text-[var(--text-strong)]"
+            className="absolute end-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[var(--text-muted)] hover:text-[var(--text-strong)]"
             aria-label={show ? "Hide password" : "Show password"}
           >
             {show ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}

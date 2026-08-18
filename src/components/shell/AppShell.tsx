@@ -10,7 +10,7 @@ import type { ShellUser } from "./shell-types";
 /** Persistent application frame: glass sidebar (desktop), bottom tabs (mobile). */
 export function AppShell({ user, children }: { user: ShellUser; children: ReactNode }) {
   return (
-    <div className="min-h-dvh lg:pl-64">
+    <div className="min-h-dvh lg:ps-64">
       <NotificationSync />
       <Sidebar user={user} />
       <div className="flex min-h-dvh flex-col">

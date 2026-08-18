@@ -55,7 +55,7 @@ export function NotificationBell() {
           <motion.span
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
-            className="absolute -right-0.5 -top-0.5 grid min-w-[18px] place-items-center rounded-full bg-gradient-to-b from-gold-300 to-gold-500 px-1 text-[10px] font-semibold text-[var(--text-onGold)]"
+            className="absolute -end-0.5 -top-0.5 grid min-w-[18px] place-items-center rounded-full bg-gradient-to-b from-gold-300 to-gold-500 px-1 text-[10px] font-semibold text-[var(--text-onGold)]"
           >
             {unread > 9 ? "9+" : unread}
           </motion.span>
@@ -69,7 +69,7 @@ export function NotificationBell() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="glass glass-strong absolute right-0 z-50 mt-2 flex max-h-[70vh] w-[min(92vw,22rem)] flex-col overflow-hidden !rounded-2xl"
+            className="glass glass-strong absolute end-0 z-50 mt-2 flex max-h-[70vh] w-[min(92vw,22rem)] flex-col overflow-hidden !rounded-2xl"
           >
             <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
               <span className="text-strong text-sm font-medium">Notifications</span>
@@ -92,7 +92,7 @@ export function NotificationBell() {
                     key={n.id}
                     type="button"
                     onClick={() => openNotification(n)}
-                    className={cn("flex w-full items-start gap-3 px-4 py-3 text-left transition-colors hover:bg-[var(--glass-bg-soft)]", !n.read && "bg-[var(--glass-bg-soft)]")}
+                    className={cn("flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--glass-bg-soft)]", !n.read && "bg-[var(--glass-bg-soft)]")}
                   >
                     <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.read ? "bg-transparent" : "bg-[var(--color-gold-400)]")} />
                     <span className="min-w-0 flex-1">

@@ -127,13 +127,13 @@ export function AnimatedModal({
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="absolute right-4 top-4 grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
+                className="absolute end-4 top-4 grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
               >
                 <X className="size-4.5" />
               </button>
             )}
             {title && (
-              <h2 id={labelId} className="text-strong pr-8 text-lg font-medium">
+              <h2 id={labelId} className="text-strong pe-8 text-lg font-medium">
                 {title}
               </h2>
             )}

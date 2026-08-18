@@ -57,7 +57,7 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.98 }}
             transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className={cn("glass glass-strong absolute z-50 mt-2 w-64 overflow-hidden !rounded-2xl p-2", align === "right" ? "right-0" : "left-0")}
+            className={cn("glass glass-strong absolute z-50 mt-2 w-64 overflow-hidden !rounded-2xl p-2", align === "right" ? "end-0" : "start-0")}
           >
             <div className="flex items-center gap-3 px-3 py-3">
               <Avatar user={user} size={40} />
