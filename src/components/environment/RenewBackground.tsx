@@ -15,9 +15,9 @@ import AnimatedGradient, {
  */
 
 const DARK: GradientCustomConfig = {
-  color1: "#090b10",
-  color2: "#7a5820",
-  color3: "#d0a862",
+  color1: "#05081a",
+  color2: "#1f3c86",
+  color3: "#5f8ef5",
   rotation: 24,
   proportion: 44,
   scale: 0.5,
@@ -31,9 +31,9 @@ const DARK: GradientCustomConfig = {
 };
 
 const LIGHT: GradientCustomConfig = {
-  color1: "#eaddbf",
-  color2: "#d3ac5f",
-  color3: "#f7efd9",
+  color1: "#dde6fb",
+  color2: "#8fb0f2",
+  color3: "#eef3fe",
   rotation: 24,
   proportion: 47,
   scale: 0.5,

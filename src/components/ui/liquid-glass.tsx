@@ -134,7 +134,7 @@ export const GlassButton = forwardRef<
         style={{
           background:
             variant === "primary"
-              ? "linear-gradient(to bottom, var(--glass-gold-hi), var(--glass-gold-lo)), var(--glass-bg-strong)"
+              ? "linear-gradient(to bottom, var(--glass-gold-hi), var(--glass-gold-lo)), var(--glass-bg)"
               : "var(--glass-bg)",
         }}
       />

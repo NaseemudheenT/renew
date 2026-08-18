@@ -12,17 +12,17 @@
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
   --font-brand: var(--font-jost), var(--font-inter), ui-sans-serif, sans-serif;
 
-  /* Champagne gold — meaning only (brand, primary, active). */
-  --color-gold-50: #fbf6ea;
-  --color-gold-100: #f4e9cf;
-  --color-gold-200: #e9d3a3;
-  --color-gold-300: #ddbd78;
-  --color-gold-400: #d0a959;
-  --color-gold-500: #c6a15b;
-  --color-gold-600: #a5824a;
-  --color-gold-700: #83663a;
-  --color-gold-800: #5f4a2b;
-  --color-gold-900: #3d301c;
+  /* Night-sky midnight blue — brand/primary/active accent (bright, luminous). */
+  --color-gold-50: #eef3ff;
+  --color-gold-100: #dbe6ff;
+  --color-gold-200: #b7ccff;
+  --color-gold-300: #8fadff;
+  --color-gold-400: #6a8dfb;
+  --color-gold-500: #5a86f5;
+  --color-gold-600: #436bd6;
+  --color-gold-700: #3352a8;
+  --color-gold-800: #263d78;
+  --color-gold-900: #1a2a52;
 
   --radius-glass: 1.25rem;
   --radius-glass-lg: 1.75rem;
@@ -31,102 +31,102 @@
   --ease-glass: cubic-bezier(0.175, 0.885, 0.32, 1.4);
 }
 
-/* ---- DARK (default): deep warm charcoal with champagne gold ------------- */
+/* ---- DARK (default): bright midnight-blue night sky ---------------------- */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg-base: #0d1016;
-  --bg-tint-1: #141821;
-  --bg-tint-2: #101319;
-  --bg-tint-3: #17140e;
-  --bokeh-1: rgba(198, 161, 91, 0.26);
-  --bokeh-2: rgba(150, 112, 55, 0.2);
-  --bokeh-3: rgba(224, 196, 140, 0.14);
-  --grain-opacity: 0.055;
-  --vignette: rgba(0, 0, 0, 0.5);
+  --bg-base: #060a18;
+  --bg-tint-1: #0d1430;
+  --bg-tint-2: #0a1026;
+  --bg-tint-3: #101a3c;
+  --bokeh-1: rgba(90, 134, 245, 0.3);
+  --bokeh-2: rgba(60, 100, 210, 0.24);
+  --bokeh-3: rgba(150, 185, 255, 0.18);
+  --grain-opacity: 0.05;
+  --vignette: rgba(2, 5, 16, 0.55);
 
-  --text-strong: #f4efe3;
-  --text-body: #d2ccbe;
-  --text-muted: #948d7c;
-  --text-onGold: #201804;
+  --text-strong: #eaf0ff;
+  --text-body: #c7d2ee;
+  --text-muted: #8792b5;
+  --text-onGold: #08122e;
 
-  /* Liquid glass — warm charcoal-gold translucency */
-  --glass-bg: rgba(30, 28, 22, 0.42);
-  --glass-bg-strong: rgba(38, 35, 26, 0.6);
-  --glass-bg-soft: rgba(30, 28, 22, 0.26);
-  --glass-border: rgba(255, 240, 210, 0.14);
-  --glass-edge: rgba(255, 246, 222, 0.28);
-  --glass-inner-shadow: rgba(0, 0, 0, 0.3);
-  --glass-highlight: rgba(255, 244, 220, 0.5);
+  /* Liquid glass — cool midnight-blue translucency */
+  --glass-bg: rgba(20, 30, 60, 0.42);
+  --glass-bg-strong: rgba(26, 38, 74, 0.6);
+  --glass-bg-soft: rgba(20, 30, 60, 0.26);
+  --glass-border: rgba(180, 205, 255, 0.16);
+  --glass-edge: rgba(200, 220, 255, 0.32);
+  --glass-inner-shadow: rgba(0, 0, 0, 0.32);
+  --glass-highlight: rgba(190, 215, 255, 0.5);
   --glass-shadow:
-    0 1px 1px rgba(0, 0, 0, 0.22), 0 12px 34px rgba(0, 0, 0, 0.4),
-    0 30px 70px rgba(0, 0, 0, 0.5);
+    0 1px 1px rgba(2, 5, 16, 0.24), 0 12px 34px rgba(2, 5, 16, 0.44),
+    0 30px 70px rgba(2, 5, 16, 0.5);
   --glass-blur: 20px;
   --glass-saturate: 150%;
 
-  --field-bg: rgba(20, 18, 12, 0.5);
-  --field-border: rgba(255, 240, 210, 0.16);
-  --focus-ring: rgba(214, 184, 122, 0.55);
+  --field-bg: rgba(14, 20, 44, 0.5);
+  --field-border: rgba(180, 205, 255, 0.18);
+  --focus-ring: rgba(122, 158, 255, 0.6);
 
-  --mark-gold-1: #f3dca4;
-  --mark-gold-2: #e4c88a;
-  --mark-gold-3: #c6a15b;
-  --mark-gold-4: #a5824a;
-  --wordmark-from: #f4e9cf;
-  --wordmark-to: #d0a959;
+  --mark-gold-1: #bcd2ff;
+  --mark-gold-2: #8fadff;
+  --mark-gold-3: #5a86f5;
+  --mark-gold-4: #3352a8;
+  --wordmark-from: #dbe6ff;
+  --wordmark-to: #6a8dfb;
 
-  --glass-gold-hi: rgba(233, 211, 163, 0.22);
-  --glass-gold-lo: rgba(198, 161, 91, 0.13);
-  --btn-gold-text: #f6ecd4;
+  --glass-gold-hi: rgba(120, 160, 255, 0.2);
+  --glass-gold-lo: rgba(70, 110, 220, 0.12);
+  --btn-gold-text: #dfe8ff;
 }
 
-/* ---- LIGHT: warm champagne daylight ------------------------------------- */
+/* ---- LIGHT: soft luminous blue daylight ---------------------------------- */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  --bg-base: #ece2ca;
-  --bg-tint-1: #f5ecd8;
-  --bg-tint-2: #e7dcc0;
-  --bg-tint-3: #efe5cb;
-  --bokeh-1: rgba(214, 176, 104, 0.5);
-  --bokeh-2: rgba(238, 220, 176, 0.6);
-  --bokeh-3: rgba(206, 174, 116, 0.4);
-  --grain-opacity: 0.045;
-  --vignette: rgba(120, 92, 50, 0.16);
+  --bg-base: #dfe7fb;
+  --bg-tint-1: #eaf1ff;
+  --bg-tint-2: #d7e2fb;
+  --bg-tint-3: #e6edfe;
+  --bokeh-1: rgba(120, 158, 245, 0.5);
+  --bokeh-2: rgba(180, 205, 255, 0.6);
+  --bokeh-3: rgba(150, 185, 255, 0.42);
+  --grain-opacity: 0.04;
+  --vignette: rgba(40, 60, 120, 0.14);
 
-  --text-strong: #2a2a2e;
-  --text-body: #454239;
-  --text-muted: #6b6458;
-  --text-onGold: #2a2113;
+  --text-strong: #1a2440;
+  --text-body: #37436a;
+  --text-muted: #5c688c;
+  --text-onGold: #0a1430;
 
-  --glass-bg: rgba(255, 253, 248, 0.5);
-  --glass-bg-strong: rgba(255, 254, 250, 0.68);
-  --glass-bg-soft: rgba(255, 253, 248, 0.34);
-  --glass-border: rgba(255, 255, 255, 0.8);
+  --glass-bg: rgba(250, 252, 255, 0.5);
+  --glass-bg-strong: rgba(252, 253, 255, 0.68);
+  --glass-bg-soft: rgba(250, 252, 255, 0.34);
+  --glass-border: rgba(255, 255, 255, 0.85);
   --glass-edge: rgba(255, 255, 255, 0.95);
-  --glass-inner-shadow: rgba(120, 100, 60, 0.08);
+  --glass-inner-shadow: rgba(40, 60, 120, 0.08);
   --glass-highlight: rgba(255, 255, 255, 0.9);
   --glass-shadow:
-    0 1px 1px rgba(70, 55, 25, 0.05), 0 10px 28px rgba(80, 62, 30, 0.12),
-    0 26px 60px rgba(80, 62, 30, 0.14);
+    0 1px 1px rgba(30, 45, 90, 0.05), 0 10px 28px rgba(30, 45, 90, 0.12),
+    0 26px 60px rgba(30, 45, 90, 0.14);
   --glass-blur: 18px;
   --glass-saturate: 140%;
 
-  --field-bg: rgba(255, 255, 255, 0.6);
-  --field-border: rgba(120, 100, 70, 0.32);
-  --focus-ring: rgba(180, 140, 70, 0.6);
+  --field-bg: rgba(255, 255, 255, 0.62);
+  --field-border: rgba(70, 90, 150, 0.3);
+  --focus-ring: rgba(90, 134, 245, 0.6);
 
-  --mark-gold-1: #dcb96f;
-  --mark-gold-2: #c6a15b;
-  --mark-gold-3: #a5824a;
-  --mark-gold-4: #7d6035;
-  --wordmark-from: #b58f4c;
-  --wordmark-to: #77592e;
+  --mark-gold-1: #7ea6ff;
+  --mark-gold-2: #5a86f5;
+  --mark-gold-3: #3352a8;
+  --mark-gold-4: #26306a;
+  --wordmark-from: #4a72e0;
+  --wordmark-to: #23306a;
 
-  --glass-gold-hi: rgba(224, 196, 140, 0.4);
-  --glass-gold-lo: rgba(165, 130, 74, 0.22);
-  --btn-gold-text: #6a5225;
+  --glass-gold-hi: rgba(150, 180, 255, 0.4);
+  --glass-gold-lo: rgba(90, 130, 230, 0.22);
+  --btn-gold-text: #23306a;
 }
 
 /* ---- Base --------------------------------------------------------------- */
@@ -214,11 +214,12 @@ body {
     z-index: 2;
   }
 
-  /* Champagne liquid-glass — primary action surface. */
+  /* Primary action — pure transparent liquid glass with a faint midnight-blue
+     sheen so it still reads as the lead action without a solid fill. */
   .glass-primary {
     background:
       linear-gradient(to bottom, var(--glass-gold-hi), var(--glass-gold-lo)),
-      var(--glass-bg-strong);
+      var(--glass-bg);
     color: var(--btn-gold-text);
   }
 }
