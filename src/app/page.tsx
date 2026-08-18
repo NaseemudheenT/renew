@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   motion,
@@ -7,6 +9,7 @@ import {
   useMotionValue,
   useSpring,
   useTransform,
+  useAnimationControls,
 } from "framer-motion";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
@@ -24,6 +27,8 @@ const EASE = [0.22, 1, 0.36, 1] as const;
 export default function Home() {
   const router = useRouter();
   const reduced = useReducedMotion();
+  const shake = useAnimationControls();
+  const [entering, setEntering] = useState(false);
 
   const px = useMotionValue(0);
   const py = useMotionValue(0);
@@ -41,7 +46,18 @@ export default function Home() {
     py.set((e.clientY - r.top) / r.height - 0.5);
   }
 
-  function enter() {
+  // Tap the emblem: it springs to life — a quick, satisfying shake + bloom —
+  // then we enter. The animation ONLY fires on the press, never idly.
+  async function enter() {
+    if (entering) return;
+    setEntering(true);
+    if (!reduced) {
+      await shake.start({
+        rotate: [0, -7, 6, -5, 4, -2, 1.5, 0],
+        scale: [1, 1.09, 0.96, 1.05, 0.99, 1.02, 1],
+        transition: { duration: 0.62, ease: [0.36, 0.07, 0.19, 0.97] },
+      });
+    }
     router.push("/sign-in");
   }
 
@@ -115,24 +131,64 @@ export default function Home() {
             animate={reduced ? undefined : { rotate: 360 }}
             transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
           />
+          {/* Gentle idle float (parent) + press-only shake (child controls). */}
           <motion.span
-            className="relative block transition-transform duration-500 ease-[var(--ease-glass)] group-hover:scale-[1.05]"
+            className="relative block"
             animate={reduced ? undefined : { y: [0, -7, 0] }}
             transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
           >
-            <RenewMark size={148} className="drop-shadow-[0_16px_54px_rgba(70,110,220,0.42)]" />
+            <motion.span
+              className="relative block transition-transform duration-500 ease-[var(--ease-glass)] group-hover:scale-[1.05]"
+              animate={shake}
+            >
+              <RenewMark size={148} idSuffix="hero" className="drop-shadow-[0_16px_54px_rgba(70,110,220,0.42)]" />
+            </motion.span>
           </motion.span>
+
+          {/* Premium touch: a soft mirrored reflection beneath the mark. */}
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-full mt-3 h-16 w-40 -translate-x-1/2 scale-y-[-1] opacity-25 blur-[3px] [mask-image:linear-gradient(to_bottom,#000,transparent_75%)]"
+          >
+            <RenewMark size={96} idSuffix="hero-reflection" className="mx-auto" />
+          </span>
         </span>
 
         <motion.span
-          className="mt-8"
+          className="mt-9"
           initial={{ opacity: 0, y: 14 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.5, duration: 0.9, ease: EASE }}
         >
           <Wordmark sizeClassName="text-5xl sm:text-7xl" />
         </motion.span>
+
+        {/* Quiet invitation — only cue that the emblem is the way in. */}
+        <motion.span
+          className="mt-6 text-[0.7rem] font-medium uppercase tracking-[0.32em] text-[var(--text-muted)]"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: reduced ? 0.7 : [0.35, 0.8, 0.35] }}
+          transition={{ delay: 0.9, duration: reduced ? 0.6 : 3.4, repeat: reduced ? 0 : Infinity, ease: "easeInOut" }}
+        >
+          Tap to enter
+        </motion.span>
       </motion.button>
+
+      {/* Privacy · Terms — quietly present on the entry, as asked. */}
+      <motion.footer
+        className="absolute inset-x-0 bottom-7 z-10 flex items-center justify-center gap-3 text-xs text-[var(--text-muted)]"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 1.1, duration: 0.9, ease: EASE }}
+      >
+        <Link href="/privacy" className="transition-colors hover:text-[var(--text-body)]">
+          Privacy
+        </Link>
+        <span aria-hidden="true" className="opacity-50">·</span>
+        <Link href="/terms" className="transition-colors hover:text-[var(--text-body)]">
+          Terms
+        </Link>
+      </motion.footer>
     </main>
   );
 }
