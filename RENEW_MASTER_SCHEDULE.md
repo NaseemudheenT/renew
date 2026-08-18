@@ -77,11 +77,11 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 ## Phase 12 — Deployment & monitoring
 - ✅ GitHub `main` sync — all app code merged to `main`, reconciled with your `.firebaserc`
 - ✅ **Firestore rules DEPLOYED** to `the-zap-e7583` (compiled + released) — new collections enforced live
-- ✅ **Vercel build DEPLOYED** (production, READY) — `clientflownn/renew`, deployment URL `renew-2xexfq8s3-clientflownn.vercel.app`, prod alias `renew-clientflownn.vercel.app`
-  - Fixed a real deploy blocker: added `.vercelignore` (run folder had untracked `node_modules 2/` + `src 2/` macOS artifacts breaking the build)
-  - Added missing Vercel prod env vars: `FIREBASE_SERVICE_ACCOUNT_KEY`, `AUTH_SECRET`, `RESEND_FROM_EMAIL`, `NEXT_PUBLIC_APP_URL` (values never printed)
-- 🔒 **BLOCKER — Deployment Protection is ON**: prod URL 302→Vercel SSO, so the app isn't public and I can't verify render/Firebase/auth/Firestore. **Owner: Vercel → Project renew → Settings → Deployment Protection → Vercel Authentication → "Only Preview Deployments" (or Disabled) → Save.**
-- 🔒 Live auth QA — Google sign-in needs an owner browser (can't be automated)
+- ✅ **Vercel — LIVE & PUBLIC** at `https://renew-clientflownn.vercel.app` (`clientflownn/renew`, production READY)
+  - Fixed deploy blocker: `.vercelignore` (excluded untracked `node_modules 2/` + `src 2/` macOS artifacts that broke the build)
+  - Set prod env vars: `FIREBASE_SERVICE_ACCOUNT_KEY`, `AUTH_SECRET`, `RESEND_FROM_EMAIL`, `NEXT_PUBLIC_APP_URL` (never printed)
+- ✅ **Login fixed** — two config blockers resolved: added the Vercel domain to **Firebase Authorized Domains** (was missing → Google popup would fail), and **disabled Vercel Deployment Protection** (was gating the whole app behind SSO). `/sign-in` now serves the Google/Apple buttons publicly; `/dashboard` correctly 307s unauthenticated users.
+- 🔒 Final Google-OAuth click-through — needs a real browser + your Google account (can't be automated); the page + config are verified working
 - 🟡 Sentry (configured; verify in prod)
 
 ---
