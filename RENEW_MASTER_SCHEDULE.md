@@ -78,7 +78,20 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 
 ---
 
-### Immediate next (highest-value, buildable now)
-1. ✅ Surface **account balances** on the Dashboard (Accounts card, per-account balances).
-2. 🔒 Merge the 3 new domains to `main` **after** you deploy the rules.
-3. ⬜ Then: perf/a11y audit polish, catalog breadth, remaining state coverage.
+### Accounts / Transfers / Subscriptions — status
+- ✅ Built, unit-tested, **self-reviewed + fixed** (5 findings).
+- ✅ Integrated: Dashboard (account balances card), Calendar (renewals), Analytics
+  (recurring cost), Data export, Global search, Notifications (renewals).
+- ✅ Transactions can be attributed to an account (currency locked to it).
+- ✅ Subscriptions auto-advance past-due billing dates.
+- 🔒 **Blocked on you:** deploy the `firestore.rules` diff (handed off), then these
+  persist live. Until then reads/writes to accounts/transfers/subscriptions
+  return `permission-denied`.
+
+### Remaining work (mostly owner-gated)
+- 🔒 Deploy Firestore rules · Vercel deploy · Apple sign-in · Stripe checkout · live QA
+- 🟡 Deferred by you: multi-currency headline aggregation (net worth incl. opening
+  balances) — keep current behavior, decide with rates/product later
+- 🟡/⬜ Lower-value: message-catalog breadth, Resend email localization, deep RTL
+  device polish, browser-push pipeline, formal perf audit, E2E tests
+- 🔒 Merge the branch to `main` after you deploy the rules (I've held it)
