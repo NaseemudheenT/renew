@@ -26,7 +26,10 @@ export type CollectionName =
   | "transactions"
   | "budgets"
   | "savings"
-  | "investments";
+  | "investments"
+  | "accounts"
+  | "transfers"
+  | "subscriptions";
 
 export function userCollection(
   uid: string,

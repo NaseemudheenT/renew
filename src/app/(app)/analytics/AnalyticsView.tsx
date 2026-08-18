@@ -10,11 +10,12 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useUserCollection } from "@/hooks/useUserCollection";
+import { subscriptionTotals } from "@/lib/accounts";
 import { monthRange } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
-import type { Transaction } from "@/lib/types";
+import type { Transaction, Subscription } from "@/lib/types";
 
 const MONTHS = 6;
 
@@ -25,6 +26,7 @@ export function AnalyticsView() {
   const monthFmt = useMemo(() => new Intl.DateTimeFormat(loc, { month: "short" }), [loc]);
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading } = useUserCollection<Transaction>("transactions", txC);
+  const subs = useUserCollection<Subscription>("subscriptions");
   const reduced = useReducedMotion();
   const currency = data[0]?.currency ?? prefs.currency;
 
@@ -119,6 +121,22 @@ export function AnalyticsView() {
             )}
           </GlassCard>
         </StaggerItem>
+
+        {(() => {
+          const st = subscriptionTotals(subs.data, currency);
+          if (st.monthly <= 0) return null;
+          return (
+            <StaggerItem>
+              <GlassCard padded>
+                <h2 className="text-strong mb-3 text-sm font-medium">Recurring subscriptions</h2>
+                <div className="flex flex-wrap items-baseline gap-x-8 gap-y-2">
+                  <div><p className="text-muted text-xs">{t("subs.monthly")}</p><p className="text-strong text-xl font-medium tabular-nums">{money(st.monthly, currency)}</p></div>
+                  <div><p className="text-muted text-xs">{t("subs.annual")}</p><p className="text-body text-lg font-medium tabular-nums">{money(st.annual, currency)}</p></div>
+                </div>
+              </GlassCard>
+            </StaggerItem>
+          );
+        })()}
       </StaggerContainer>
     </div>
   );

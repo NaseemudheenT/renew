@@ -11,10 +11,11 @@ import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { useAuth } from "@/components/providers/AuthProvider";
+import { useUserCollection } from "@/hooks/useUserCollection";
 import { addCustomCategory } from "@/lib/firestore/profile";
 import { toast } from "@/components/ui/toast-store";
 import { CURRENCIES, cn } from "@/lib/utils";
-import type { Transaction, TxType } from "@/lib/types";
+import type { Transaction, TxType, Account } from "@/lib/types";
 import type { TransactionInput } from "@/lib/firestore/transactions";
 
 export function TransactionForm({
@@ -33,10 +34,14 @@ export function TransactionForm({
   const { prefs } = useLocale();
   const { user } = useAuth();
   const { forType } = useCategories();
+  const { data: accounts } = useUserCollection<Account>("accounts");
+  const activeAccounts = accounts.filter((a) => a.status === "active");
   const [type, setType] = useState<TxType>(initial?.type ?? "expense");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
   const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? "expense")[0]!.id);
+  const [accountId, setAccountId] = useState(initial?.accountId ?? "");
+  const selectedAccount = activeAccounts.find((a) => a.id === accountId);
   const [date, setDate] = useState(() => toDateInput(initial?.date ?? Date.now()));
   const [note, setNote] = useState(initial?.note ?? "");
   const [error, setError] = useState<string | null>(null);
@@ -72,7 +77,10 @@ export function TransactionForm({
       return;
     }
     setError(null);
-    onSubmit({ type, amount: amt, currency, category, note: note.trim() || undefined, date: fromDateTimeInputs(date) });
+    // A transaction attributed to an account MUST use that account's currency,
+    // otherwise it silently drops out of the account's balance.
+    const effectiveCurrency = selectedAccount ? selectedAccount.currency : currency;
+    onSubmit({ type, amount: amt, currency: effectiveCurrency, category, note: note.trim() || undefined, date: fromDateTimeInputs(date), accountId: accountId || undefined });
   }
 
   return (
@@ -89,7 +97,7 @@ export function TransactionForm({
 
       <div className="grid grid-cols-[1fr_7rem] gap-3">
         <Input label="Amount" type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00" value={amount} autoFocus onChange={(e) => setAmount(e.target.value)} error={error ?? undefined} />
-        <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
+        <Select label="Currency" value={selectedAccount ? selectedAccount.currency : currency} onChange={(e) => setCurrency(e.target.value)} disabled={!!selectedAccount} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
       </div>
 
       <div>
@@ -112,6 +120,19 @@ export function TransactionForm({
           </button>
         )}
       </div>
+      {activeAccounts.length > 0 && (
+        <Select
+          label="Account (optional)"
+          value={accountId}
+          onChange={(e) => {
+            const next = e.target.value;
+            setAccountId(next);
+            const acc = activeAccounts.find((a) => a.id === next);
+            if (acc) setCurrency(acc.currency);
+          }}
+          options={[{ value: "", label: "Unassigned" }, ...activeAccounts.map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }))]}
+        />
+      )}
       <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       <Input label="Note (optional)" placeholder="e.g. Lunch with team" value={note} onChange={(e) => setNote(e.target.value)} />
 

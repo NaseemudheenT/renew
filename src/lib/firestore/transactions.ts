@@ -12,12 +12,15 @@ export interface TransactionInput {
   category: string;
   note?: string;
   date: number;
+  /** Optional account this transaction belongs to. */
+  accountId?: string;
 }
 
 export async function createTransaction(uid: string, input: TransactionInput): Promise<string> {
   const ref = await addDoc(userCollection(uid, "transactions"), {
     ...input,
     note: input.note ?? "",
+    accountId: input.accountId ?? "",
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -35,6 +38,7 @@ export async function importTransactions(uid: string, inputs: TransactionInput[]
       batch.set(doc(col), {
         ...input,
         note: input.note ?? "",
+        accountId: input.accountId ?? "",
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

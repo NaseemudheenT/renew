@@ -16,6 +16,7 @@ import type {
   Budget,
   SavingsGoal,
   Transaction,
+  Subscription,
   AppNotification,
 } from "@/lib/types";
 
@@ -33,6 +34,7 @@ export function NotificationSync() {
   const budgets = useUserCollection<Budget>("budgets");
   const savings = useUserCollection<SavingsGoal>("savings");
   const transactions = useUserCollection<Transaction>("transactions");
+  const subscriptions = useUserCollection<Subscription>("subscriptions");
   const notifConstraints = useMemo(
     () => [orderBy("createdAt", "desc"), limit(100)],
     [],
@@ -58,6 +60,7 @@ export function NotificationSync() {
     budgets.loading ||
     savings.loading ||
     transactions.loading ||
+    subscriptions.loading ||
     notifications.loading;
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export function NotificationSync() {
         budgets: budgets.data,
         savings: savings.data,
         transactions: transactions.data,
+        subscriptions: subscriptions.data,
         customCategories: profile?.customCategories ?? [],
       },
       prefs,
@@ -103,6 +107,7 @@ export function NotificationSync() {
     budgets.data,
     savings.data,
     transactions.data,
+    subscriptions.data,
     notifications.data,
     prefs,
     profile?.locale,

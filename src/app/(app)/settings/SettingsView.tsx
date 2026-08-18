@@ -19,7 +19,7 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { toCSV, downloadFile, fileDateStamp } from "@/lib/export";
 import { parseCSV, rowsToTransactions } from "@/lib/import";
 import { importTransactions } from "@/lib/firestore/transactions";
-import type { Transaction, Budget, SavingsGoal, Investment, Payment } from "@/lib/types";
+import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
 import { useCategories } from "@/hooks/useCategories";
@@ -365,6 +365,9 @@ function DataControl({ uid }: { uid: string }) {
   const savings = useUserCollection<SavingsGoal>("savings");
   const investments = useUserCollection<Investment>("investments");
   const payments = useUserCollection<Payment>("payments");
+  const accounts = useUserCollection<Account>("accounts");
+  const transfers = useUserCollection<Transfer>("transfers");
+  const subscriptions = useUserCollection<Subscription>("subscriptions");
 
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<ReturnType<typeof rowsToTransactions> | null>(null);
@@ -372,18 +375,22 @@ function DataControl({ uid }: { uid: string }) {
 
   const total =
     transactions.data.length + budgets.data.length + savings.data.length +
-    investments.data.length + payments.data.length;
+    investments.data.length + payments.data.length +
+    accounts.data.length + transfers.data.length + subscriptions.data.length;
 
   function exportJson() {
     if (total === 0) return toast({ title: t("settings.data.empty") });
     const payload = {
       app: "Renew",
       exportedAt: new Date().toISOString(),
+      accounts: accounts.data,
       transactions: transactions.data,
+      transfers: transfers.data,
       budgets: budgets.data,
       savings: savings.data,
       investments: investments.data,
       payments: payments.data,
+      subscriptions: subscriptions.data,
     };
     downloadFile(`renew-export-${fileDateStamp()}.json`, JSON.stringify(payload, null, 2), "application/json");
     toast({ title: t("settings.data.exported"), variant: "success" });

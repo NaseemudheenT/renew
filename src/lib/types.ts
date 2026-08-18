@@ -123,7 +123,8 @@ export type NotificationType =
   | "document"
   | "account"
   | "budget"
-  | "savings";
+  | "savings"
+  | "subscription";
 
 export interface AppNotification {
   id: string;
@@ -157,6 +158,8 @@ export interface Transaction {
   category: string; // category id (see lib/finance)
   note?: string;
   date: number; // epoch millis when it occurred
+  /** Optional account this transaction belongs to. */
+  accountId?: string;
   createdAt: number;
   updatedAt: number;
 }
@@ -177,6 +180,70 @@ export interface SavingsGoal {
   current: number;
   currency: string;
   targetDate?: number | null;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/* ---- Accounts ------------------------------------------------------------ */
+
+export type AccountType =
+  | "cash"
+  | "bank"
+  | "savings"
+  | "credit"
+  | "investment"
+  | "other";
+
+export type AccountStatus = "active" | "archived";
+
+export interface Account {
+  id: string;
+  name: string;
+  atype: AccountType;
+  /** Optional institution/provider name. */
+  institution?: string;
+  currency: string;
+  /** Starting balance; the current balance is derived (opening + tx + transfers). */
+  openingBalance: number;
+  status: AccountStatus;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/* ---- Transfers ----------------------------------------------------------- */
+
+/** Money moved between two of the user's own accounts. Never income/expense. */
+export interface Transfer {
+  id: string;
+  fromAccountId: string;
+  toAccountId: string;
+  amount: number;
+  /** Both accounts must share this currency (no exchange-rate invention). */
+  currency: string;
+  date: number;
+  note?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/* ---- Subscriptions ------------------------------------------------------- */
+
+export type BillingCycle = "weekly" | "monthly" | "quarterly" | "yearly";
+export type SubscriptionStatus = "active" | "cancelled";
+
+export interface Subscription {
+  id: string;
+  name: string;
+  price: number;
+  currency: string;
+  cycle: BillingCycle;
+  /** Epoch millis of the next renewal. */
+  nextBillingAt: number;
+  category: string;
+  /** Optional account the subscription is billed to. */
+  accountId?: string;
+  status: SubscriptionStatus;
+  notes?: string;
   createdAt: number;
   updatedAt: number;
 }
