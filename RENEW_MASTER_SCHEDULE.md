@@ -33,8 +33,9 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 - ✅ config/format/messages/LocaleProvider · region→currency (India never default) · RTL `<html dir>`
 - ✅ Presentation everywhere: money, numbers, dates, week-start, nav, page titles, calendar, tx grouping
 - ✅ Settings → Region & Language · localized generated notifications
-- 🟡 Message-catalog breadth (es/fr/de/hi/ar partial; English fallback keeps app usable)
-- ⬜ Resend email localization · 🟡 deep RTL visual polish (needs device QA)
+- 🟡 Message-catalog breadth (en full; es/fr extended to new domains; de/hi/ar partial → English fallback)
+- ✅ Resend OTP email localized (en/es/fr/de via Accept-Language)
+- ✅ RTL logical-property pass on shared primitives (Input/Select/RowMenu/Modal/Sidebar/dropdowns); 🟡 broader per-screen RTL sweep + device QA remain
 
 ## Phase 5 — Finance core
 - ✅ Dashboard · Transactions (CRUD/search/filter/group/undo/account/custom categories) · Categories + custom
@@ -47,7 +48,8 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 ## Phase 6 — Notifications
 - ✅ Bills/reminders/tasks/documents · budget warning+exceeded · savings milestone · subscription renewal
 - ✅ In-app center · bell · read/unread · mark-all · prefs · dedupe (idempotent ids)
-- 🟡 Browser push (permission infra; no full push pipeline) · ⬜ email notifications
+- ✅ Browser notifications (local, permission-gated, tab-backgrounded; SW click-to-open) — true server push still needs FCM 🔒
+- ⬜ email notifications (beyond OTP)
 
 ## Phase 7 — Settings & data
 - ✅ Profile · appearance/theme · region · notification prefs · categories management
