@@ -46,19 +46,22 @@ export default function Home() {
     py.set((e.clientY - r.top) / r.height - 0.5);
   }
 
-  // Tap the emblem: it springs to life — a quick, satisfying shake + bloom —
-  // then we enter. The animation ONLY fires on the press, never idly.
-  async function enter() {
+  // Tap the emblem: it springs to life — a quick, satisfying shake — then we
+  // enter. The animation ONLY fires on the press, never idly. Navigation runs
+  // on a fixed timer (not awaiting the animation) so entering is never blocked.
+  function enter() {
     if (entering) return;
     setEntering(true);
-    if (!reduced) {
-      await shake.start({
-        rotate: [0, -7, 6, -5, 4, -2, 1.5, 0],
-        scale: [1, 1.09, 0.96, 1.05, 0.99, 1.02, 1],
-        transition: { duration: 0.62, ease: [0.36, 0.07, 0.19, 0.97] },
-      });
+    if (reduced) {
+      router.push("/sign-in");
+      return;
     }
-    router.push("/sign-in");
+    void shake.start({
+      rotate: [0, -7, 6, -5, 4, -2, 1.5, 0],
+      scale: [1, 1.09, 0.96, 1.05, 0.99, 1.02, 1],
+      transition: { duration: 0.62, ease: [0.36, 0.07, 0.19, 0.97] },
+    });
+    window.setTimeout(() => router.push("/sign-in"), 560);
   }
 
   return (
