@@ -15,7 +15,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 const base =
   "relative inline-flex items-center justify-center gap-2 font-medium select-none " +
   "transition-all duration-300 ease-[var(--ease-calm)] disabled:opacity-55 " +
-  "disabled:pointer-events-none active:scale-[0.985] rounded-full whitespace-nowrap";
+  "disabled:pointer-events-none active:scale-[0.96] rounded-full whitespace-nowrap";
 
 const sizes: Record<ButtonSize, string> = {
   sm: "h-9 px-4 text-sm",
