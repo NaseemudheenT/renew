@@ -75,9 +75,13 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 - ⬜ E2E/workflow tests · 🔒 live-Firebase persistence QA
 
 ## Phase 12 — Deployment & monitoring
-- ✅ GitHub `main` sync — all app code merged to `main` (`bf0e81f`), reconciled with your `.firebaserc`
-- ✅ **Firestore rules DEPLOYED** to `the-zap-e7583` (compiled + released) — new collections now enforced live
-- 🔒 Vercel deploy — CLI present but **not authenticated** (`vercel login` needed); Apple Sign-In — Firebase/Apple console
+- ✅ GitHub `main` sync — all app code merged to `main`, reconciled with your `.firebaserc`
+- ✅ **Firestore rules DEPLOYED** to `the-zap-e7583` (compiled + released) — new collections enforced live
+- ✅ **Vercel build DEPLOYED** (production, READY) — `clientflownn/renew`, deployment URL `renew-2xexfq8s3-clientflownn.vercel.app`, prod alias `renew-clientflownn.vercel.app`
+  - Fixed a real deploy blocker: added `.vercelignore` (run folder had untracked `node_modules 2/` + `src 2/` macOS artifacts breaking the build)
+  - Added missing Vercel prod env vars: `FIREBASE_SERVICE_ACCOUNT_KEY`, `AUTH_SECRET`, `RESEND_FROM_EMAIL`, `NEXT_PUBLIC_APP_URL` (values never printed)
+- 🔒 **BLOCKER — Deployment Protection is ON**: prod URL 302→Vercel SSO, so the app isn't public and I can't verify render/Firebase/auth/Firestore. **Owner: Vercel → Project renew → Settings → Deployment Protection → Vercel Authentication → "Only Preview Deployments" (or Disabled) → Save.**
+- 🔒 Live auth QA — Google sign-in needs an owner browser (can't be automated)
 - 🟡 Sentry (configured; verify in prod)
 
 ---
