@@ -3,6 +3,7 @@ import { getSessionUser } from "@/lib/auth/session";
 import { issueOtp } from "@/lib/auth/otp";
 import { sendEmail } from "@/lib/email/resend";
 import { otpEmail } from "@/lib/email/templates";
+import { getAdminDb } from "@/lib/firebase/admin";
 import { isDev } from "@/lib/env";
 
 export const runtime = "nodejs";
@@ -45,7 +46,15 @@ export async function POST(request: Request) {
     );
   }
 
-  const lang = langFromHeader(request.headers.get("accept-language"));
+  // Prefer the user's saved Renew language; fall back to the request header.
+  let lang = langFromHeader(request.headers.get("accept-language"));
+  try {
+    const snap = await getAdminDb().collection("users").doc(user.uid).get();
+    const saved = snap.data()?.locale as string | undefined;
+    if (saved) lang = saved;
+  } catch {
+    /* keep the header-derived language */
+  }
   const { subject, html, text } = otpEmail(result.code, user.displayName, lang);
   const delivered = await sendEmail({ to: user.email, subject, html, text });
 

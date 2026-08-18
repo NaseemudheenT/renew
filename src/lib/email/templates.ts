@@ -71,7 +71,8 @@ function stringsFor(lang: string): OtpStrings {
 
 export function otpEmail(code: string, name?: string | null, lang = "en") {
   const s = stringsFor(lang);
-  const greeting = name ? s.greetingNamed(escapeHtml(name)) : s.greetingPlain;
+  const greetingHtml = name ? s.greetingNamed(escapeHtml(name)) : s.greetingPlain;
+  const greetingText = name ? s.greetingNamed(name) : s.greetingPlain;
   const spaced = code.split("").join(" ");
   const subject = s.subject(code);
   const htmlLang = escapeHtml(lang.split("-")[0] ?? "en");
@@ -85,7 +86,7 @@ export function otpEmail(code: string, name?: string | null, lang = "en") {
       <span style="font-size:22px;letter-spacing:0.42em;text-transform:uppercase;font-weight:300;color:#a5824a;">Renew</span>
     </div>
     <div style="background:#ffffff;border-radius:20px;padding:36px 32px;box-shadow:0 10px 40px rgba(70,58,34,0.12);">
-      <p style="margin:0 0 8px;font-size:16px;color:#2b2b2f;">${greeting}</p>
+      <p style="margin:0 0 8px;font-size:16px;color:#2b2b2f;">${greetingHtml}</p>
       <p style="margin:0 0 24px;font-size:15px;line-height:1.6;color:#4a4741;">
         ${escapeHtml(s.intro)}
       </p>
@@ -104,7 +105,7 @@ export function otpEmail(code: string, name?: string | null, lang = "en") {
   </div>
 </body></html>`;
 
-  const text = `${greeting}\n\n${s.textLead} ${code}\n${s.textExpiry}\n\n${s.textIgnore}\n\n— Renew`;
+  const text = `${greetingText}\n\n${s.textLead} ${code}\n${s.textExpiry}\n\n${s.textIgnore}\n\n— Renew`;
 
   return { subject, html, text };
 }

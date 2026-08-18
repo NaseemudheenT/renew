@@ -57,7 +57,14 @@ export async function showBrowserNotification(item: BrowserNotifyItem): Promise<
     /* fall through to the constructor */
   }
   try {
-    new Notification(item.title, options);
+    const n = new Notification(item.title, options);
+    // The sw notificationclick handler only fires for SW-registration
+    // notifications, so wire the deep link for this constructor path directly.
+    n.onclick = () => {
+      window.focus();
+      window.location.href = item.href ?? "/notifications";
+      n.close();
+    };
   } catch {
     /* nothing more we can do */
   }
