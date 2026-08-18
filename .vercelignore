@@ -1,0 +1,13 @@
+# Dependencies — Vercel runs its own install
+node_modules
+
+# Local build output
+.next
+
+# macOS / cloud-sync duplication artifacts (e.g. "node_modules 2", "src 2").
+# These are never part of the app and must not be uploaded/built.
+* 2
+
+# Local env + tooling
+.env*.local
+.claude
