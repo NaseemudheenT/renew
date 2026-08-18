@@ -150,7 +150,7 @@ function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onEdit, onCancel,
         <p className="text-strong truncate text-sm font-medium">{sub.name}</p>
         <p className="text-muted truncate text-xs">{cycleLabel}{cancelled ? "" : ` · ${dueLabel(sub.nextBillingAt)}`}</p>
       </div>
-      <div className="text-right">
+      <div className="text-end">
         <p className="text-strong text-sm font-medium tabular-nums">{money(sub.price, sub.currency)}</p>
         <p className="text-muted text-xs tabular-nums">≈ {money(subscriptionMonthly(sub), sub.currency)}/mo</p>
       </div>

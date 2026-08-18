@@ -185,7 +185,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
                             <Link href="/payments" className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--focus-ring)]/50">
                               <span className="text-body min-w-0 flex-1 truncate text-sm">{b.name}</span>
                               <span className="text-strong text-sm font-medium tabular-nums">{money(b.amount, b.currency)}</span>
-                              <span className={cn("w-16 text-right text-xs", overdue ? "text-rose-500" : "text-[var(--text-muted)]")}>{dueLabel(b.dueAt)}</span>
+                              <span className={cn("w-16 text-end text-xs", overdue ? "text-rose-500" : "text-[var(--text-muted)]")}>{dueLabel(b.dueAt)}</span>
                             </Link>
                           </li>
                         );

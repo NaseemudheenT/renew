@@ -92,7 +92,7 @@ export function AnalyticsView() {
             <div className="mt-3 flex items-center gap-4 text-xs">
               <span className="text-muted inline-flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-emerald-400" />Income</span>
               <span className="text-muted inline-flex items-center gap-1.5"><span className="size-2.5 rounded-sm bg-rose-400" />Expense</span>
-              <span className="text-muted ml-auto">Last {MONTHS} months</span>
+              <span className="text-muted ms-auto">Last {MONTHS} months</span>
             </div>
           </GlassCard>
         </StaggerItem>
@@ -113,7 +113,7 @@ export function AnalyticsView() {
                       <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
                         <motion.div className="h-full rounded-full bg-gradient-to-r from-gold-300 to-gold-500" initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / catMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
                       </div>
-                      <span className="text-body w-20 text-right text-xs tabular-nums">{money(d.amount, currency)}</span>
+                      <span className="text-body w-20 text-end text-xs tabular-nums">{money(d.amount, currency)}</span>
                     </div>
                   );
                 })}

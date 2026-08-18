@@ -60,7 +60,7 @@ export function InvestmentsView() {
                       <p className="text-strong truncate text-sm font-medium">{i.name}</p>
                       <p className="text-muted text-xs tabular-nums">{i.quantity} · {meta.label}</p>
                     </div>
-                    <div className="text-right">
+                    <div className="text-end">
                       <p className="text-strong text-sm font-medium tabular-nums">{money(value, i.currency)}</p>
                       <p className={cn("text-xs tabular-nums", gain >= 0 ? "text-emerald-500" : "text-rose-500")}>{gain >= 0 ? "+" : "−"}{money(Math.abs(gain), i.currency)}</p>
                     </div>

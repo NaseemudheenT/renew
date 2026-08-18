@@ -125,7 +125,7 @@ function AppearanceControl() {
       <div className="grid grid-cols-2 gap-3">
         {(["light", "dark"] as const).map((t) => (
           <button key={t} type="button" onClick={() => setTheme(t)} aria-pressed={theme === t}
-            className={cn("flex items-center gap-3 rounded-2xl border p-3.5 text-left transition-all", theme === t ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
+            className={cn("flex items-center gap-3 rounded-2xl border p-3.5 text-start transition-all", theme === t ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
             {t === "light" ? <Sun className="size-5 text-[var(--color-gold-500)]" /> : <Moon className="size-5 text-[var(--color-gold-500)]" />}
             <span className="text-body flex-1 text-sm font-medium capitalize">{t}</span>
             {theme === t && <Check className="size-4 text-[var(--color-gold-600)]" />}
@@ -344,7 +344,7 @@ function CategoriesControl({ uid }: { uid: string }) {
       {custom.map((c) => (
         <span
           key={c.id}
-          className="glass inline-flex items-center gap-2 !rounded-full py-1.5 pl-3.5 pr-2 text-sm text-[var(--text-strong)]"
+          className="glass inline-flex items-center gap-2 !rounded-full py-1.5 ps-3.5 pe-2 text-sm text-[var(--text-strong)]"
         >
           <span className={cn("size-1.5 rounded-full", c.type === "income" ? "bg-emerald-400" : "bg-rose-400")} />
           {c.label}
@@ -531,11 +531,11 @@ function SecurityControl() {
 
   return (
     <div className="flex flex-col gap-3">
-      <button type="button" onClick={onSignOut} className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5 text-left transition-colors hover:border-[var(--focus-ring)]/50">
+      <button type="button" onClick={onSignOut} className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5 text-start transition-colors hover:border-[var(--focus-ring)]/50">
         <LogOut className="size-5 text-[var(--color-gold-500)]" />
         <div className="flex-1"><p className="text-body text-sm font-medium">Sign out</p><p className="text-muted text-xs">End your session on this device.</p></div>
       </button>
-      <button type="button" onClick={() => setConfirmOpen(true)} className="flex items-center gap-3 rounded-2xl border border-rose-400/40 bg-rose-500/5 p-3.5 text-left transition-colors hover:bg-rose-500/10">
+      <button type="button" onClick={() => setConfirmOpen(true)} className="flex items-center gap-3 rounded-2xl border border-rose-400/40 bg-rose-500/5 p-3.5 text-start transition-colors hover:bg-rose-500/10">
         <Trash2 className="size-5 text-rose-500" />
         <div className="flex-1"><p className="text-sm font-medium text-rose-600 dark:text-rose-300">Delete account</p><p className="text-muted text-xs">Permanently remove your account and all data.</p></div>
       </button>

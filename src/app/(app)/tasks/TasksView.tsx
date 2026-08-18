@@ -96,7 +96,7 @@ export function TasksView() {
       <PageHeader title="Tasks" subtitle="Quick to capture, satisfying to finish." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />New task</AnimatedButton>} />
 
       <form onSubmit={onQuickAdd} className="mb-5">
-        <div className="glass flex items-center gap-2 p-2 pl-4">
+        <div className="glass flex items-center gap-2 p-2 ps-4">
           <ListTodo className="size-4.5 shrink-0 text-[var(--color-gold-500)]" />
           <input value={quick} onChange={(e) => setQuick(e.target.value)} placeholder="Quick add a task…" aria-label="Quick add a task" className="h-9 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none" />
           {quick.trim() && (
@@ -111,7 +111,7 @@ export function TasksView() {
         {(["active", "completed"] as Tab[]).map((t) => (
           <button key={t} type="button" onClick={() => setTab(t)} className={cn("rounded-full px-4 py-1.5 capitalize transition-colors", tab === t ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]")}>
             {t}
-            {t === "active" && active.length > 0 && <span className="ml-1.5 tabular-nums">{active.length}</span>}
+            {t === "active" && active.length > 0 && <span className="ms-1.5 tabular-nums">{active.length}</span>}
           </button>
         ))}
       </div>

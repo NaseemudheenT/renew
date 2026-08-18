@@ -121,7 +121,7 @@ function Section({ title, items, render, tone }: { title: string; items: Payment
   if (items.length === 0) return null;
   return (
     <div>
-      <h2 className={cn("mb-2 px-1 text-xs font-semibold uppercase tracking-wider", tone === "danger" ? "text-rose-500" : "text-[var(--text-muted)]")}>{title}<span className="ml-2 tabular-nums opacity-70">{items.length}</span></h2>
+      <h2 className={cn("mb-2 px-1 text-xs font-semibold uppercase tracking-wider", tone === "danger" ? "text-rose-500" : "text-[var(--text-muted)]")}>{title}<span className="ms-2 tabular-nums opacity-70">{items.length}</span></h2>
       <div className="flex flex-col gap-2"><AnimatePresence initial={false}>{items.map(render)}</AnimatePresence></div>
     </div>
   );

@@ -107,7 +107,7 @@ export function RemindersView() {
       <PageHeader title="Reminders" subtitle="Everything that shouldn't slip — in one calm list." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />New reminder</AnimatedButton>} />
 
       <form onSubmit={onQuickAdd} className="mb-5">
-        <div className="glass flex items-center gap-2 p-2 pl-4">
+        <div className="glass flex items-center gap-2 p-2 ps-4">
           <Bell className="size-4.5 shrink-0 text-[var(--color-gold-500)]" />
           <input value={quick} onChange={(e) => setQuick(e.target.value)} placeholder="Quick add a reminder…" aria-label="Quick add a reminder" className="h-9 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none" />
           {quick.trim() && (
@@ -122,7 +122,7 @@ export function RemindersView() {
         {(["active", "completed"] as Tab[]).map((t) => (
           <button key={t} type="button" onClick={() => setTab(t)} className={cn("rounded-full px-4 py-1.5 capitalize transition-colors", tab === t ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]")}>
             {t}
-            {t === "active" && active.length > 0 && <span className="ml-1.5 tabular-nums">{active.length}</span>}
+            {t === "active" && active.length > 0 && <span className="ms-1.5 tabular-nums">{active.length}</span>}
           </button>
         ))}
       </div>
@@ -157,7 +157,7 @@ function Section({ title, items, render, tone }: { title: string; items: Reminde
   return (
     <div>
       <h2 className={cn("mb-2 px-1 text-xs font-semibold uppercase tracking-wider", tone === "danger" ? "text-rose-500" : "text-[var(--text-muted)]")}>
-        {title}<span className="ml-2 tabular-nums opacity-70">{items.length}</span>
+        {title}<span className="ms-2 tabular-nums opacity-70">{items.length}</span>
       </h2>
       <div className="flex flex-col gap-2"><AnimatePresence initial={false}>{items.map(render)}</AnimatePresence></div>
     </div>

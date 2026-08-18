@@ -67,7 +67,7 @@ export function BudgetView() {
                       <p className="text-strong text-sm font-medium">{meta.label}</p>
                       <p className="text-muted text-xs tabular-nums">{money(spent, b.currency)} of {money(b.amount, b.currency)}</p>
                     </div>
-                    <span className={cn("text-sm font-semibold tabular-nums", over ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(Math.max(0, b.amount - spent), b.currency)}<span className="text-muted ml-1 text-xs font-normal">left</span></span>
+                    <span className={cn("text-sm font-semibold tabular-nums", over ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(Math.max(0, b.amount - spent), b.currency)}<span className="text-muted ms-1 text-xs font-normal">left</span></span>
                     <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: () => { setEditing(b); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => uid && deleteBudget(uid, b.id), danger: true }]} />
                   </div>
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">

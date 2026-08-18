@@ -40,7 +40,7 @@ export function DocumentsView() {
 
       {data.length > 0 && (
         <div className="mb-5 flex flex-col gap-3">
-          <div className="glass flex items-center gap-2 p-2 pl-4">
+          <div className="glass flex items-center gap-2 p-2 ps-4">
             <Search className="size-4.5 shrink-0 text-[var(--text-muted)]" />
             <input value={queryText} onChange={(e) => setQueryText(e.target.value)} placeholder="Search documents…" aria-label="Search documents" className="h-9 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none" />
           </div>

@@ -96,7 +96,7 @@ export function TransactionsView() {
 
       {!isEmpty && (
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="glass flex flex-1 items-center gap-2 p-2 pl-4">
+          <div className="glass flex flex-1 items-center gap-2 p-2 ps-4">
             <Search className="size-4.5 shrink-0 text-[var(--text-muted)]" />
             <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search transactions…" aria-label="Search transactions" className="h-9 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none" />
           </div>
