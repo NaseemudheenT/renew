@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useReducer, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
 import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -25,7 +25,10 @@ import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCu
 import { useCategories } from "@/hooks/useCategories";
 import { LANGUAGES, REGIONS, CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
+import { browserNotifyStatus, requestBrowserNotify, type NotifyStatus } from "@/lib/notify";
 import { cn } from "@/lib/utils";
+
+const noopSubscribe = () => () => {};
 
 export function SettingsView() {
   const { user } = useAuth();
@@ -58,6 +61,7 @@ export function SettingsView() {
 
       <Section icon={Bell} title="Notifications">
         {uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}
+        <BrowserNotifyControl />
       </Section>
 
       <Section icon={CreditCard} title="Billing">
@@ -354,6 +358,35 @@ function CategoriesControl({ uid }: { uid: string }) {
           </button>
         </span>
       ))}
+    </div>
+  );
+}
+
+function BrowserNotifyControl() {
+  const { t } = useLocale();
+  const status = useSyncExternalStore<NotifyStatus>(noopSubscribe, browserNotifyStatus, () => "unsupported");
+  const [, force] = useReducer((x: number) => x + 1, 0);
+
+  async function enable() {
+    await requestBrowserNotify();
+    force();
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5">
+      <div className="min-w-0">
+        <p className="text-body text-sm font-medium">{t("settings.notify.browser")}</p>
+        <p className="text-muted text-xs">
+          {status === "denied" ? t("settings.notify.browser.blocked")
+            : status === "unsupported" ? t("settings.notify.browser.unsupported")
+            : t("settings.notify.browser.hint")}
+        </p>
+      </div>
+      {status === "granted" ? (
+        <span className="inline-flex items-center gap-1.5 text-sm font-medium text-emerald-500"><Check className="size-4" />{t("settings.notify.browser.on")}</span>
+      ) : status === "default" ? (
+        <AnimatedButton size="sm" variant="glass" onClick={enable}>{t("settings.notify.browser.enable")}</AnimatedButton>
+      ) : null}
     </div>
   );
 }

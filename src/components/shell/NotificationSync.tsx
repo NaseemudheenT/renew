@@ -8,6 +8,7 @@ import {
   computeDesired,
   createMissingNotifications,
 } from "@/lib/firestore/notifications-generate";
+import { browserNotifyStatus, showBrowserNotification } from "@/lib/notify";
 import type {
   Reminder,
   Task,
@@ -91,12 +92,19 @@ export function NotificationSync() {
     if (toCreate.length === 0) return;
     toCreate.forEach((d) => attempted.current.add(d.id));
 
-    void createMissingNotifications(uid, toCreate, notifications.data).catch(
-      () => {
+    void createMissingNotifications(uid, toCreate, notifications.data)
+      .then(() => {
+        // Surface newly-created items as OS notifications when permitted and the
+        // tab is backgrounded (avoids duplicating what's already on screen).
+        if (browserNotifyStatus() !== "granted" || document.visibilityState !== "hidden") return;
+        toCreate.slice(0, 3).forEach((d) => {
+          void showBrowserNotification({ id: d.id, title: d.title, body: d.body, href: d.href });
+        });
+      })
+      .catch(() => {
         // Allow a retry on the next data change if the write failed.
         toCreate.forEach((d) => attempted.current.delete(d.id));
-      },
-    );
+      });
   }, [
     reminders.uid,
     anyLoading,

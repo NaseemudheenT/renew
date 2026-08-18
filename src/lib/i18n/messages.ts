@@ -129,6 +129,13 @@ export const EN = {
     "Auto-detected from your device. Change anything — your choices are saved to your account.",
   "settings.region.saved": "Region & language updated",
 
+  "settings.notify.browser": "Browser notifications",
+  "settings.notify.browser.hint": "Get an OS notification when something needs attention while Renew is open.",
+  "settings.notify.browser.enable": "Enable",
+  "settings.notify.browser.on": "On",
+  "settings.notify.browser.blocked": "Blocked — allow notifications in your browser settings",
+  "settings.notify.browser.unsupported": "Not supported on this browser",
+
   "settings.data.title": "Data",
   "settings.data.hint": "Download a copy of your financial data. It stays on your device — Renew never sells or shares it.",
   "settings.data.exportJson": "Export all (JSON)",
