@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useUserCollection } from "@/hooks/useUserCollection";
+import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { subscriptionTotals } from "@/lib/accounts";
 import { monthRange } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
@@ -69,8 +70,8 @@ export function AnalyticsView() {
       <StaggerContainer className="flex flex-col gap-6" stagger={0.07}>
         <StaggerItem>
           <div className="grid grid-cols-3 gap-3">
-            <Stat icon={ArrowDownLeft} label="Income · month" value={money(thisMonth.income, currency)} tone="emerald" />
-            <Stat icon={ArrowUpRight} label="Spent · month" value={money(thisMonth.expense, currency)} tone="rose" />
+            <Stat icon={ArrowDownLeft} label="Income · month" amount={thisMonth.income} currency={currency} tone="emerald" />
+            <Stat icon={ArrowUpRight} label="Spent · month" amount={thisMonth.expense} currency={currency} tone="rose" />
             <Stat icon={PiggyBank} label="Savings rate" value={`${savingsRate}%`} />
           </div>
         </StaggerItem>
@@ -142,11 +143,13 @@ export function AnalyticsView() {
   );
 }
 
-function Stat({ icon: Icon, label, value, tone }: { icon: typeof BarChart3; label: string; value: string; tone?: "emerald" | "rose" }) {
+function Stat({ icon: Icon, label, value, amount, currency, tone }: { icon: typeof BarChart3; label: string; value?: string; amount?: number; currency?: string; tone?: "emerald" | "rose" }) {
   return (
     <GlassCard className="flex flex-col gap-1 p-4">
       <Icon className={cn("size-5", tone === "emerald" ? "text-emerald-400" : tone === "rose" ? "text-rose-400" : "text-[var(--color-gold-500)]")} />
-      <div className="text-strong mt-1 text-xl font-medium tabular-nums">{value}</div>
+      <div className="text-strong mt-1 text-xl font-medium tabular-nums">
+        {amount !== undefined && currency ? <AnimatedAmount value={amount} currency={currency} /> : value}
+      </div>
       <div className="text-muted text-xs">{label}</div>
     </GlassCard>
   );

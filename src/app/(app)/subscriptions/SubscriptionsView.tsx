@@ -11,6 +11,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
+import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -80,8 +81,8 @@ export function SubscriptionsView() {
               <div className="flex flex-wrap items-center gap-x-8 gap-y-3">
                 {totals.map(({ cur, monthly, annual }) => (
                   <div key={cur} className="flex items-baseline gap-4">
-                    <div><p className="text-muted text-xs">{t("subs.monthly")}</p><p className="text-strong text-2xl font-light tabular-nums">{money(monthly, cur)}</p></div>
-                    <div><p className="text-muted text-xs">{t("subs.annual")}</p><p className="text-body text-lg font-medium tabular-nums">{money(annual, cur)}</p></div>
+                    <div><p className="text-muted text-xs">{t("subs.monthly")}</p><p className="text-strong text-2xl font-light tabular-nums"><AnimatedAmount value={monthly} currency={cur} /></p></div>
+                    <div><p className="text-muted text-xs">{t("subs.annual")}</p><p className="text-body text-lg font-medium tabular-nums"><AnimatedAmount value={annual} currency={cur} /></p></div>
                   </div>
                 ))}
               </div>
