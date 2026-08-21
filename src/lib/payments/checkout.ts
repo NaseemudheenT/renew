@@ -10,6 +10,8 @@ export type PayStatus = "paid" | "cancelled" | "failed" | "unconfigured";
 export interface PayResult {
   status: PayStatus;
   message?: string;
+  /** Razorpay payment id (present on a verified `paid` result). */
+  paymentId?: string;
 }
 
 interface RazorpayInstance {
@@ -125,7 +127,7 @@ export async function payWithRazorpay(input: {
           };
           done(
             vRes.ok && vData.status === "paid"
-              ? { status: "paid" }
+              ? { status: "paid", paymentId: r.razorpay_payment_id }
               : { status: "failed", message: vData.error ?? "Verification failed." },
           );
         } catch {

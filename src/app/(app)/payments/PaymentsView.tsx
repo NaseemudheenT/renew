@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { PaymentRow } from "@/components/payments/PaymentRow";
 import { PaymentForm } from "@/components/payments/PaymentForm";
+import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -28,6 +29,14 @@ export function PaymentsView() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Payment | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [receipt, setReceipt] = useState<{
+    amount: number;
+    currency: string;
+    name: string;
+    date: Date;
+    method?: string;
+    reference: string;
+  } | null>(null);
 
   const upcoming = useMemo(() => data.filter((p) => p.status !== "paid").sort((a, b) => a.dueAt - b.dueAt), [data]);
   const paid = useMemo(() => data.filter((p) => p.status === "paid").sort((a, b) => (b.paidAt ?? 0) - (a.paidAt ?? 0)), [data]);
@@ -74,7 +83,18 @@ export function PaymentsView() {
       description: `Renew · ${payment.name}`,
       paymentId: payment.id,
     });
-    if (result.status === "paid" || result.status === "unconfigured") {
+    if (result.status === "paid") {
+      await finishMarkPaid(payment);
+      // The calm, keepable "bill" — Renew's receipt.
+      setReceipt({
+        amount: payment.amount,
+        currency: payment.currency,
+        name: payment.name,
+        date: new Date(),
+        method: "UPI / Card",
+        reference: result.paymentId ?? "—",
+      });
+    } else if (result.status === "unconfigured") {
       await finishMarkPaid(payment);
     } else if (result.status === "cancelled") {
       toast({ title: "Payment cancelled" });
@@ -134,6 +154,10 @@ export function PaymentsView() {
       <AnimatedModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} title={editing ? "Edit payment" : "New payment"}>
         <PaymentForm initial={editing ?? undefined} submitting={submitting} onSubmit={onSubmitForm} onCancel={() => { setModalOpen(false); setEditing(null); }} />
       </AnimatedModal>
+
+      <AnimatePresence>
+        {receipt ? <PaymentReceipt {...receipt} onDone={() => setReceipt(null)} /> : null}
+      </AnimatePresence>
     </div>
   );
 
