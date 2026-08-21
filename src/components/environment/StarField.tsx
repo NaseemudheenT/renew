@@ -164,9 +164,8 @@ export function StarField() {
     };
 
     build();
-    if (staticMode) {
-      renderStatic();
-    } else {
+    renderStatic(); // instant first paint — no blank flash before the first frame
+    if (!staticMode) {
       raf = requestAnimationFrame(frame);
     }
 
