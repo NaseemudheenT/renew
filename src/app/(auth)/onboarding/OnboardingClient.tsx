@@ -9,9 +9,10 @@ import {
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { CountrySelect } from "@/components/ui/CountrySelect";
 import { AnimatedButton } from "@/components/motion";
 import {
-  detectPrefs, LANGUAGES, REGIONS, CURRENCY_CODES, REGION_CURRENCY,
+  detectPrefs, LANGUAGES, CURRENCY_CODES, REGION_CURRENCY,
   weekStartFor, hour12For, type WeekStart,
 } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
@@ -144,11 +145,11 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
                 onChange={(e) => setLanguage(e.target.value)}
                 options={LANGUAGES.map((l) => ({ value: l.code, label: `${l.native} · ${l.label}` }))}
               />
-              <Select
+              <CountrySelect
                 label="Country / region"
                 value={region}
-                onChange={(e) => onRegionChange(e.target.value)}
-                options={REGIONS.map((r) => ({ value: r.code, label: r.label }))}
+                onChange={onRegionChange}
+                locale={language}
               />
               <Select
                 label="Currency"
