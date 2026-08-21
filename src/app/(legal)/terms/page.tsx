@@ -4,7 +4,7 @@ export default function TermsPage() {
   return (
     <>
       <h1>Terms of Service</h1>
-      <p className="lead">Last updated: 16 August 2026</p>
+      <p className="lead">Last updated: 21 August 2026</p>
       <p>These terms govern your use of Renew (&ldquo;the service&rdquo;), a product by Zap. By creating an account you agree to them.</p>
       <h2>Your account</h2>
       <ul>
@@ -13,13 +13,19 @@ export default function TermsPage() {
         <li>You must be old enough to form a binding contract in your jurisdiction.</li>
       </ul>
       <h2>Acceptable use</h2>
-      <p>Use Renew for your own personal life management. Don&apos;t upload unlawful content, attempt to breach security, or disrupt the service for others.</p>
+      <p>Use Renew to manage your own money. Don&apos;t upload unlawful content, attempt to breach security, or disrupt the service for others.</p>
       <h2>Your content</h2>
-      <p>You own the content you add. You grant us only the limited permission needed to store and display it back to you. You can export by downloading your documents and can delete your data at any time.</p>
+      <p>You own the money data you add. You grant us only the limited permission needed to store it and show it back to you. You can export your data or delete it at any time.</p>
+      <h2>Payments</h2>
+      <ul>
+        <li>When you pay through Renew, the payment is carried out by our payment provider (Razorpay). Renew initiates the payment on your instruction and never stores your full card or bank details.</li>
+        <li>You are responsible for confirming each payment&apos;s amount and recipient before you approve it.</li>
+      </ul>
+      <h2>Not a bank, not financial advice</h2>
+      <p>Renew is a tool to help you see and organise your money. <strong>Renew is not a bank, does not hold your funds, and does not provide financial, investment or tax advice.</strong> You remain responsible for your own money decisions, payments and deadlines.</p>
       <h2>The service</h2>
       <ul>
         <li>Renew is provided &ldquo;as is&rdquo;; we work to keep it reliable but can&apos;t guarantee it will always be available or error-free.</li>
-        <li>Renew helps you remember — it is a tool, not a guarantee. You remain responsible for your own renewals, payments and deadlines.</li>
         <li>Paid plans, if offered, will be described clearly before you&apos;re charged; you&apos;ll never be billed without opting in.</li>
       </ul>
       <h2>Ending your use</h2>
@@ -27,7 +33,7 @@ export default function TermsPage() {
       <h2>Changes</h2>
       <p>We may update these terms; we&apos;ll reflect the date above and, for material changes, let you know in the app.</p>
       <h2>Contact</h2>
-      <p>For any service, question or help, email us at <a href="mailto:meetzapstudio@gmail.com">meetzapstudio@gmail.com</a>.</p>
+      <p>For any question or help, email us at <a href="mailto:meetzapstudio@gmail.com">meetzapstudio@gmail.com</a>.</p>
       <p className="lead">This document is a plain-language starting point and not legal advice; adapt it to your jurisdiction before launch.</p>
     </>
   );

@@ -544,7 +544,7 @@ function SecurityControl() {
         <Trash2 className="size-5 text-rose-500" />
         <div className="flex-1"><p className="text-sm font-medium text-rose-600 dark:text-rose-300">Delete account</p><p className="text-muted text-xs">Permanently remove your account and all data.</p></div>
       </button>
-      <AnimatedModal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Delete your account?" description="This permanently deletes your reminders, tasks, documents, payments and profile. This cannot be undone.">
+      <AnimatedModal open={confirmOpen} onClose={() => setConfirmOpen(false)} title="Delete your account?" description="This permanently deletes your accounts, transactions, budgets, payments and profile. This cannot be undone.">
         <div className="flex flex-col gap-4">
           <Input label='Type "DELETE" to confirm' value={confirmText} onChange={(e) => setConfirmText(e.target.value)} placeholder="DELETE" />
           <div className="flex items-center justify-end gap-3">
