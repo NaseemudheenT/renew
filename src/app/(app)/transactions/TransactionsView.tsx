@@ -6,6 +6,7 @@ import { orderBy } from "firebase/firestore";
 import { Plus, ArrowLeftRight, Search } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { TransactionRow } from "@/components/finance/TransactionRow";
@@ -108,7 +109,13 @@ export function TransactionsView() {
         </div>
       )}
 
-      {isEmpty ? (
+      {loading ? (
+        <div className="flex flex-col gap-2">
+          {Array.from({ length: 7 }).map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full rounded-2xl" />
+          ))}
+        </div>
+      ) : isEmpty ? (
         <GlassCard padded>
           <EmptyState icon={ArrowLeftRight} title="No transactions yet" description="Add your first income or expense — it takes seconds and everything else updates automatically." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />Add transaction</AnimatedButton>} />
         </GlassCard>
