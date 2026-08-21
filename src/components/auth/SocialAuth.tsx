@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, User2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, ShieldCheck, User2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/liquid-glass";
 import { Input } from "@/components/ui/Input";
@@ -325,6 +325,14 @@ export function SocialAuth({
             </p>
           </>
         )}
+
+        {/* Trust signal — calm, honest, unmistakably Renew. */}
+        <div className="mt-6 flex items-center justify-center">
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-3.5 py-1.5 text-[0.7rem] font-medium tracking-wide text-[var(--text-muted)]">
+            <ShieldCheck className="size-3.5 text-[var(--color-gold-400)]" />
+            Passwordless · Encrypted · Private
+          </span>
+        </div>
 
         {/* Invisible reCAPTCHA anchor for phone auth. */}
         <div id={RECAPTCHA_ID} />
