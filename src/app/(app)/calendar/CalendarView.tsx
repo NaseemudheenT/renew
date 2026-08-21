@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, addMonths, isSameMonth, isSameDay } from "date-fns";
-import { ChevronLeft, ChevronRight, Bell, ListTodo, Wallet, RefreshCw } from "lucide-react";
+import { ChevronLeft, ChevronRight, Wallet, RefreshCw } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -12,14 +12,12 @@ import { AnimatedButton } from "@/components/motion";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { dayStart } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import type { Reminder, Task, Payment, Subscription } from "@/lib/types";
+import type { Payment, Subscription } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type Kind = "reminder" | "task" | "payment" | "subscription";
+type Kind = "payment" | "subscription";
 interface CalItem { id: string; kind: Kind; title: string; at: number; href: string }
-const KIND_META: Record<Kind, { icon: typeof Bell; dot: string }> = {
-  reminder: { icon: Bell, dot: "bg-[var(--color-gold-400)]" },
-  task: { icon: ListTodo, dot: "bg-sky-400" },
+const KIND_META: Record<Kind, { icon: typeof Wallet; dot: string }> = {
   payment: { icon: Wallet, dot: "bg-emerald-400" },
   subscription: { icon: RefreshCw, dot: "bg-violet-400" },
 };
@@ -29,7 +27,6 @@ export function CalendarView() {
   const loc = `${prefs.language}-${prefs.region}`;
   const [cursor, setCursor] = useState(() => new Date());
   const [selected, setSelected] = useState(() => new Date());
-  const reminders = useUserCollection<Reminder>("reminders");
 
   // Calendar cells are calendar days, not instants — format them locale-aware
   // but WITHOUT the profile timezone, so the day number never shifts.
@@ -49,18 +46,15 @@ export function CalendarView() {
     const s = prefs.weekStart;
     return [...names.slice(s), ...names.slice(0, s)];
   }, [loc, prefs.weekStart]);
-  const tasks = useUserCollection<Task>("tasks");
   const payments = useUserCollection<Payment>("payments");
   const subscriptions = useUserCollection<Subscription>("subscriptions");
 
   const items: CalItem[] = useMemo(() => {
     const out: CalItem[] = [];
-    reminders.data.forEach((r) => out.push({ id: r.id, kind: "reminder", title: r.title, at: r.dueAt, href: "/reminders" }));
-    tasks.data.forEach((t) => { if (t.dueAt) out.push({ id: t.id, kind: "task", title: t.title, at: t.dueAt, href: "/tasks" }); });
     payments.data.forEach((p) => out.push({ id: p.id, kind: "payment", title: p.name, at: p.dueAt, href: "/payments" }));
     subscriptions.data.forEach((s) => { if (s.status === "active") out.push({ id: s.id, kind: "subscription", title: s.name, at: s.nextBillingAt, href: "/subscriptions" }); });
     return out;
-  }, [reminders.data, tasks.data, payments.data, subscriptions.data]);
+  }, [payments.data, subscriptions.data]);
 
   const byDay = useMemo(() => {
     const map = new Map<number, CalItem[]>();
@@ -83,7 +77,7 @@ export function CalendarView() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title={t("nav.calendar")} subtitle="Your reminders, tasks and payments on one timeline." action={<AnimatedButton variant="glass" size="sm" onClick={() => { const now = new Date(); setCursor(now); setSelected(now); }}>Today</AnimatedButton>} />
+      <PageHeader title={t("nav.calendar")} subtitle="Your bills and subscriptions on one timeline." action={<AnimatedButton variant="glass" size="sm" onClick={() => { const now = new Date(); setCursor(now); setSelected(now); }}>Today</AnimatedButton>} />
       <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
         <GlassCard padded>
           <div className="mb-4 flex items-center justify-between">
@@ -122,7 +116,7 @@ export function CalendarView() {
             <AnimatePresence mode="wait">
               <motion.div key={selected.toISOString()} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.2 }}>
                 {selectedItems.length === 0 ? (
-                  <EmptyState compact icon={Bell} title="Nothing scheduled" />
+                  <EmptyState compact icon={Wallet} title="Nothing due" />
                 ) : (
                   <ul className="flex flex-col gap-2">
                     {selectedItems.map((it) => {

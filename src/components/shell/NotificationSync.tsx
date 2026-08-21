@@ -10,10 +10,7 @@ import {
 } from "@/lib/firestore/notifications-generate";
 import { browserNotifyStatus, showBrowserNotification } from "@/lib/notify";
 import type {
-  Reminder,
-  Task,
   Payment,
-  DocItem,
   Budget,
   SavingsGoal,
   Transaction,
@@ -28,10 +25,7 @@ import type {
  * never duplicates or resets read state. Runs whenever the source data changes.
  */
 export function NotificationSync() {
-  const reminders = useUserCollection<Reminder>("reminders");
-  const tasks = useUserCollection<Task>("tasks");
   const payments = useUserCollection<Payment>("payments");
-  const documents = useUserCollection<DocItem>("documents");
   const budgets = useUserCollection<Budget>("budgets");
   const savings = useUserCollection<SavingsGoal>("savings");
   const transactions = useUserCollection<Transaction>("transactions");
@@ -54,10 +48,7 @@ export function NotificationSync() {
   const attempted = useRef<Set<string>>(new Set());
 
   const anyLoading =
-    reminders.loading ||
-    tasks.loading ||
     payments.loading ||
-    documents.loading ||
     budgets.loading ||
     savings.loading ||
     transactions.loading ||
@@ -65,15 +56,15 @@ export function NotificationSync() {
     notifications.loading;
 
   useEffect(() => {
-    const uid = reminders.uid;
+    const uid = payments.uid;
     if (!uid || anyLoading) return;
 
     const desired = computeDesired(
       {
-        reminders: reminders.data,
-        tasks: tasks.data,
+        reminders: [],
+        tasks: [],
         payments: payments.data,
-        documents: documents.data,
+        documents: [],
         budgets: budgets.data,
         savings: savings.data,
         transactions: transactions.data,
@@ -106,12 +97,9 @@ export function NotificationSync() {
         toCreate.forEach((d) => attempted.current.delete(d.id));
       });
   }, [
-    reminders.uid,
+    payments.uid,
     anyLoading,
-    reminders.data,
-    tasks.data,
     payments.data,
-    documents.data,
     budgets.data,
     savings.data,
     transactions.data,

@@ -142,12 +142,9 @@ function AppearanceControl() {
 }
 
 const PREF_ROWS: { key: keyof NotificationPrefs; label: string; desc: string }[] = [
-  { key: "reminders", label: "Reminders", desc: "When a reminder is due or overdue" },
-  { key: "tasks", label: "Tasks", desc: "When a task is due or overdue" },
   { key: "payments", label: "Bills", desc: "When a bill is due soon or overdue" },
   { key: "budgets", label: "Budgets", desc: "When you're close to or over a budget" },
   { key: "savings", label: "Savings", desc: "When a savings goal is reached" },
-  { key: "documents", label: "Documents", desc: "When a document is expiring" },
 ];
 
 function NotificationPrefsControl({ uid, prefs }: { uid: string; prefs: NotificationPrefs }) {

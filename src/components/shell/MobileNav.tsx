@@ -13,7 +13,7 @@ export function MobileNav() {
   const pathname = usePathname();
   const { t } = useLocale();
   const primary = NAV_ITEMS.filter((i) => i.primary);
-  const moreActive = ["/savings", "/investments", "/payments", "/subscriptions", "/calendar", "/analytics", "/documents", "/settings"].some((h) => pathname.startsWith(h));
+  const moreActive = ["/savings", "/investments", "/payments", "/subscriptions", "/calendar", "/analytics", "/settings"].some((h) => pathname.startsWith(h));
 
   const tabs = [
     ...primary.map((i) => ({ href: i.href, msgKey: i.msgKey, icon: i.icon, isMore: false as const })),
