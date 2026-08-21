@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Shield, FileText, CreditCard, Receipt, IdCard, HeartPulse, Car, Home, AlertCircle, Check,
+  Wallet, Receipt, PiggyBank, TrendingUp, User, Briefcase, Layers, AlertCircle, Check,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
@@ -17,14 +17,17 @@ import {
 import { cn } from "@/lib/utils";
 
 const FOCUS = [
-  { id: "insurance", label: "Insurance", icon: Shield },
-  { id: "documents", label: "Documents & IDs", icon: IdCard },
-  { id: "subscriptions", label: "Subscriptions", icon: CreditCard },
-  { id: "bills", label: "Bills", icon: Receipt },
-  { id: "licenses", label: "Licenses", icon: FileText },
-  { id: "vehicle", label: "Vehicle", icon: Car },
-  { id: "health", label: "Health", icon: HeartPulse },
-  { id: "home", label: "Home", icon: Home },
+  { id: "spending", label: "Spending & budgets", icon: Wallet },
+  { id: "bills", label: "Bills & subscriptions", icon: Receipt },
+  { id: "savings", label: "Savings goals", icon: PiggyBank },
+  { id: "investments", label: "Investments", icon: TrendingUp },
+] as const;
+
+type AccountType = "personal" | "business" | "both";
+const ACCOUNT_TYPES = [
+  { value: "personal", label: "Personal", icon: User },
+  { value: "business", label: "Business", icon: Briefcase },
+  { value: "both", label: "Both", icon: Layers },
 ] as const;
 
 const slide = {
@@ -46,6 +49,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const [currency, setCurrency] = useState(detected.currency);
   const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
   const [focus, setFocus] = useState<string[]>([]);
+  const [accountType, setAccountType] = useState<AccountType>("personal");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -83,6 +87,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
           currency,
           weekStart,
           hour12: hour12For(region),
+          accountType,
         }),
       });
       if (!res.ok) {
@@ -162,9 +167,33 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         )}
         {step === 2 && (
           <motion.div key="s2" {...slide}>
-            <h1 className="text-strong text-xl font-medium">What would you like to stay on top of?</h1>
-            <p className="text-muted mt-1 text-sm">Optional — pick a few. You can change these anytime.</p>
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <h1 className="text-strong text-xl font-medium">How will you use Renew?</h1>
+            <p className="text-muted mt-1 text-sm">You can change this anytime in Settings.</p>
+            <div className="mt-5 grid grid-cols-3 gap-2">
+              {ACCOUNT_TYPES.map(({ value, label, icon: Icon }) => {
+                const active = accountType === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() => setAccountType(value)}
+                    aria-pressed={active}
+                    className={cn(
+                      "flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-sm transition-all",
+                      active
+                        ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]"
+                        : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-body)] hover:border-[var(--focus-ring)]/50",
+                    )}
+                  >
+                    <Icon className="size-5 text-[var(--color-gold-500)]" />
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+
+            <p className="text-muted mb-3 mt-6 text-sm">What matters most? <span className="opacity-70">Optional</span></p>
+            <div className="grid grid-cols-2 gap-3">
               {FOCUS.map(({ id, label, icon: Icon }) => {
                 const active = focus.includes(id);
                 return (

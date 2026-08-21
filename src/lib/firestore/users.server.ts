@@ -61,6 +61,7 @@ export interface OnboardingInput {
   currency?: string;
   weekStart?: 0 | 1;
   hour12?: boolean;
+  accountType?: "personal" | "business" | "both";
 }
 
 /** Persist onboarding answers and flip the onboarded flag. */
@@ -81,6 +82,7 @@ export async function completeOnboarding(
   if (input.currency) doc.currency = input.currency;
   if (input.weekStart !== undefined) doc.weekStart = input.weekStart;
   if (input.hour12 !== undefined) doc.hour12 = input.hour12;
+  if (input.accountType) doc.accountType = input.accountType;
 
   await getAdminDb().collection("users").doc(uid).set(doc, { merge: true });
 }
