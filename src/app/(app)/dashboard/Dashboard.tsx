@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { orderBy, where, limit } from "firebase/firestore";
 import {
@@ -23,10 +23,24 @@ import { useAccountType } from "@/hooks/useAccountType";
 import { cn } from "@/lib/utils";
 import type { Transaction, SavingsGoal, Investment, Payment, Account, Transfer } from "@/lib/types";
 
+/** A warm, time-of-day greeting — computed from the person's own clock. */
+function timeGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 5) return "Still up";
+  if (h < 12) return "Good morning";
+  if (h < 17) return "Good afternoon";
+  if (h < 22) return "Good evening";
+  return "Good night";
+}
+const greetSubscribe = () => () => {};
+
 export function Dashboard({ firstName }: { firstName: string }) {
   const { prefs, money, dueLabel, date } = useLocale();
   const { resolve } = useCategories();
   const { isBusiness } = useAccountType();
+  // Server renders the neutral "Hello"; the client swaps to the local-time
+  // greeting on hydration (no mismatch, no setState-in-effect).
+  const greeting = useSyncExternalStore(greetSubscribe, timeGreeting, () => "Hello");
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const recentC = useMemo(() => [orderBy("date", "desc"), limit(6)], []);
   const upcomingC = useMemo(() => [where("status", "in", ["upcoming", "overdue"])], []);
@@ -91,7 +105,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
           <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
             <div>
               <p className="text-muted text-sm capitalize">{date(new Date(), { weekday: "long", day: "numeric", month: "long" })}</p>
-              <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">Hello, {firstName}.</h1>
+              <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {firstName}.</h1>
             </div>
             <AnimatedButton onClick={() => setModalOpen(true)}><Plus className="size-4" />Add transaction</AnimatedButton>
           </div>
