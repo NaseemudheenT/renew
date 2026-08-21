@@ -53,6 +53,7 @@ export const publicEnv = {
   },
   sentryDsn: clean(process.env.NEXT_PUBLIC_SENTRY_DSN),
   stripePublishableKey: clean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY),
+  razorpayKeyId: clean(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID),
 } as const;
 
 /** True if a value is missing or an obvious placeholder. */
@@ -99,6 +100,11 @@ export function getServerEnv() {
     stripe: {
       secretKey: clean(process.env.STRIPE_SECRET_KEY),
       webhookSecret: clean(process.env.STRIPE_WEBHOOK_SECRET),
+    },
+    razorpay: {
+      keyId: clean(process.env.RAZORPAY_KEY_ID),
+      keySecret: clean(process.env.RAZORPAY_KEY_SECRET),
+      webhookSecret: clean(process.env.RAZORPAY_WEBHOOK_SECRET),
     },
     sentryDsn: clean(process.env.SENTRY_DSN),
   };
