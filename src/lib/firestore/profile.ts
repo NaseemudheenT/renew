@@ -5,7 +5,7 @@ import { updateProfile } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
 import { getFirebaseAuth } from "@/lib/firebase/client";
-import type { NotificationPrefs } from "@/hooks/useUserProfile";
+import type { NotificationPrefs, AccountType } from "@/hooks/useUserProfile";
 import type { CustomCategory } from "@/lib/types";
 
 function profileRef(uid: string) {
@@ -25,6 +25,14 @@ export async function updateDisplayName(uid: string, name: string): Promise<void
 
 export async function updateTimezone(uid: string, timezone: string): Promise<void> {
   await updateDoc(profileRef(uid), { timezone, updatedAt: serverTimestamp() });
+}
+
+/** Personal / business / both — how the person uses Renew. */
+export async function updateAccountType(
+  uid: string,
+  accountType: AccountType,
+): Promise<void> {
+  await updateDoc(profileRef(uid), { accountType, updatedAt: serverTimestamp() });
 }
 
 /** Locale/region override the user can set in Settings → Region & Language. */

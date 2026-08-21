@@ -2,7 +2,7 @@
 
 import { useReducer, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X, Briefcase } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -23,6 +23,7 @@ import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Tr
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
 import { useCategories } from "@/hooks/useCategories";
+import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { LANGUAGES, REGIONS, CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
 import { browserNotifyStatus, requestBrowserNotify, type NotifyStatus } from "@/lib/notify";
@@ -49,6 +50,10 @@ export function SettingsView() {
           </div>
         </div>
         {uid && <NameEditor uid={uid} initial={user?.displayName ?? ""} />}
+      </Section>
+
+      <Section icon={Briefcase} title="How you use Renew">
+        {uid && <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} />}
       </Section>
 
       <Section icon={Palette} title="Appearance">

@@ -19,12 +19,14 @@ import { computeAccountBalance, accountTypeMeta } from "@/lib/accounts";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
+import { useAccountType } from "@/hooks/useAccountType";
 import { cn } from "@/lib/utils";
 import type { Transaction, SavingsGoal, Investment, Payment, Account, Transfer } from "@/lib/types";
 
 export function Dashboard({ firstName }: { firstName: string }) {
   const { prefs, money, dueLabel, date } = useLocale();
   const { resolve } = useCategories();
+  const { isBusiness } = useAccountType();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const recentC = useMemo(() => [orderBy("date", "desc"), limit(6)], []);
   const upcomingC = useMemo(() => [where("status", "in", ["upcoming", "overdue"])], []);
@@ -111,8 +113,8 @@ export function Dashboard({ firstName }: { firstName: string }) {
                 <AnimatedAmount value={netWorth} currency={currency} className="text-strong mt-1 block text-4xl font-light tabular-nums sm:text-5xl" />
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <Mini label="Balance" icon={Wallet} value={totals.balance} currency={currency} />
-                  <Mini label="This month in" icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
-                  <Mini label="This month out" icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
+                  <Mini label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
+                  <Mini label={isBusiness ? "Expenses (mo)" : "This month out"} icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
                   <Mini label="Saved" icon={PiggyBank} value={savingsTotal} currency={currency} />
                 </div>
               </GlassCard>
