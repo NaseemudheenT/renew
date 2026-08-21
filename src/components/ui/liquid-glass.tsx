@@ -6,6 +6,7 @@ import {
   useReducedMotion,
   type HTMLMotionProps,
 } from "framer-motion";
+import { playTap } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 /**
@@ -97,7 +98,7 @@ export const GlassButton = forwardRef<
   HTMLButtonElement,
   HTMLMotionProps<"button"> & { variant?: Variant; fullWidth?: boolean }
 >(function GlassButton(
-  { children, className, variant = "primary", fullWidth, disabled, ...props },
+  { children, className, variant = "primary", fullWidth, disabled, onPointerDown, ...props },
   ref,
 ) {
   const reduced = useReducedMotion();
@@ -105,6 +106,7 @@ export const GlassButton = forwardRef<
     <motion.button
       ref={ref}
       disabled={disabled}
+      onPointerDown={(e) => { playTap(); onPointerDown?.(e); }}
       className={cn(
         "relative isolate inline-flex items-center justify-center gap-2 overflow-hidden rounded-full px-6 py-3 font-semibold",
         "disabled:pointer-events-none disabled:opacity-55",
