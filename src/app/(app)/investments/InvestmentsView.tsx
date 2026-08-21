@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, TrendingUp, Pencil, Trash2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -36,7 +37,9 @@ export function InvestmentsView() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title={t("nav.investments")} subtitle="Track what you hold and how it's doing." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />Add holding</AnimatedButton>} />
-      {isEmpty ? (
+      {loading ? (
+        <ListSkeleton />
+      ) : isEmpty ? (
         <GlassCard padded><EmptyState icon={TrendingUp} title="No investments tracked" description="Add a stock, fund or crypto holding with its quantity and prices — Renew shows your value and gain." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />Add holding</AnimatedButton>} /></GlassCard>
       ) : (
         <>

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, PiggyBank, Pencil, Trash2, Coins } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -30,7 +31,9 @@ export function SavingsView() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title={t("nav.savings")} subtitle="Set goals, watch them fill." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New goal</AnimatedButton>} />
-      {isEmpty ? (
+      {loading ? (
+        <ListSkeleton />
+      ) : isEmpty ? (
         <GlassCard padded><EmptyState icon={PiggyBank} title="No savings goals yet" description="Create a goal like an emergency fund or a trip, set a target, and track your progress." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New goal</AnimatedButton>} /></GlassCard>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2">

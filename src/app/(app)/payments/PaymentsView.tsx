@@ -5,6 +5,7 @@ import { AnimatePresence } from "framer-motion";
 import { Plus, Wallet } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { PaymentRow } from "@/components/payments/PaymentRow";
@@ -136,7 +137,9 @@ export function PaymentsView() {
         </div>
       )}
 
-      {isEmpty ? (
+      {loading ? (
+        <ListSkeleton />
+      ) : isEmpty ? (
         <GlassCard padded>
           <EmptyState icon={Wallet} title="No payments tracked" description="Add rent, insurance, subscriptions or any bill you want to keep an eye on — and mark them paid as you go." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />New payment</AnimatedButton>} />
         </GlassCard>

@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Pencil, Trash2, RefreshCw, XCircle, PlayCircle } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -70,7 +71,9 @@ export function SubscriptionsView() {
         action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("subs.new")}</AnimatedButton>}
       />
 
-      {isEmpty ? (
+      {loading ? (
+        <ListSkeleton />
+      ) : isEmpty ? (
         <GlassCard padded>
           <EmptyState icon={RefreshCw} title={t("subs.empty.title")} description={t("subs.empty.body")} action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("subs.new")}</AnimatedButton>} />
         </GlassCard>

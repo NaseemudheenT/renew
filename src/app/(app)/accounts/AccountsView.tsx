@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Archive, ArchiveRestore, Wallet, ArrowLeftRight, ArrowRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -70,7 +71,9 @@ export function AccountsView() {
         }
       />
 
-      {isEmpty ? (
+      {loading ? (
+        <ListSkeleton />
+      ) : isEmpty ? (
         <GlassCard padded>
           <EmptyState icon={Wallet} title={t("accounts.empty.title")} description={t("accounts.empty.body")} action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("accounts.new")}</AnimatedButton>} />
         </GlassCard>

@@ -6,6 +6,7 @@ import { orderBy } from "firebase/firestore";
 import { Plus, Target, Pencil, Trash2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
@@ -46,7 +47,9 @@ export function BudgetView() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader title={t("nav.budget")} subtitle="Set a monthly limit per category — see what's left at a glance." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New budget</AnimatedButton>} />
-      {isEmpty ? (
+      {loading ? (
+        <ListSkeleton />
+      ) : isEmpty ? (
         <GlassCard padded>
           <EmptyState icon={Target} title="No budgets yet" description="Create a budget for a category like Food or Transport and Renew tracks your spending against it automatically." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New budget</AnimatedButton>} />
         </GlassCard>
