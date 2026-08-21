@@ -6,6 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import AnimatedGradient, {
   type GradientCustomConfig,
 } from "@/components/ui/animated-gradient";
+import { StarField } from "./StarField";
 
 /**
  * RENEW — cinematic environment. A slow, liquid champagne-gold flow (WebGL) is
@@ -103,6 +104,9 @@ export function RenewBackground() {
           />
         </>
       )}
+
+      {/* Night-sky stars — subtle, static, premium depth (dark theme only). */}
+      <StarField />
 
       <div
         className="absolute inset-0"
