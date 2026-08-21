@@ -4,12 +4,15 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  signInWithPhoneNumber,
+  RecaptchaVerifier,
   GoogleAuthProvider,
   OAuthProvider,
   updateProfile,
   sendPasswordResetEmail,
   signOut,
   type User,
+  type ConfirmationResult,
 } from "firebase/auth";
 import { getFirebaseAuth } from "@/lib/firebase/client";
 
@@ -40,6 +43,13 @@ const ERROR_MESSAGES: Record<string, string> = {
     "This domain isn't authorized for sign-in yet. Please contact support.",
   "auth/user-disabled": "This account has been disabled.",
   "auth/requires-recent-login": "Please sign in again to continue.",
+  "auth/invalid-phone-number": "That doesn't look like a valid phone number.",
+  "auth/missing-phone-number": "Enter your phone number to continue.",
+  "auth/invalid-verification-code": "That code isn't right. Check it and try again.",
+  "auth/code-expired": "That code expired. Request a new one.",
+  "auth/missing-verification-code": "Enter the 6-digit code we sent you.",
+  "auth/quota-exceeded": "Too many codes sent. Please try again later.",
+  "auth/captcha-check-failed": "Verification failed. Please reload and try again.",
 };
 
 export class AuthError extends Error {
@@ -141,6 +151,66 @@ export async function signInWithApple(): Promise<void> {
   try {
     const { user } = await signInWithPopup(auth, provider);
     await establishSession(user, true);
+  } catch (err) {
+    throw toAuthError(err);
+  }
+}
+
+/* ---- Passwordless phone (OTP) — Renew's primary sign-in ------------------ */
+
+let phoneConfirmation: ConfirmationResult | null = null;
+let recaptcha: RecaptchaVerifier | null = null;
+
+/**
+ * Lazily build ONE invisible reCAPTCHA verifier bound to `containerId`. Firebase
+ * requires an app verifier for web phone auth; "invisible" means a normal user
+ * never sees a challenge, and registered test numbers bypass it entirely.
+ */
+function getPhoneRecaptcha(containerId: string): RecaptchaVerifier {
+  if (recaptcha) return recaptcha;
+  recaptcha = new RecaptchaVerifier(getFirebaseAuth(), containerId, {
+    size: "invisible",
+  });
+  return recaptcha;
+}
+
+/** Tear down the verifier so a fresh challenge can be created after an error. */
+export function resetPhoneRecaptcha(): void {
+  try {
+    recaptcha?.clear();
+  } catch {
+    /* already cleared */
+  }
+  recaptcha = null;
+}
+
+/** Send an SMS code to an E.164 number (e.g. +919000000001). */
+export async function startPhoneSignIn(
+  phoneE164: string,
+  containerId: string,
+): Promise<void> {
+  const auth = getFirebaseAuth();
+  try {
+    const verifier = getPhoneRecaptcha(containerId);
+    phoneConfirmation = await signInWithPhoneNumber(auth, phoneE164, verifier);
+  } catch (err) {
+    resetPhoneRecaptcha();
+    throw toAuthError(err);
+  }
+}
+
+/** Confirm the 6-digit code and establish the httpOnly session. */
+export async function confirmPhoneCode(code: string): Promise<void> {
+  if (!phoneConfirmation) {
+    throw new AuthError(
+      "auth/missing-verification-code",
+      "Please request a code first.",
+    );
+  }
+  try {
+    const { user } = await phoneConfirmation.confirm(code);
+    await establishSession(user, true);
+    phoneConfirmation = null;
   } catch (err) {
     throw toAuthError(err);
   }
