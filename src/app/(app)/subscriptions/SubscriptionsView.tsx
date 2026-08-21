@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Pencil, Trash2, RefreshCw, XCircle, PlayCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, RefreshCw, XCircle, PlayCircle, CreditCard } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -20,6 +20,9 @@ import {
   createSubscription, updateSubscription, setSubscriptionStatus, deleteSubscription, type SubscriptionInput,
 } from "@/lib/firestore/subscriptions";
 import { BILLING_CYCLES, subscriptionMonthly, subscriptionTotals, advanceBilling } from "@/lib/accounts";
+import { payWithRazorpay } from "@/lib/payments/checkout";
+import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
+import { publicEnv } from "@/lib/env";
 import { CATEGORIES, categoryMeta } from "@/lib/categories";
 import { toDateInput, fromDateTimeInputs, todayStart } from "@/lib/dates";
 import { CURRENCIES } from "@/lib/utils";
@@ -63,6 +66,37 @@ export function SubscriptionsView() {
 
   const isEmpty = !loading && subs.length === 0;
 
+  const [receipt, setReceipt] = useState<{
+    amount: number; currency: string; name: string; date: Date; method?: string; reference: string;
+  } | null>(null);
+
+  async function onPay(sub: Subscription) {
+    if (!uid) return;
+    if (!publicEnv.razorpayKeyId) {
+      toast({ title: "Payments aren't set up yet" });
+      return;
+    }
+    const result = await payWithRazorpay({
+      amount: sub.price,
+      currency: sub.currency,
+      name: sub.name,
+      description: `Renew · ${sub.name}`,
+      paymentId: sub.id,
+    });
+    if (result.status === "paid") {
+      const next = advanceBilling(sub.nextBillingAt, sub.cycle);
+      await updateSubscription(uid, sub.id, { nextBillingAt: next }).catch(() => {});
+      setReceipt({
+        amount: sub.price, currency: sub.currency, name: sub.name,
+        date: new Date(), method: "UPI / Card", reference: result.paymentId ?? "—",
+      });
+    } else if (result.status === "cancelled") {
+      toast({ title: "Payment cancelled" });
+    } else if (result.status !== "unconfigured") {
+      toast({ title: "Payment failed", description: result.message, variant: "error" });
+    }
+  }
+
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
@@ -96,6 +130,7 @@ export function SubscriptionsView() {
             <AnimatePresence initial={false}>
               {active.map((s) => (
                 <SubRow key={s.id} sub={s} money={money} dueLabel={dueLabel} cycleLabel={t(cycleKey(s.cycle))}
+                  onPay={() => onPay(s)}
                   onEdit={() => { setEditing(s); setModalOpen(true); }}
                   onCancel={() => uid && setSubscriptionStatus(uid, s.id, "cancelled")}
                   onDelete={() => uid && deleteSubscription(uid, s.id)} />
@@ -123,6 +158,10 @@ export function SubscriptionsView() {
       )}
 
       <SubModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} uid={uid} editing={editing} accounts={accounts} defaultCurrency={prefs.currency} />
+
+      <AnimatePresence>
+        {receipt ? <PaymentReceipt {...receipt} onDone={() => setReceipt(null)} /> : null}
+      </AnimatePresence>
     </div>
   );
 }
@@ -131,12 +170,13 @@ function cycleKey(c: BillingCycle) {
   return `subs.cycle.${c}` as const;
 }
 
-function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onEdit, onCancel, onReactivate, onDelete }: {
+function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onPay, onEdit, onCancel, onReactivate, onDelete }: {
   sub: Subscription;
   money: (n: number, c?: string) => string;
   dueLabel: (v: number, hasTime?: boolean) => string;
   cycleLabel: string;
   cancelled?: boolean;
+  onPay?: () => void;
   onEdit?: () => void;
   onCancel?: () => void;
   onReactivate?: () => void;
@@ -146,7 +186,7 @@ function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onEdit, onCancel,
   const Icon = meta.icon;
   const items = cancelled
     ? [{ label: "Reactivate", icon: PlayCircle, onClick: onReactivate! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }]
-    : [{ label: "Edit", icon: Pencil, onClick: onEdit! }, { label: "Cancel", icon: XCircle, onClick: onCancel! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }];
+    : [{ label: "Pay now", icon: CreditCard, onClick: onPay! }, { label: "Edit", icon: Pencil, onClick: onEdit! }, { label: "Cancel", icon: XCircle, onClick: onCancel! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }];
   return (
     <motion.div layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass flex items-center gap-3 p-3.5">
       <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
