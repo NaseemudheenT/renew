@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedButton, AnimatedModal, StaggerContainer, StaggerItem } from "@/components/motion";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
@@ -111,7 +112,9 @@ export function Dashboard({ firstName }: { firstName: string }) {
           </div>
         </StaggerItem>
 
-        {brandNew ? (
+        {loading ? (
+          <DashboardSkeleton />
+        ) : brandNew ? (
           <StaggerItem>
             <GlassCard padded>
               <EmptyState icon={Sparkles} title="Welcome to your money, at a glance" description="Add your first income or expense and Renew instantly shows your balance, spending and what's coming next." action={<AnimatedButton size="lg" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add your first transaction</AnimatedButton>} />
@@ -235,6 +238,43 @@ export function Dashboard({ firstName }: { firstName: string }) {
         <TransactionForm defaultCurrency={currency} submitting={submitting} onSubmit={quickAdd} onCancel={() => setModalOpen(false)} />
       </AnimatedModal>
     </div>
+  );
+}
+
+/** Elegant loading state — shimmer that mirrors the real layout, so numbers
+ *  fade in instead of flashing zeros. */
+function DashboardSkeleton() {
+  return (
+    <>
+      <StaggerItem>
+        <GlassCard padded className="relative overflow-hidden">
+          <Skeleton className="h-3.5 w-24 rounded-md" />
+          <Skeleton className="mt-3 h-11 w-56 rounded-lg" />
+          <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[0, 1, 2, 3].map((i) => (
+              <div key={i} className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3">
+                <Skeleton className="h-3 w-16 rounded" />
+                <Skeleton className="mt-2 h-5 w-20 rounded-md" />
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      </StaggerItem>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {[0, 1].map((c) => (
+          <StaggerItem key={c}>
+            <GlassCard padded className="h-full">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <div className="mt-4 flex flex-col gap-2">
+                {[0, 1, 2, 3].map((i) => (
+                  <Skeleton key={i} className="h-11 w-full rounded-2xl" />
+                ))}
+              </div>
+            </GlassCard>
+          </StaggerItem>
+        ))}
+      </div>
+    </>
   );
 }
 

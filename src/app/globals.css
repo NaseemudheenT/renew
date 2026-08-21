@@ -279,6 +279,24 @@ body {
   font-weight: 600;
 }
 
+/* ---- Loading shimmer ---------------------------------------------------- */
+.skeleton-sweep {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--glass-highlight),
+    transparent
+  );
+  opacity: 0.22;
+  transform: translateX(-100%);
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+@keyframes skeleton-sweep {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 /* ---- Keyframes (supplied reference) ------------------------------------- */
 @keyframes moveBackground {
   from {
