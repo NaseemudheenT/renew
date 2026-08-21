@@ -3,6 +3,7 @@
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signInWithCustomToken,
   signInWithPopup,
   signInWithPhoneNumber,
   RecaptchaVerifier,
@@ -119,6 +120,17 @@ export async function signInWithEmail(input: {
       input.password,
     );
     await establishSession(user);
+  } catch (err) {
+    throw toAuthError(err);
+  }
+}
+
+/** Complete sign-in from a Firebase custom token (minted after passkey auth). */
+export async function signInWithCustomTokenAndSession(token: string): Promise<void> {
+  const auth = getFirebaseAuth();
+  try {
+    const { user } = await signInWithCustomToken(auth, token);
+    await establishSession(user, true);
   } catch (err) {
     throw toAuthError(err);
   }

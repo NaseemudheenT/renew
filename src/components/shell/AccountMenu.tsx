@@ -4,16 +4,20 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { Settings, LogOut, ChevronDown } from "lucide-react";
+import { Settings, LogOut, ChevronDown, Fingerprint } from "lucide-react";
 import { Avatar } from "./Avatar";
 import type { ShellUser } from "./shell-types";
-import { signOutUser } from "@/lib/auth/client";
+import { signOutUser, AuthError } from "@/lib/auth/client";
+import { registerPasskey, usePasskeySupport } from "@/lib/auth/passkey-client";
+import { toast } from "@/components/ui/toast-store";
 import { cn } from "@/lib/utils";
 
 /** Account dropdown — no theme toggle (theme lives in Settings). */
 export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?: "left" | "right" }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [addingPasskey, setAddingPasskey] = useState(false);
+  const passkeySupported = usePasskeySupport();
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -34,6 +38,19 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
     setOpen(false);
     await signOutUser();
     router.replace("/sign-in");
+  }
+
+  async function onAddPasskey() {
+    setAddingPasskey(true);
+    try {
+      await registerPasskey();
+      toast({ title: "Passkey added", description: "You can now sign in with Face ID.", variant: "success" });
+      setOpen(false);
+    } catch (err) {
+      toast({ title: "Couldn't add passkey", description: err instanceof AuthError ? err.message : undefined, variant: "error" });
+    } finally {
+      setAddingPasskey(false);
+    }
   }
 
   return (
@@ -76,6 +93,18 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
               <Settings className="size-4.5" />
               Settings
             </Link>
+            {passkeySupported && (
+              <button
+                type="button"
+                role="menuitem"
+                onClick={onAddPasskey}
+                disabled={addingPasskey}
+                className="text-body flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)] disabled:opacity-55"
+              >
+                <Fingerprint className="size-4.5" />
+                {addingPasskey ? "Setting up…" : "Set up Face ID"}
+              </button>
+            )}
             <button
               type="button"
               role="menuitem"

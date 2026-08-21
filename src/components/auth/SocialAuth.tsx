@@ -2,18 +2,14 @@
 
 import { useState, type FormEvent, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Lock, Mail, Phone, User2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, User2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/liquid-glass";
 import { Input } from "@/components/ui/Input";
 import { OtpInput } from "@/components/ui/OtpInput";
 import { FadeScale } from "@/components/motion";
-import { GoogleIcon } from "@/components/brand/GoogleIcon";
-import { AppleIcon } from "@/components/brand/AppleIcon";
 import { useAuth } from "@/components/providers/AuthProvider";
 import {
-  signInWithGoogle,
-  signInWithApple,
   signInWithEmail,
   signUpWithEmail,
   resetPassword,
@@ -22,11 +18,12 @@ import {
   resetPhoneRecaptcha,
   AuthError,
 } from "@/lib/auth/client";
+import { signInWithPasskey, usePasskeySupport } from "@/lib/auth/passkey-client";
 import { cn } from "@/lib/utils";
 
 type Mode = "sign-in" | "sign-up";
 type Method = "phone" | "email";
-type Pending = null | "google" | "apple" | "email" | "phone";
+type Pending = null | "email" | "phone" | "passkey";
 
 /** Invisible reCAPTCHA lives here (Firebase requires an app verifier on web). */
 const RECAPTCHA_ID = "renew-recaptcha";
@@ -58,6 +55,7 @@ export function SocialAuth({
 }) {
   const router = useRouter();
   const { configured } = useAuth();
+  const passkeySupported = usePasskeySupport();
   const isSignUp = mode === "sign-up";
 
   const [method, setMethod] = useState<Method>("phone");
@@ -166,12 +164,12 @@ export function SocialAuth({
     }
   }
 
-  /* ---- Social ----------------------------------------------------------- */
-  async function social(kind: "google" | "apple") {
+  /* ---- Passkey (Face ID / Touch ID) ------------------------------------- */
+  async function passkey() {
     clearBanners();
-    setPending(kind);
+    setPending("passkey");
     try {
-      await (kind === "google" ? signInWithGoogle() : signInWithApple());
+      await signInWithPasskey();
       router.replace("/dashboard");
     } catch (err) {
       fail(err);
@@ -304,41 +302,33 @@ export function SocialAuth({
           </button>
         )}
 
-        <div className="my-5 flex items-center gap-3" aria-hidden="true">
-          <span className="h-px flex-1 bg-[var(--glass-border)]" />
-          <span className="text-xs uppercase tracking-wider text-[var(--text-muted)]">or</span>
-          <span className="h-px flex-1 bg-[var(--glass-border)]" />
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <SocialButton onClick={() => social("google")} disabled={busy} loading={pending === "google"} icon={<GoogleIcon className="size-5" />} label="Continue with Google" />
-          <SocialButton onClick={() => social("apple")} disabled={busy} loading={pending === "apple"} icon={<AppleIcon className="size-[1.15rem]" />} label="Continue with Apple" />
-        </div>
+        {passkeySupported && (
+          <>
+            <div className="my-5 flex items-center gap-3" aria-hidden="true">
+              <span className="h-px flex-1 bg-[var(--glass-border)]" />
+              <span className="text-xs uppercase tracking-wider text-[var(--text-muted)]">or</span>
+              <span className="h-px flex-1 bg-[var(--glass-border)]" />
+            </div>
+            <GlassButton
+              type="button"
+              variant="neutral"
+              fullWidth
+              onClick={passkey}
+              disabled={busy}
+              className={cn("h-12 gap-2.5 text-[0.95rem] font-medium")}
+            >
+              <Fingerprint className="size-5" />
+              {pending === "passkey" ? "Waiting for Face ID…" : "Sign in with a passkey"}
+            </GlassButton>
+            <p className="mt-2 text-center text-xs text-[var(--text-muted)]">
+              Face ID · Touch ID · device unlock — no password anywhere.
+            </p>
+          </>
+        )}
 
         {/* Invisible reCAPTCHA anchor for phone auth. */}
         <div id={RECAPTCHA_ID} />
       </GlassCard>
     </FadeScale>
-  );
-}
-
-function SocialButton({
-  onClick,
-  disabled,
-  loading,
-  icon,
-  label,
-}: {
-  onClick: () => void;
-  disabled: boolean;
-  loading: boolean;
-  icon: React.ReactNode;
-  label: string;
-}) {
-  return (
-    <GlassButton type="button" variant="neutral" fullWidth onClick={onClick} disabled={disabled} className={cn("h-12 gap-2.5 text-[0.95rem] font-medium")}>
-      {icon}
-      {loading ? "Connecting…" : label}
-    </GlassButton>
   );
 }
