@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { orderBy, where, limit } from "firebase/firestore";
 import {
   ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, Sparkles,
@@ -36,6 +37,7 @@ function timeGreeting(): string {
 const greetSubscribe = () => () => {};
 
 export function Dashboard({ firstName }: { firstName: string }) {
+  const router = useRouter();
   const { prefs, money, dueLabel, date } = useLocale();
   const { resolve } = useCategories();
   const { isBusiness } = useAccountType();
@@ -76,6 +78,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const invGain = invValue - invCost;
   const netWorth = totals.balance + savingsTotal + invValue;
   const upcomingBills = useMemo(() => [...bills.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 4), [bills.data]);
+  const comingTotal = useMemo(() => bills.data.reduce((s, b) => s + b.amount, 0), [bills.data]);
   const activeAccounts = useMemo(() => accounts.data.filter((a) => a.status === "active"), [accounts.data]);
   const accountBalances = useMemo(() => {
     const m = new Map<string, number>();
@@ -107,8 +110,12 @@ export function Dashboard({ firstName }: { firstName: string }) {
             <div>
               <p className="text-muted text-sm capitalize">{date(new Date(), { weekday: "long", day: "numeric", month: "long" })}</p>
               <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {firstName}.</h1>
+              <p className="text-muted mt-1 text-sm">Your money, automatically clear.</p>
             </div>
-            <AnimatedButton onClick={() => setModalOpen(true)}><Plus className="size-4" />Add transaction</AnimatedButton>
+            <div className="flex items-center gap-2">
+              <AnimatedButton onClick={() => router.push("/payments")}><ReceiptText className="size-4" />Pay a bill</AnimatedButton>
+              <AnimatedButton variant="glass" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add</AnimatedButton>
+            </div>
           </div>
         </StaggerItem>
 
@@ -117,7 +124,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
         ) : brandNew ? (
           <StaggerItem>
             <GlassCard padded>
-              <EmptyState icon={Sparkles} title="Welcome to your money, at a glance" description="Add your first income or expense and Renew instantly shows your balance, spending and what's coming next." action={<AnimatedButton size="lg" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add your first transaction</AnimatedButton>} />
+              <EmptyState icon={Sparkles} title="Your money autopilot is ready" description="Pay a bill through Renew, or add a transaction — and Renew keeps your balance, spending and what's coming clear, automatically." action={<AnimatedButton size="lg" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add your first transaction</AnimatedButton>} />
             </GlassCard>
           </StaggerItem>
         ) : (
@@ -129,9 +136,9 @@ export function Dashboard({ firstName }: { firstName: string }) {
                 <p className="text-muted text-sm">Net worth</p>
                 <AnimatedAmount value={netWorth} currency={currency} className="text-strong mt-1 block text-4xl font-light tabular-nums sm:text-5xl" />
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Mini label="Balance" icon={Wallet} value={totals.balance} currency={currency} />
                   <Mini label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
                   <Mini label={isBusiness ? "Expenses (mo)" : "This month out"} icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
+                  <Mini label="Coming up" icon={ReceiptText} value={comingTotal} currency={currency} />
                   <Mini label="Saved" icon={PiggyBank} value={savingsTotal} currency={currency} />
                 </div>
               </GlassCard>
