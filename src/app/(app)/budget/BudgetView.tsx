@@ -60,7 +60,7 @@ export function BudgetView() {
               const meta = resolve(b.category);
               const Icon = meta.icon;
               const spent = spentByCat.get(`${b.category}|${b.currency}`) ?? 0;
-              const pct = Math.min(100, Math.round((spent / b.amount) * 100));
+              const pct = b.amount > 0 ? Math.min(100, Math.round((spent / b.amount) * 100)) : 0;
               const over = spent > b.amount;
               return (
                 <motion.div key={b.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass p-4">

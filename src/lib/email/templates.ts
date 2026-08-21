@@ -25,7 +25,7 @@ const OTP_STRINGS: Record<string, OtpStrings> = {
     greetingPlain: "Hi,",
     intro: "Use this code to verify your email and finish setting up Renew. It expires in 10 minutes.",
     ignore: "If you didn’t request this, you can safely ignore this email — no changes will be made to your account.",
-    footer: "Renew · your money, beautifully clear",
+    footer: "Renew",
     textLead: "Your Renew verification code is:",
     textExpiry: "It expires in 10 minutes.",
     textIgnore: "If you didn’t request this, you can ignore this email.",

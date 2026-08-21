@@ -25,7 +25,7 @@ const appUrl = publicEnv.appUrl;
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Renew — Your money, beautifully clear",
+    default: "Renew",
     template: "%s · Renew",
   },
   description:
@@ -44,14 +44,14 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "Renew",
-    title: "Renew — Your money, beautifully clear",
+    title: "Renew",
     description:
       "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
     url: appUrl,
   },
   twitter: {
     card: "summary_large_image",
-    title: "Renew — Your money, beautifully clear",
+    title: "Renew",
     description:
       "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
   },

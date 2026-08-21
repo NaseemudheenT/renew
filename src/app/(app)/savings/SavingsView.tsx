@@ -39,7 +39,7 @@ export function SavingsView() {
         <div className="grid gap-3 sm:grid-cols-2">
           <AnimatePresence initial={false}>
             {data.map((g) => {
-              const pct = Math.min(100, Math.round((g.current / g.target) * 100));
+              const pct = g.target > 0 ? Math.min(100, Math.round((g.current / g.target) * 100)) : 0;
               const done = g.current >= g.target;
               return (
                 <motion.div key={g.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} className="glass p-4">
