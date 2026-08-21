@@ -1,13 +1,30 @@
 # Renew
 
-A calm, premium life-companion that makes sure you never lose money, documents,
-or peace of mind by forgetting a renewal — passports, insurance, licenses,
-subscriptions, bills and more. By Zap.
+A calm, premium money companion — see what you have, where it's going, and
+what's coming next. Accounts, transactions, budgets, savings, bills and
+subscriptions in one private place. By Zap.
+
+### ▶ View the live app
+
+**→ https://renew-clientflownn.vercel.app**
+
+The working product runs on Vercel (a Next.js server app — real login, sessions
+and APIs, which is why it can't run on static GitHub Pages). Every push to
+`main` deploys automatically.
+
+### ▶ Or run it straight from GitHub
+
+Click **Code → Codespaces → Create codespace on main** (or open
+[codespaces.new/NaseemudheenT/renew](https://codespaces.new/NaseemudheenT/renew)).
+It builds the whole project in your browser — no Mac needed. Add your keys as
+Codespace secrets (see `.env.example`), then run `npm run dev`.
+
+---
 
 Next 16 · React 19 · Tailwind v4 · Framer Motion · Firebase (Auth + Firestore) ·
 Cloudinary · Resend · Stripe.
 
-## Getting started
+## Run locally
 
 ```bash
 cp .env.example .env.local   # fill in your keys
