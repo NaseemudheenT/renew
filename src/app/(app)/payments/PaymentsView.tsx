@@ -14,6 +14,8 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { createPayment, updatePayment, deletePayment, markPaid, markUnpaid, restorePayment, type PaymentInput } from "@/lib/firestore/payments";
 import { dueLabel, isOverdue } from "@/lib/dates";
+import { payWithRazorpay } from "@/lib/payments/checkout";
+import { publicEnv } from "@/lib/env";
 import type { Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -51,11 +53,34 @@ export function PaymentsView() {
       setSubmitting(false);
     }
   }
-  async function onPay(payment: Payment) {
+  async function finishMarkPaid(payment: Payment) {
     if (!uid) return;
     const res = await markPaid(uid, payment);
-    if (res.rolled && res.nextDue) toast({ title: "Marked paid", description: `Next due ${dueLabel(res.nextDue)}`, variant: "success" });
-    else toast({ title: "Marked paid", variant: "success" });
+    if (res.rolled && res.nextDue) toast({ title: "Paid", description: `Next due ${dueLabel(res.nextDue)}`, variant: "success" });
+    else toast({ title: "Paid", variant: "success" });
+  }
+  async function onPay(payment: Payment) {
+    if (!uid) return;
+    // Pay THROUGH Renew when payments are configured; otherwise just mark paid
+    // (preserves the original behaviour so nothing breaks without Razorpay).
+    if (!publicEnv.razorpayKeyId) {
+      await finishMarkPaid(payment);
+      return;
+    }
+    const result = await payWithRazorpay({
+      amount: payment.amount,
+      currency: payment.currency,
+      name: payment.name,
+      description: `Renew · ${payment.name}`,
+      paymentId: payment.id,
+    });
+    if (result.status === "paid" || result.status === "unconfigured") {
+      await finishMarkPaid(payment);
+    } else if (result.status === "cancelled") {
+      toast({ title: "Payment cancelled" });
+    } else {
+      toast({ title: "Payment failed", description: result.message, variant: "error" });
+    }
   }
   async function onDelete(payment: Payment) {
     if (!uid) return;

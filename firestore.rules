@@ -20,6 +20,14 @@ service cloud.firestore {
         allow read, write: if isOwner(uid)
           && collection in ['reminders', 'tasks', 'documents', 'payments', 'notifications', 'transactions', 'budgets', 'savings', 'investments', 'accounts', 'transfers', 'subscriptions'];
       }
+
+      // Razorpay order/payment records: created & verified by the server only
+      // (Admin SDK bypasses these rules). The owner may read their history;
+      // clients may never write these — that would forge a payment.
+      match /razorpayOrders/{orderId} {
+        allow read: if isOwner(uid);
+        allow write: if false;
+      }
     }
 
     // OTP codes are written/read only by the server (Admin SDK). Deny clients.
