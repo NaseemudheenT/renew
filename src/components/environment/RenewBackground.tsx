@@ -6,7 +6,6 @@ import { useTheme } from "@/hooks/useTheme";
 import AnimatedGradient, {
   type GradientCustomConfig,
 } from "@/components/ui/animated-gradient";
-import { StarField } from "./StarField";
 
 /**
  * RENEW — cinematic environment. A slow, liquid champagne-gold flow (WebGL) is
@@ -71,7 +70,7 @@ export function RenewBackground() {
       {live ? (
         <AnimatedGradient
           config={config}
-          className="opacity-80 mix-blend-soft-light"
+          className="opacity-90 mix-blend-soft-light"
           style={{ inset: "-10%" }}
         />
       ) : (
@@ -89,24 +88,29 @@ export function RenewBackground() {
 
       {live && (
         <>
+          {/* Aurora I — the primary midnight glow, breathing top-left. */}
           <motion.div
-            className="absolute -left-[8%] -top-[12%] h-[52vmax] w-[52vmax] rounded-full blur-[90px]"
-            style={{ background: "radial-gradient(circle, var(--bokeh-1), transparent 66%)" }}
-            animate={{ x: [0, 50, -20, 0], y: [0, 36, 8, 0] }}
-            transition={{ duration: 40, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -left-[12%] -top-[18%] h-[62vmax] w-[62vmax] rounded-full blur-[120px]"
+            style={{ background: "radial-gradient(circle, var(--bokeh-1), transparent 64%)" }}
+            animate={{ x: [0, 70, -30, 0], y: [0, 46, 14, 0], scale: [1, 1.14, 1], opacity: [0.5, 0.82, 0.5] }}
+            transition={{ duration: 46, repeat: Infinity, ease: "easeInOut" }}
           />
-          {/* Second, deeper champagne aurora drifting the opposite way */}
+          {/* Aurora II — a deeper counter-drift, bottom-right. */}
           <motion.div
-            className="absolute right-[-12%] bottom-[-14%] h-[48vmax] w-[48vmax] rounded-full blur-[110px]"
-            style={{ background: "radial-gradient(circle, var(--bokeh-3), transparent 68%)" }}
-            animate={{ x: [0, -40, 16, 0], y: [0, -30, -8, 0], opacity: [0.55, 0.85, 0.55] }}
-            transition={{ duration: 52, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute right-[-16%] bottom-[-18%] h-[58vmax] w-[58vmax] rounded-full blur-[140px]"
+            style={{ background: "radial-gradient(circle, var(--bokeh-3), transparent 66%)" }}
+            animate={{ x: [0, -60, 20, 0], y: [0, -40, -10, 0], scale: [1.06, 0.9, 1.06], opacity: [0.45, 0.85, 0.45] }}
+            transition={{ duration: 60, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {/* Aurora III — a bright accent ribbon slowly sweeping the middle. */}
+          <motion.div
+            className="absolute left-1/2 top-[34%] h-[46vmax] w-[74vmax] -translate-x-1/2 rounded-[46%] blur-[130px]"
+            style={{ background: "radial-gradient(ellipse at center, var(--bokeh-2), transparent 60%)" }}
+            animate={{ x: [-50, 50, -50], y: [0, -26, 0], rotate: [-9, 9, -9], opacity: [0.3, 0.58, 0.3] }}
+            transition={{ duration: 42, repeat: Infinity, ease: "easeInOut" }}
           />
         </>
       )}
-
-      {/* Night-sky stars — subtle, static, premium depth (dark theme only). */}
-      <StarField />
 
       <div
         className="absolute inset-0"
