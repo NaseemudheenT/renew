@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type SyntheticEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, ShieldCheck, User2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, User2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/liquid-glass";
 import { Input } from "@/components/ui/Input";
@@ -236,11 +236,8 @@ export function SocialAuth({
               </div>
             </div>
             <GlassButton type="submit" variant="primary" fullWidth disabled={busy} className="mt-1 h-12 text-[0.95rem] font-semibold">
-              {pending === "phone" ? "Sending code…" : "Send code"}
+              {pending === "phone" ? "Sending code…" : "Continue"}
             </GlassButton>
-            <p className="text-center text-xs text-[var(--text-muted)]">
-              We&apos;ll text you a 6-digit code. No password needed.
-            </p>
           </form>
         )}
 
@@ -320,19 +317,8 @@ export function SocialAuth({
               <Fingerprint className="size-5" />
               {pending === "passkey" ? "Waiting for Face ID…" : "Sign in with a passkey"}
             </GlassButton>
-            <p className="mt-2 text-center text-xs text-[var(--text-muted)]">
-              Face ID · Touch ID · device unlock — no password anywhere.
-            </p>
           </>
         )}
-
-        {/* Trust signal — calm, honest, unmistakably Renew. */}
-        <div className="mt-6 flex items-center justify-center">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-3.5 py-1.5 text-[0.7rem] font-medium tracking-wide text-[var(--text-muted)]">
-            <ShieldCheck className="size-3.5 text-[var(--color-gold-400)]" />
-            Passwordless · Encrypted · Private
-          </span>
-        </div>
 
         {/* Invisible reCAPTCHA anchor for phone auth. */}
         <div id={RECAPTCHA_ID} />

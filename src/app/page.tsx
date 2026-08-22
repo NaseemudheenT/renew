@@ -130,7 +130,7 @@ export default function Home() {
             className="relative block transition-transform duration-500 ease-[var(--ease-glass)] group-hover:scale-[1.04]"
             animate={shake}
           >
-            <RenewMark size={148} idSuffix="hero" className="drop-shadow-[0_16px_54px_rgba(70,110,220,0.42)]" />
+            <RenewMark size={172} idSuffix="hero" className="drop-shadow-[0_18px_60px_rgba(70,110,220,0.45)]" />
           </motion.span>
 
           {/* Soft mirrored reflection beneath the mark. */}
@@ -143,12 +143,12 @@ export default function Home() {
         </span>
 
         <motion.span
-          className="mt-9"
-          initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
+          className="mt-6"
+          initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           transition={{ delay: 0.55, duration: 0.9, ease: EASE }}
         >
-          <Wordmark sizeClassName="text-5xl sm:text-7xl" />
+          <Wordmark sizeClassName="text-3xl sm:text-4xl" />
         </motion.span>
       </motion.button>
 
