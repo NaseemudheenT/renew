@@ -17,13 +17,15 @@ import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange } from "@/lib/finance";
-import { computeAccountBalance, accountTypeMeta } from "@/lib/accounts";
+import { computeAccountBalance, accountTypeMeta, subscriptionMonthly } from "@/lib/accounts";
+import { computeInsights } from "@/lib/insights";
+import { Insights } from "@/components/finance/Insights";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccountType } from "@/hooks/useAccountType";
 import { cn } from "@/lib/utils";
-import type { Transaction, SavingsGoal, Investment, Payment, Account, Transfer } from "@/lib/types";
+import type { Transaction, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
 
 /** A warm, time-of-day greeting — computed from the person's own clock. */
 function timeGreeting(): string {
@@ -55,6 +57,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const bills = useUserCollection<Payment>("payments", upcomingC);
   const accounts = useUserCollection<Account>("accounts");
   const transfers = useUserCollection<Transfer>("transfers");
+  const subscriptions = useUserCollection<Subscription>("subscriptions");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -79,6 +82,22 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const netWorth = totals.balance + savingsTotal + invValue;
   const upcomingBills = useMemo(() => [...bills.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 4), [bills.data]);
   const comingTotal = useMemo(() => bills.data.reduce((s, b) => s + b.amount, 0), [bills.data]);
+  const recurring = useMemo(() => {
+    const active = subscriptions.data.filter((s) => s.status === "active");
+    return { monthly: active.reduce((sum, s) => sum + subscriptionMonthly(s), 0), count: active.length };
+  }, [subscriptions.data]);
+  const insights = useMemo(() => {
+    const { end } = monthRange();
+    const billsDueThisMonth = bills.data
+      .filter((b) => b.status !== "paid" && b.dueAt < end)
+      .reduce((s, b) => s + b.amount, 0);
+    return computeInsights({
+      transactions: txAll.data,
+      recurringMonthly: recurring.monthly,
+      activeSubs: recurring.count,
+      upcomingBillsTotal: billsDueThisMonth,
+    });
+  }, [txAll.data, bills.data, recurring]);
   const activeAccounts = useMemo(() => accounts.data.filter((a) => a.status === "active"), [accounts.data]);
   const accountBalances = useMemo(() => {
     const m = new Map<string, number>();
@@ -143,6 +162,12 @@ export function Dashboard({ firstName }: { firstName: string }) {
                 </div>
               </GlassCard>
             </StaggerItem>
+
+            {insights.length > 0 && (
+              <StaggerItem>
+                <Insights insights={insights} currency={currency} />
+              </StaggerItem>
+            )}
 
             {activeAccounts.length > 0 && (
               <StaggerItem>
