@@ -25,6 +25,7 @@ import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCu
 import { useCategories } from "@/hooks/useCategories";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AppLockControl } from "@/components/settings/AppLockControl";
+import { useReauth } from "@/components/security/ReauthProvider";
 import { CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
 import { browserNotifyStatus, requestBrowserNotify, type NotifyStatus } from "@/lib/notify";
@@ -400,6 +401,7 @@ function BrowserNotifyControl() {
 
 function DataControl() {
   const { t } = useLocale();
+  const requireReauth = useReauth();
   const transactions = useUserCollection<Transaction>("transactions");
   const budgets = useUserCollection<Budget>("budgets");
   const savings = useUserCollection<SavingsGoal>("savings");
@@ -414,8 +416,9 @@ function DataControl() {
     investments.data.length + payments.data.length +
     accounts.data.length + transfers.data.length + subscriptions.data.length;
 
-  function exportData() {
+  async function exportData() {
     if (total === 0) return toast({ title: t("settings.data.empty") });
+    if (!(await requireReauth("to download your data"))) return;
     const payload = {
       app: "Renew",
       exportedAt: new Date().toISOString(),

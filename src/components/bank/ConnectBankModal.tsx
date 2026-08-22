@@ -9,6 +9,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { institutionsForRegion, type Institution } from "@/lib/bank/banks";
 import { connectInstitution, type ConnectResult } from "@/lib/bank/connect";
+import { useReauth } from "@/components/security/ReauthProvider";
 
 type Step = "pick" | "connecting" | "done";
 
@@ -29,6 +30,7 @@ export function ConnectBankModal({
 }) {
   const { user } = useAuth();
   const { prefs } = useLocale();
+  const requireReauth = useReauth();
   const [step, setStep] = useState<Step>("pick");
   const [q, setQ] = useState("");
   const [active, setActive] = useState<Institution | null>(null);
@@ -56,6 +58,7 @@ export function ConnectBankModal({
       toast({ title: "Please sign in again", variant: "error" });
       return;
     }
+    if (!(await requireReauth("to connect a bank"))) return;
     setActive(inst);
     setStep("connecting");
     try {

@@ -12,6 +12,7 @@ import { PaymentRow } from "@/components/payments/PaymentRow";
 import { PaymentForm } from "@/components/payments/PaymentForm";
 import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
 import { PayMethodModal } from "@/components/payments/PayMethodModal";
+import { useReauth } from "@/components/security/ReauthProvider";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -26,6 +27,7 @@ type Tab = "upcoming" | "paid";
 
 export function PaymentsView() {
   const { t, money } = useLocale();
+  const requireReauth = useReauth();
   const { data, loading, uid } = useUserCollection<Payment>("payments");
   const [tab, setTab] = useState<Tab>("upcoming");
   const [modalOpen, setModalOpen] = useState(false);
@@ -79,6 +81,7 @@ export function PaymentsView() {
     const payment = payingFor;
     setPayingFor(null);
     if (!uid || !payment) return;
+    if (!(await requireReauth("to pay this bill"))) return;
     // A real online rail (UPI/card via provider) runs only when payment keys are
     // set AND the person picked an online method; otherwise Renew records the
     // payment against the chosen method and keeps the recurring bill rolling.
