@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useRef, useState } from "react";
+import { motion } from "framer-motion";
 import { MoreVertical, type LucideIcon } from "lucide-react";
+import { PopoverPortal } from "@/components/ui/PopoverPortal";
 import { cn } from "@/lib/utils";
 
 export interface RowMenuItem {
@@ -14,25 +15,12 @@ export interface RowMenuItem {
 
 export function RowMenu({ items, label = "More actions" }: { items: RowMenuItem[]; label?: string }) {
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  const anchorRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <div className="relative" ref={ref}>
+    <>
       <button
+        ref={anchorRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={label}
@@ -42,39 +30,37 @@ export function RowMenu({ items, label = "More actions" }: { items: RowMenuItem[
       >
         <MoreVertical className="size-4.5" />
       </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            role="menu"
-            initial={{ opacity: 0, y: -4, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -4, scale: 0.98 }}
-            transition={{ duration: 0.14 }}
-            className="absolute end-0 z-50 mt-1 w-40 overflow-hidden rounded-xl border border-[var(--menu-border)] bg-[var(--menu-bg)] p-1 shadow-[var(--glass-shadow)] backdrop-blur-xl"
-          >
-            {items.map((item) => (
-              <button
-                key={item.label}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false);
-                  item.onClick();
-                }}
-                className={cn(
-                  "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
-                  item.danger
-                    ? "text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
-                    : "text-[var(--text-body)] hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]",
-                )}
-              >
-                <item.icon className="size-4" />
-                {item.label}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+
+      <PopoverPortal anchorRef={anchorRef} open={open} onClose={() => setOpen(false)} minWidth={160} align="end">
+        <motion.div
+          role="menu"
+          initial={{ opacity: 0, y: -4, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.14 }}
+          className="w-40 overflow-hidden rounded-xl border border-[var(--menu-border)] bg-[var(--menu-bg)] p-1 shadow-[var(--glass-shadow)] backdrop-blur-xl"
+        >
+          {items.map((item) => (
+            <button
+              key={item.label}
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                setOpen(false);
+                item.onClick();
+              }}
+              className={cn(
+                "flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors",
+                item.danger
+                  ? "text-rose-600 hover:bg-rose-500/10 dark:text-rose-300"
+                  : "text-[var(--text-body)] hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]",
+              )}
+            >
+              <item.icon className="size-4" />
+              {item.label}
+            </button>
+          ))}
+        </motion.div>
+      </PopoverPortal>
+    </>
   );
 }

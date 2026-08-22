@@ -1,38 +1,25 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
 import { Bell, Check } from "lucide-react";
 import { orderBy, limit } from "firebase/firestore";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { markAllNotificationsRead, markNotificationRead } from "@/lib/firestore/notifications";
 import { relativeTime } from "@/lib/dates";
+import { PopoverPortal } from "@/components/ui/PopoverPortal";
 import type { AppNotification } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function NotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
+  const anchorRef = useRef<HTMLButtonElement>(null);
   const constraints = useMemo(() => [orderBy("createdAt", "desc"), limit(20)], []);
   const { data, uid } = useUserCollection<AppNotification>("notifications", constraints);
   const unread = data.filter((n) => !n.read).length;
-
-  useEffect(() => {
-    if (!open) return;
-    const onDown = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
-    document.addEventListener("mousedown", onDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
 
   async function openNotification(n: AppNotification) {
     if (uid && !n.read) await markNotificationRead(uid, n.id).catch(() => {});
@@ -41,8 +28,9 @@ export function NotificationBell() {
   }
 
   return (
-    <div className="relative" ref={ref}>
+    <>
       <button
+        ref={anchorRef}
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-label={`Notifications${unread ? `, ${unread} unread` : ""}`}
@@ -62,16 +50,14 @@ export function NotificationBell() {
         )}
       </button>
 
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -6, scale: 0.98 }}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-            className="absolute end-0 z-50 mt-2 flex max-h-[70vh] w-[min(92vw,22rem)] flex-col overflow-hidden rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] shadow-[var(--glass-shadow)] backdrop-blur-xl"
-          >
-            <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
+      <PopoverPortal anchorRef={anchorRef} open={open} onClose={() => setOpen(false)} minWidth={320} align="end">
+        <motion.div
+          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          className="flex max-h-[70vh] w-[min(92vw,22rem)] flex-col overflow-hidden rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] shadow-[var(--glass-shadow)] backdrop-blur-xl"
+        >
+          <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
               <span className="text-strong text-sm font-medium">Notifications</span>
               {unread > 0 && uid && (
                 <button type="button" onClick={() => markAllNotificationsRead(uid).catch(() => {})} className="flex items-center gap-1 text-xs text-[var(--color-gold-600)] hover:underline">
@@ -104,12 +90,11 @@ export function NotificationBell() {
                 ))
               )}
             </div>
-            <Link href="/notifications" onClick={() => setOpen(false)} className="border-t border-[var(--glass-border)] px-4 py-2.5 text-center text-xs font-medium text-[var(--color-gold-600)] hover:bg-[var(--glass-bg-soft)]">
-              See all notifications
-            </Link>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
+          <Link href="/notifications" onClick={() => setOpen(false)} className="border-t border-[var(--glass-border)] px-4 py-2.5 text-center text-xs font-medium text-[var(--color-gold-600)] hover:bg-[var(--glass-bg-soft)]">
+            See all notifications
+          </Link>
+        </motion.div>
+      </PopoverPortal>
+    </>
   );
 }
