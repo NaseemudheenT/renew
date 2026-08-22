@@ -9,7 +9,10 @@ export const dynamic = "force-dynamic";
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const user = await getSessionUser();
   if (!user) redirect("/sign-in");
-  if (!user.emailVerified) redirect("/verify");
+  // NOTE: email verification is intentionally NOT a hard gate. Phone-OTP and
+  // passkey users have no email (emailVerified === false) — forcing them to an
+  // email-verification page would trap them. Phone possession and passkeys are
+  // already strong proof; email verification is an optional, later nicety.
   const { onboarded } = await getUserFlags(user.uid);
   if (!onboarded) redirect("/onboarding");
 

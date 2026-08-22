@@ -23,12 +23,8 @@ export async function POST(request: Request) {
   if (!user) {
     return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   }
-  if (!user.emailVerified) {
-    return NextResponse.json(
-      { error: "Verify your email first." },
-      { status: 403 },
-    );
-  }
+  // Email verification is NOT required — phone-OTP and passkey users have no
+  // email. Their session (Firebase Admin-verified) is sufficient to onboard.
 
   let json: unknown;
   try {
