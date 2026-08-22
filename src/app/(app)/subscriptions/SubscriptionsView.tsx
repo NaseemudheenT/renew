@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
+import { SwipeRow } from "@/components/ui/SwipeRow";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
@@ -188,17 +189,30 @@ function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onPay, onEdit, on
     ? [{ label: "Reactivate", icon: PlayCircle, onClick: onReactivate! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }]
     : [{ label: "Pay now", icon: CreditCard, onClick: onPay! }, { label: "Edit", icon: Pencil, onClick: onEdit! }, { label: "Cancel", icon: XCircle, onClick: onCancel! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }];
   return (
-    <motion.div layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass flex items-center gap-3 p-3.5">
-      <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
-      <div className="min-w-0 flex-1">
-        <p className="text-strong truncate text-sm font-medium">{sub.name}</p>
-        <p className="text-muted truncate text-xs">{cycleLabel}{cancelled ? "" : ` · ${dueLabel(sub.nextBillingAt)}`}</p>
-      </div>
-      <div className="text-end">
-        <p className="text-strong text-sm font-medium tabular-nums">{money(sub.price, sub.currency)}</p>
-        <p className="text-muted text-xs tabular-nums">≈ {money(subscriptionMonthly(sub), sub.currency)}/mo</p>
-      </div>
-      <RowMenu items={items} />
+    <motion.div layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}>
+      <SwipeRow
+        swipeRight={cancelled || !onPay ? undefined : { label: "Pay", icon: CreditCard, bg: "bg-emerald-500", onTrigger: onPay }}
+        swipeLeft={
+          cancelled
+            ? { label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: onDelete }
+            : onCancel
+              ? { label: "Cancel", icon: XCircle, bg: "bg-amber-500", onTrigger: onCancel }
+              : undefined
+        }
+      >
+        <div className="glass flex items-center gap-3 p-3.5">
+          <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-strong truncate text-sm font-medium">{sub.name}</p>
+            <p className="text-muted truncate text-xs">{cycleLabel}{cancelled ? "" : ` · ${dueLabel(sub.nextBillingAt)}`}</p>
+          </div>
+          <div className="text-end">
+            <p className="text-strong text-sm font-medium tabular-nums">{money(sub.price, sub.currency)}</p>
+            <p className="text-muted text-xs tabular-nums">≈ {money(subscriptionMonthly(sub), sub.currency)}/mo</p>
+          </div>
+          <RowMenu items={items} />
+        </div>
+      </SwipeRow>
     </motion.div>
   );
 }

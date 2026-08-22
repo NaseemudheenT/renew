@@ -187,6 +187,40 @@ body {
   border-radius: 6px;
 }
 
+/* Universal press feedback — every control dips slightly inward when pressed, so
+   the whole app feels physical and responsive. Framer-driven buttons set their
+   own inline transform while pressed, so this governs everything else (rows,
+   menu items, nav tabs, links, cards marked .pressable). */
+button,
+[role="button"],
+[role="menuitem"],
+[role="option"],
+[role="tab"],
+[role="switch"],
+.pressable {
+  transition: transform 0.14s cubic-bezier(0.22, 1, 0.36, 1);
+}
+button:active,
+[role="button"]:active,
+[role="menuitem"]:active,
+[role="option"]:active,
+[role="tab"]:active,
+[role="switch"]:active,
+.pressable:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  button:active,
+  [role="button"]:active,
+  [role="menuitem"]:active,
+  [role="option"]:active,
+  [role="tab"]:active,
+  [role="switch"]:active,
+  .pressable:active {
+    transform: none;
+  }
+}
+
 /* ---- Liquid-glass material --------------------------------------------- */
 @layer components {
   .glass {
