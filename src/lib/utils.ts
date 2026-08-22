@@ -47,8 +47,16 @@ export function isImageFormat(format: string): boolean {
   );
 }
 
-/** Currencies offered in the payment form. */
-export const CURRENCIES = ["USD", "EUR", "GBP", "INR", "AED", "AUD", "CAD", "SGD"] as const;
+/** Major world currencies offered in the pickers — global, common ones first. */
+export const CURRENCIES = [
+  "USD", "EUR", "GBP", "INR", "AED", "AUD", "CAD", "SGD",
+  "JPY", "CNY", "CHF", "HKD", "NZD", "SEK", "NOK", "DKK",
+  "PLN", "CZK", "HUF", "RON", "ZAR", "BRL", "MXN", "ARS",
+  "CLP", "COP", "RUB", "TRY", "UAH", "KRW", "THB", "MYR",
+  "IDR", "PHP", "VND", "TWD", "SAR", "QAR", "KWD", "BHD",
+  "OMR", "ILS", "EGP", "NGN", "KES", "GHS", "PKR", "BDT",
+  "LKR", "NPR",
+] as const;
 
 /** Locale-aware money formatting with a graceful fallback. */
 export function formatMoney(amount: number, currency: string): string {

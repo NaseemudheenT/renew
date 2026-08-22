@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { Check } from "lucide-react";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { GlassButton } from "@/components/ui/liquid-glass";
+import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 
 /**
@@ -34,18 +35,11 @@ export function PaymentReceipt({
   onDone,
 }: PaymentReceiptProps) {
   const reduced = useReducedMotion();
+  const { money, dateTime } = useLocale();
 
-  const amountStr = new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency,
-  }).format(amount);
-  const dateStr = new Intl.DateTimeFormat(undefined, {
-    day: "numeric",
-    month: "short",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  // Format in the USER's locale (currency + date), not the browser's.
+  const amountStr = money(amount, currency);
+  const dateStr = dateTime(date);
 
   return (
     <motion.div
