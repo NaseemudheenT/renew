@@ -37,29 +37,43 @@ export function PopoverPortal({
     const box = boxRef.current;
     if (!anchor || !box) return;
     const place = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const gap = 8;
+      const margin = 8;
       const r = anchor.getBoundingClientRect();
-      const w = minWidth ?? r.width;
-      // Width first, so the natural height we measure below is accurate.
-      if (matchWidth) box.style.width = `${r.width}px`;
-      else box.style.minWidth = `${w}px`;
-      // Horizontal placement, clamped to the viewport.
+
+      // Width: match the trigger, but never so narrow that content is cramped;
+      // and never wider than the viewport.
+      const wanted = matchWidth ? Math.max(r.width, 232) : (minWidth ?? r.width);
+      const width = Math.min(wanted, vw - margin * 2);
+      box.style.width = `${width}px`;
+      box.style.minWidth = "";
+
+      // Horizontal — align to the trigger, clamped inside the viewport.
       if (align === "end") {
-        box.style.right = `${Math.max(8, window.innerWidth - r.right)}px`;
+        const right = Math.max(margin, vw - r.right);
+        box.style.right = `${Math.min(right, vw - width - margin)}px`;
         box.style.left = "auto";
       } else {
-        box.style.left = `${Math.max(8, Math.min(r.left, window.innerWidth - w - 8))}px`;
+        box.style.left = `${Math.max(margin, Math.min(r.left, vw - width - margin))}px`;
         box.style.right = "auto";
       }
-      // Vertical placement with a flip: open upward when there isn't room below.
-      const below = window.innerHeight - r.bottom - 16;
-      const above = r.top - 16;
-      const natural = Math.min(box.scrollHeight, window.innerHeight - 32);
-      if (below < natural && above > below) {
-        box.style.top = `${Math.max(8, r.top - Math.min(natural, above) - 8)}px`;
-        box.style.maxHeight = `${Math.max(160, above)}px`;
+
+      // Vertical — a compact menu that opens downward by default and only flips
+      // up when it genuinely fits better there, always hugging the trigger.
+      const cap = Math.min(420, vh - margin * 2);
+      const natural = Math.min(box.scrollHeight, cap);
+      const below = vh - r.bottom - gap - margin;
+      const above = r.top - gap - margin;
+      const openUp = below < natural && above > below;
+      if (openUp) {
+        const h = Math.min(natural, above);
+        box.style.top = `${Math.max(margin, r.top - gap - h)}px`;
+        box.style.maxHeight = `${h}px`;
       } else {
-        box.style.top = `${r.bottom + 8}px`;
-        box.style.maxHeight = `${Math.max(160, below)}px`;
+        box.style.top = `${r.bottom + gap}px`;
+        box.style.maxHeight = `${Math.max(160, Math.min(natural, below))}px`;
       }
     };
     place();
@@ -79,7 +93,7 @@ export function PopoverPortal({
   return createPortal(
     <>
       <div className="fixed inset-0 z-[999]" onMouseDown={onClose} aria-hidden="true" />
-      <div ref={boxRef} style={{ position: "fixed", zIndex: 1000, top: -9999 }} className="overflow-hidden">
+      <div ref={boxRef} style={{ position: "fixed", zIndex: 1000, top: -9999 }} className="flex flex-col overflow-hidden">
         {children}
       </div>
     </>,

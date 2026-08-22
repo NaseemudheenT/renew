@@ -59,7 +59,7 @@ export function DialCodeSelect({
       </button>
 
       <PopoverPortal anchorRef={anchorRef} open={open} onClose={close} minWidth={288}>
-        <div className="flex w-72 max-w-[90vw] flex-col rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] p-2 shadow-[var(--glass-shadow)] backdrop-blur-xl">
+        <div className="flex min-h-0 w-72 max-w-[90vw] flex-1 flex-col rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] p-2 shadow-[var(--glass-shadow)] backdrop-blur-xl">
           <div className="mb-2 flex items-center gap-2 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3">
             <Search className="size-4 shrink-0 text-[var(--text-muted)]" />
             <input
@@ -71,7 +71,7 @@ export function DialCodeSelect({
               className="h-10 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none"
             />
           </div>
-          <ul role="listbox" className="max-h-[52vh] overflow-y-auto">
+          <ul role="listbox" className="min-h-0 flex-1 overflow-y-auto">
             {filtered.map((o) => {
               const active = o.iso === iso;
               return (

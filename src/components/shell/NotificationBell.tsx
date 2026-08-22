@@ -55,7 +55,7 @@ export function NotificationBell() {
           initial={{ opacity: 0, y: -6, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          className="flex max-h-[70vh] w-[min(92vw,22rem)] flex-col overflow-hidden rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] shadow-[var(--glass-shadow)] backdrop-blur-xl"
+          className="flex min-h-0 w-[min(92vw,22rem)] flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] shadow-[var(--glass-shadow)] backdrop-blur-xl"
         >
           <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
               <span className="text-strong text-sm font-medium">Notifications</span>
@@ -66,7 +66,7 @@ export function NotificationBell() {
                 </button>
               )}
             </div>
-            <div className="overflow-y-auto">
+            <div className="min-h-0 flex-1 overflow-y-auto">
               {data.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
                   <Bell className="size-7 text-[var(--text-muted)]" />
