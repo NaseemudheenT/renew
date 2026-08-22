@@ -10,9 +10,10 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { CountrySelect } from "@/components/ui/CountrySelect";
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
+import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { AnimatedButton } from "@/components/motion";
 import {
-  detectPrefs, CURRENCY_CODES, REGION_CURRENCY,
+  detectPrefs, REGION_CURRENCY,
   weekStartFor, hour12For, type WeekStart,
 } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
@@ -152,11 +153,11 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
                 onChange={onRegionChange}
                 locale={language}
               />
-              <Select
+              <CurrencySelect
                 label="Currency"
                 value={currency}
-                onChange={(e) => setCurrency(e.target.value)}
-                options={CURRENCY_CODES.map((c) => ({ value: c, label: c }))}
+                onChange={setCurrency}
+                locale={language}
               />
               <Select
                 label="Week starts on"

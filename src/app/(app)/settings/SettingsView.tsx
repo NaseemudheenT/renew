@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { CountrySelect } from "@/components/ui/CountrySelect";
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
+import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { Switch } from "@/components/ui/Switch";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { CreditCardForm, type CardValues } from "@/components/finance/CreditCardForm";
@@ -26,7 +27,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AppLockControl } from "@/components/settings/AppLockControl";
 import { useReauth } from "@/components/security/ReauthProvider";
-import { CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
+import { REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
 import { browserNotifyStatus, requestBrowserNotify, type NotifyStatus } from "@/lib/notify";
 import { cn } from "@/lib/utils";
@@ -253,11 +254,11 @@ function RegionLanguageControl({ uid }: { uid: string }) {
           onChange={onRegionChange}
           locale={language}
         />
-        <Select
+        <CurrencySelect
           label={t("settings.region.currency")}
           value={currency}
-          onChange={(e) => setCurrency(e.target.value)}
-          options={CURRENCY_CODES.map((c) => ({ value: c, label: c }))}
+          onChange={setCurrency}
+          locale={language}
         />
         <Select
           label={t("settings.region.timezone")}

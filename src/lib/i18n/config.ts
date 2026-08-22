@@ -215,6 +215,35 @@ export const CURRENCY_CODES: string[] = Array.from(
   new Set(Object.values(REGION_CURRENCY)),
 ).sort();
 
+/**
+ * Currencies with a localized name and a narrow symbol, for the searchable
+ * currency picker. Names come from Intl.DisplayNames and symbols from
+ * Intl.NumberFormat, both in the UI language, with safe fallbacks.
+ */
+export function currencyOptions(locale: string): { code: string; name: string; symbol: string }[] {
+  const lang = locale || "en";
+  let dn: Intl.DisplayNames | null = null;
+  try {
+    dn = new Intl.DisplayNames([lang], { type: "currency" });
+  } catch {
+    dn = null;
+  }
+  return CURRENCY_CODES.map((code) => {
+    let symbol = code;
+    try {
+      const parts = new Intl.NumberFormat(lang, {
+        style: "currency",
+        currency: code,
+        currencyDisplay: "narrowSymbol",
+      }).formatToParts(0);
+      symbol = parts.find((p) => p.type === "currency")?.value ?? code;
+    } catch {
+      /* keep code as symbol */
+    }
+    return { code, name: dn?.of(code) ?? code, symbol };
+  }).sort((a, b) => a.name.localeCompare(b.name, lang));
+}
+
 /** Regions whose calendars start the week on Sunday; everyone else on Monday. */
 const SUNDAY_START = new Set([
   "US", "CA", "JP", "IN", "PH", "BR", "IL", "ZA", "KE", "AU", "NZ", "SA", "AE",
