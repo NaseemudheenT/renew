@@ -15,6 +15,8 @@ const bodySchema = z.object({
   weekStart: z.union([z.literal(0), z.literal(1)]).optional(),
   hour12: z.boolean().optional(),
   accountType: z.enum(["personal", "business", "both"]).optional(),
+  acceptedLegal: z.boolean().optional(),
+  avatar: z.string().trim().max(24).optional(),
 });
 
 /** Persist minimal onboarding answers and flip the onboarded flag. */

@@ -52,6 +52,10 @@ export interface ProfileDoc {
   customCategories?: CustomCategory[];
   /** App-lock passcode + biometric settings (see lib/security/passcode). */
   security?: PasscodeRecord;
+  /** Chosen preset avatar id (see lib/avatars). */
+  avatar?: string;
+  /** When the person accepted the Privacy Policy + Terms. */
+  acceptedLegalAt?: number;
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

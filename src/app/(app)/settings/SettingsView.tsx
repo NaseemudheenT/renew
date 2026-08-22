@@ -22,7 +22,8 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
+import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory, updateAvatar } from "@/lib/firestore/profile";
+import { AVATARS } from "@/lib/avatars";
 import { useCategories } from "@/hooks/useCategories";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AppLockControl } from "@/components/settings/AppLockControl";
@@ -53,6 +54,7 @@ export function SettingsView() {
           </div>
         </div>
         {uid && <NameEditor uid={uid} initial={user?.displayName ?? ""} />}
+        {uid && <AvatarPicker uid={uid} />}
       </Section>
 
       <Section icon={Briefcase} title="How you use Renew">
@@ -125,6 +127,30 @@ function NameEditor({ uid, initial }: { uid: string; initial: string }) {
     <div className="flex items-end gap-3">
       <Input label="Display name" value={name} onChange={(e) => setName(e.target.value)} />
       <AnimatedButton onClick={save} loading={saving} disabled={!dirty}>Save</AnimatedButton>
+    </div>
+  );
+}
+
+function AvatarPicker({ uid }: { uid: string }) {
+  const { profile } = useUserProfile();
+  const current = profile?.avatar ?? null;
+  async function pick(id: string) {
+    try {
+      await updateAvatar(uid, id);
+    } catch {
+      toast({ title: "Couldn't update", variant: "error" });
+    }
+  }
+  return (
+    <div>
+      <p className="text-muted mb-2 text-sm font-medium">Avatar</p>
+      <div className="flex flex-wrap gap-2.5">
+        {AVATARS.map((a) => (
+          <button key={a.id} type="button" onClick={() => pick(a.id)} aria-label={a.id} aria-pressed={current === a.id}
+            className={cn("size-9 rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all", current === a.id ? "ring-[var(--focus-ring)]" : "ring-transparent hover:ring-[var(--field-border)]")}
+            style={{ background: a.css }} />
+        ))}
+      </div>
     </div>
   );
 }

@@ -29,6 +29,11 @@ export async function updateTimezone(uid: string, timezone: string): Promise<voi
   await updateDoc(profileRef(uid), { timezone, updatedAt: serverTimestamp() });
 }
 
+/** Change the preset avatar (see lib/avatars). */
+export async function updateAvatar(uid: string, avatar: string): Promise<void> {
+  await updateDoc(profileRef(uid), { avatar, updatedAt: serverTimestamp() });
+}
+
 /** Set (or update) the app-lock passcode + biometric record. */
 export async function setSecurity(uid: string, security: PasscodeRecord): Promise<void> {
   await updateDoc(profileRef(uid), { security, updatedAt: serverTimestamp() });
