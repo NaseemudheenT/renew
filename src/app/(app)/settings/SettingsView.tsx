@@ -8,6 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { CountrySelect } from "@/components/ui/CountrySelect";
+import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { Switch } from "@/components/ui/Switch";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { CreditCardForm, type CardValues } from "@/components/finance/CreditCardForm";
@@ -25,7 +26,7 @@ import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } fr
 import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
 import { useCategories } from "@/hooks/useCategories";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
-import { LANGUAGES, CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
+import { CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
 import { browserNotifyStatus, requestBrowserNotify, type NotifyStatus } from "@/lib/notify";
 import { cn } from "@/lib/utils";
@@ -236,11 +237,11 @@ function RegionLanguageControl({ uid }: { uid: string }) {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid gap-4 sm:grid-cols-2">
-        <Select
+        <LanguageSelect
           label={t("settings.region.language")}
           value={language}
-          onChange={(e) => setLanguage(e.target.value)}
-          options={LANGUAGES.map((l) => ({ value: l.code, label: `${l.native} · ${l.label}` }))}
+          onChange={setLanguage}
+          locale={language}
         />
         <CountrySelect
           label={t("settings.region.region")}

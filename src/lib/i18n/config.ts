@@ -52,12 +52,73 @@ export const LANGUAGES: LanguageMeta[] = [
   { code: "ms", label: "Malay", native: "Melayu", dir: "ltr" },
 ];
 
-export const RTL_LANGUAGES = new Set(
-  LANGUAGES.filter((l) => l.dir === "rtl").map((l) => l.code),
-);
+/**
+ * Every language Renew offers in its picker — the full sweep of the world's
+ * written languages by ISO 639-1 (plus a few widely-used 639-2/3 codes). Names
+ * are derived per UI-language at runtime (Intl.DisplayNames) and each language's
+ * own endonym likewise, so the picker is global AND localizes with the user.
+ */
+export const ALL_LANGUAGE_CODES: string[] = [
+  "af", "am", "ar", "az", "be", "bg", "bn", "bs", "ca", "ceb", "co", "cs", "cy",
+  "da", "de", "el", "en", "eo", "es", "et", "eu", "fa", "fi", "fil", "fr", "fy",
+  "ga", "gd", "gl", "gu", "ha", "haw", "he", "hi", "hmn", "hr", "ht", "hu", "hy",
+  "id", "ig", "is", "it", "ja", "jv", "ka", "kk", "km", "kn", "ko", "ku", "ky",
+  "la", "lb", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr", "ms", "mt",
+  "my", "ne", "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro", "ru", "sd",
+  "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "st", "su", "sv", "sw", "ta",
+  "te", "tg", "th", "tk", "tl", "tr", "tt", "ug", "uk", "ur", "uz", "vi", "xh",
+  "yi", "yo", "zh", "zu",
+];
+
+/** Languages written right-to-left — used to set text direction per selection. */
+export const RTL_LANGUAGES = new Set([
+  "ar", "he", "fa", "ur", "ps", "sd", "ug", "yi", "dv",
+  ...LANGUAGES.filter((l) => l.dir === "rtl").map((l) => l.code),
+]);
 
 export function directionFor(language: string): Direction {
   return RTL_LANGUAGES.has(language.split("-")[0] ?? language) ? "rtl" : "ltr";
+}
+
+export interface LanguageOption {
+  code: string;
+  /** Name in the current UI language. */
+  label: string;
+  /** Endonym — the language's name in its own script. */
+  native: string;
+  dir: Direction;
+}
+
+/** Localized, A–Z-sorted options for every language, for the given UI language. */
+export function languageOptions(uiLocale: string): LanguageOption[] {
+  const lang = uiLocale || "en";
+  let inUi: Intl.DisplayNames | null = null;
+  try {
+    inUi = new Intl.DisplayNames([lang], { type: "language" });
+  } catch {
+    inUi = null;
+  }
+  const nativeCache = new Map<string, string>();
+  const nativeOf = (code: string): string => {
+    const cached = nativeCache.get(code);
+    if (cached) return cached;
+    let name = code;
+    try {
+      name = new Intl.DisplayNames([code], { type: "language" }).of(code) ?? code;
+    } catch {
+      name = code;
+    }
+    nativeCache.set(code, name);
+    return name;
+  };
+  return ALL_LANGUAGE_CODES
+    .map((code) => ({
+      code,
+      label: inUi?.of(code) ?? code,
+      native: nativeOf(code),
+      dir: directionFor(code),
+    }))
+    .sort((a, b) => a.label.localeCompare(b.label, lang));
 }
 
 /** ISO-3166 region → ISO-4217 currency. Covers the major markets; extend freely. */

@@ -10,9 +10,10 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { CountrySelect } from "@/components/ui/CountrySelect";
+import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { AnimatedButton } from "@/components/motion";
 import {
-  detectPrefs, LANGUAGES, CURRENCY_CODES, REGION_CURRENCY,
+  detectPrefs, CURRENCY_CODES, REGION_CURRENCY,
   weekStartFor, hour12For, type WeekStart,
 } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
@@ -139,11 +140,11 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
             <h1 className="text-strong text-xl font-medium">Set your region</h1>
             <p className="text-muted mt-1 text-sm">Auto-detected from your device — change anything. You can update it later in Settings.</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <Select
+              <LanguageSelect
                 label="Language"
                 value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                options={LANGUAGES.map((l) => ({ value: l.code, label: `${l.native} · ${l.label}` }))}
+                onChange={setLanguage}
+                locale={language}
               />
               <CountrySelect
                 label="Country / region"
