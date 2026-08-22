@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Archive, ArchiveRestore, Wallet, ArrowLeftRight, ArrowRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Archive, ArchiveRestore, ArrowLeftRight, ArrowRight, RefreshCw, Landmark } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
+import { ConnectBankModal } from "@/components/bank/ConnectBankModal";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
@@ -32,6 +33,7 @@ export function AccountsView() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [connectOpen, setConnectOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Account | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
@@ -64,8 +66,11 @@ export function AccountsView() {
                 <ArrowLeftRight className="size-4" />{t("accounts.transfer")}
               </AnimatedButton>
             )}
-            <AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}>
+            <AnimatedButton variant="glass" onClick={() => { setEditing(null); setModalOpen(true); }}>
               <Plus className="size-4" />{t("accounts.new")}
+            </AnimatedButton>
+            <AnimatedButton onClick={() => setConnectOpen(true)}>
+              <Landmark className="size-4" />Connect bank
             </AnimatedButton>
           </div>
         }
@@ -75,7 +80,7 @@ export function AccountsView() {
         <ListSkeleton />
       ) : isEmpty ? (
         <GlassCard padded>
-          <EmptyState icon={Wallet} title={t("accounts.empty.title")} description={t("accounts.empty.body")} action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("accounts.new")}</AnimatedButton>} />
+          <EmptyState icon={Landmark} title="Connect your bank" description="Link your bank or UPI app and Renew fills in your balances and transactions automatically — no typing. You can also add an account by hand." action={<div className="flex flex-wrap items-center justify-center gap-2"><AnimatedButton onClick={() => setConnectOpen(true)}><Landmark className="size-4" />Connect bank</AnimatedButton><AnimatedButton variant="glass" onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("accounts.new")}</AnimatedButton></div>} />
         </GlassCard>
       ) : (
         <>
@@ -145,6 +150,7 @@ export function AccountsView() {
 
       <AccountModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} uid={uid} editing={editing} defaultCurrency={prefs.currency} />
       <TransferModal open={transferOpen} onClose={() => setTransferOpen(false)} uid={uid} accounts={active} />
+      <ConnectBankModal open={connectOpen} onClose={() => setConnectOpen(false)} onConnected={(r) => toast({ title: `Synced ${r.transactions} transactions`, variant: "success" })} />
       <AnimatedModal
         open={confirmDelete !== null}
         onClose={() => setConfirmDelete(null)}
@@ -183,7 +189,14 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
     <motion.div layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass flex items-center gap-3 p-3.5">
       <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
       <div className="min-w-0 flex-1">
-        <p className="text-strong truncate text-sm font-medium">{account.name}</p>
+        <div className="flex items-center gap-2">
+          <p className="text-strong truncate text-sm font-medium">{account.name}</p>
+          {account.linked && (
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[0.62rem] font-medium text-emerald-500 dark:text-emerald-300">
+              <RefreshCw className="size-2.5" />Auto-synced
+            </span>
+          )}
+        </div>
         <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
       </div>
       <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(balance, account.currency)}</span>

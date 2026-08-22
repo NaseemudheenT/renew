@@ -69,7 +69,7 @@ export function CountrySelect({
         </button>
 
         {open && (
-          <div className="glass glass-strong absolute z-50 mt-2 w-full overflow-hidden !rounded-2xl p-2">
+          <div className="absolute z-50 mt-2 w-full overflow-hidden rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] p-2 shadow-[var(--glass-shadow)] backdrop-blur-xl">
             <div className="mb-2 flex items-center gap-2 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3">
               <Search className="size-4 shrink-0 text-[var(--text-muted)]" />
               <input

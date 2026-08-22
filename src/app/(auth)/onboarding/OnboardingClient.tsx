@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Wallet, Receipt, PiggyBank, TrendingUp, User, Briefcase, Layers, AlertCircle, Check,
@@ -42,7 +41,6 @@ const slide = {
 const STEPS = 3;
 
 export function OnboardingClient({ defaultName }: { defaultName: string }) {
-  const router = useRouter();
   const detected = useMemo(() => detectPrefs(), []);
   const [step, setStep] = useState(0);
   const [name, setName] = useState(defaultName);
@@ -96,7 +94,9 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Could not save.");
       }
-      router.replace("/dashboard");
+      // Full navigation so the server re-reads the freshly-set onboarded flag.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional reload to pick up the new session state
+      window.location.assign("/dashboard");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong.");
       setSubmitting(false);

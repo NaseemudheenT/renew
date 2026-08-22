@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { orderBy, where, limit } from "firebase/firestore";
 import {
-  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, Sparkles,
+  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, Landmark, ShieldCheck,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -20,6 +20,8 @@ import { monthRange } from "@/lib/finance";
 import { computeAccountBalance, accountTypeMeta, subscriptionMonthly } from "@/lib/accounts";
 import { computeInsights } from "@/lib/insights";
 import { Insights } from "@/components/finance/Insights";
+import { ConnectBankModal } from "@/components/bank/ConnectBankModal";
+import { hasLinkedAccount } from "@/lib/bank/connect";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
@@ -60,7 +62,9 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const subscriptions = useUserCollection<Subscription>("subscriptions");
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [connectOpen, setConnectOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const hasBank = useMemo(() => hasLinkedAccount(accounts.data), [accounts.data]);
 
   const loading = txAll.loading || savings.loading || investments.loading || bills.loading || accounts.loading || transfers.loading;
   const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
@@ -132,7 +136,11 @@ export function Dashboard({ firstName }: { firstName: string }) {
               <p className="text-muted mt-1 text-sm">Your money, automatically clear.</p>
             </div>
             <div className="flex items-center gap-2">
-              <AnimatedButton onClick={() => router.push("/payments")}><ReceiptText className="size-4" />Pay a bill</AnimatedButton>
+              {hasBank ? (
+                <AnimatedButton onClick={() => router.push("/payments")}><ReceiptText className="size-4" />Pay a bill</AnimatedButton>
+              ) : (
+                <AnimatedButton onClick={() => setConnectOpen(true)}><Landmark className="size-4" />Connect bank</AnimatedButton>
+              )}
               <AnimatedButton variant="glass" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add</AnimatedButton>
             </div>
           </div>
@@ -142,12 +150,34 @@ export function Dashboard({ firstName }: { firstName: string }) {
           <DashboardSkeleton />
         ) : brandNew ? (
           <StaggerItem>
-            <GlassCard padded>
-              <EmptyState icon={Sparkles} title="Your money autopilot is ready" description="Pay a bill through Renew, or add a transaction — and Renew keeps your balance, spending and what's coming clear, automatically." action={<AnimatedButton size="lg" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add your first transaction</AnimatedButton>} />
+            <GlassCard padded className="relative overflow-hidden text-center">
+              <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-[radial-gradient(circle,var(--bokeh-1),transparent_70%)] blur-2xl" />
+              <div className="mx-auto flex max-w-md flex-col items-center py-4">
+                <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]"><Landmark className="size-7 text-[var(--color-gold-500)]" /></div>
+                <h2 className="text-strong text-xl font-medium">Connect your bank — Renew does the rest</h2>
+                <p className="text-muted mt-2 text-sm">No typing, no uploads. Connect once and Renew pulls in your balance, sorts every transaction, and tracks your bills and subscriptions — automatically.</p>
+                <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
+                  <AnimatedButton size="lg" onClick={() => setConnectOpen(true)}><Landmark className="size-4" />Connect your bank</AnimatedButton>
+                  <AnimatedButton size="lg" variant="glass" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add manually</AnimatedButton>
+                </div>
+                <p className="text-muted mt-4 inline-flex items-center gap-1.5 text-xs"><ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />Bank-grade encryption · read-only · your data stays private</p>
+              </div>
             </GlassCard>
           </StaggerItem>
         ) : (
           <>
+            {!hasBank && (
+              <StaggerItem>
+                <button type="button" onClick={() => setConnectOpen(true)} className="group flex w-full items-center gap-4 rounded-glass-lg border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] p-4 text-left backdrop-blur-md transition-colors hover:border-[var(--focus-ring)]/60">
+                  <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[var(--field-bg)]"><Landmark className="size-5 text-[var(--color-gold-500)]" /></span>
+                  <span className="min-w-0 flex-1">
+                    <span className="text-strong block text-sm font-medium">Connect your bank for automatic tracking</span>
+                    <span className="text-muted block text-xs">Stop typing transactions — let Renew sync and sort them for you.</span>
+                  </span>
+                  <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5" />
+                </button>
+              </StaggerItem>
+            )}
             {/* Hero balance */}
             <StaggerItem>
               <GlassCard padded className="relative overflow-hidden">
@@ -269,6 +299,12 @@ export function Dashboard({ firstName }: { firstName: string }) {
       <AnimatedModal open={modalOpen} onClose={() => setModalOpen(false)} title="Add transaction">
         <TransactionForm defaultCurrency={currency} submitting={submitting} onSubmit={quickAdd} onCancel={() => setModalOpen(false)} />
       </AnimatedModal>
+
+      <ConnectBankModal
+        open={connectOpen}
+        onClose={() => setConnectOpen(false)}
+        onConnected={(r) => toast({ title: `Synced ${r.transactions} transactions from your bank`, variant: "success" })}
+      />
     </div>
   );
 }

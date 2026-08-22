@@ -50,7 +50,7 @@ export function RowMenu({ items, label = "More actions" }: { items: RowMenuItem[
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -4, scale: 0.98 }}
             transition={{ duration: 0.14 }}
-            className="glass glass-strong absolute end-0 z-50 mt-1 w-40 overflow-hidden !rounded-xl p-1"
+            className="absolute end-0 z-50 mt-1 w-40 overflow-hidden rounded-xl border border-[var(--menu-border)] bg-[var(--menu-bg)] p-1 shadow-[var(--glass-shadow)] backdrop-blur-xl"
           >
             {items.map((item) => (
               <button

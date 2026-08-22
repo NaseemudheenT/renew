@@ -2,7 +2,7 @@
 
 import { useReducer, useRef, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X, Briefcase } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X, Briefcase, ChevronRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -471,23 +471,31 @@ function DataControl({ uid }: { uid: string }) {
     }
   }
 
+  const stored = [
+    { n: accounts.data.length, label: "accounts" },
+    { n: transactions.data.length, label: "transactions" },
+    { n: payments.data.length, label: "bills" },
+    { n: subscriptions.data.length, label: "subscriptions" },
+  ];
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       <p className="text-muted text-xs">{t("settings.data.hint")}</p>
-      <div className="flex flex-col gap-2 sm:flex-row">
-        <AnimatedButton variant="glass" fullWidth onClick={exportJson}>
-          <Download className="size-4" />
-          {t("settings.data.exportJson")}
-        </AnimatedButton>
-        <AnimatedButton variant="glass" fullWidth onClick={exportCsv}>
-          <Download className="size-4" />
-          {t("settings.data.exportCsv")}
-        </AnimatedButton>
+
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+        {stored.map((s) => (
+          <div key={s.label} className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2.5 text-center">
+            <p className="text-strong text-lg font-semibold tabular-nums">{s.n}</p>
+            <p className="text-muted text-[0.7rem] capitalize">{s.label}</p>
+          </div>
+        ))}
       </div>
-      <AnimatedButton variant="glass" fullWidth onClick={() => fileRef.current?.click()}>
-        <Upload className="size-4" />
-        {t("settings.data.import")}
-      </AnimatedButton>
+
+      <div className="flex flex-col gap-2">
+        <DataAction icon={Download} title={t("settings.data.exportJson")} desc="A full, portable copy of everything in Renew" onClick={exportJson} />
+        <DataAction icon={Download} title={t("settings.data.exportCsv")} desc="Your transactions as a spreadsheet" onClick={exportCsv} />
+        <DataAction icon={Upload} title={t("settings.data.import")} desc="Bring transactions in from a CSV file" onClick={() => fileRef.current?.click()} />
+      </div>
       <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
 
       <AnimatedModal
@@ -507,6 +515,19 @@ function DataControl({ uid }: { uid: string }) {
         </div>
       </AnimatedModal>
     </div>
+  );
+}
+
+function DataAction({ icon: Icon, title, desc, onClick }: { icon: typeof Download; title: string; desc: string; onClick: () => void }) {
+  return (
+    <button type="button" onClick={onClick} className="group flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3 text-left transition-colors hover:border-[var(--focus-ring)]/60">
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-strong)]"><Icon className="size-4.5 text-[var(--color-gold-500)]" /></span>
+      <span className="min-w-0 flex-1">
+        <span className="text-strong block text-sm font-medium">{title}</span>
+        <span className="text-muted block truncate text-xs">{desc}</span>
+      </span>
+      <ChevronRight className="size-4 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5" />
+    </button>
   );
 }
 
