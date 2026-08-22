@@ -8,13 +8,15 @@ import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
 
 /**
- * RENEW — the entry. The mark + wordmark sit FIXED and centered over the live
- * midnight field (an ambient bloom + slow halo glow behind them — the logo
- * itself never drifts). Touch the logo and it springs with a rich animation,
- * then carries you into sign-in. Reduced-motion safe.
+ * RENEW — the entry, and the first impression. The mark arrives from depth with
+ * a soft pop, a single signal-pulse ripples outward from it, a slow halo turns
+ * behind, and the wordmark settles in. The emblem itself stays FIXED (no idle
+ * drift) — touch it and it springs, then carries you into sign-in.
+ * Reduced-motion safe.
  */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+const POP = [0.34, 1.4, 0.64, 1] as const; // gentle overshoot for the arrival
 
 export default function Home() {
   const router = useRouter();
@@ -22,8 +24,6 @@ export default function Home() {
   const shake = useAnimationControls();
   const [entering, setEntering] = useState(false);
 
-  // Touch the logo → a rich spring animation, then into sign-in. Navigation runs
-  // on a fixed timer (not awaiting the animation) so it can never be blocked.
   function enter() {
     if (entering) return;
     setEntering(true);
@@ -47,20 +47,30 @@ export default function Home() {
         className="pointer-events-none absolute left-1/2 top-[44%] size-[48vmax] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[90px]"
         style={{ background: "radial-gradient(circle, var(--bokeh-1), transparent 66%)" }}
         initial={{ opacity: 0 }}
-        animate={{ opacity: reduced ? 0.5 : [0.34, 0.6, 0.34] }}
+        animate={{ opacity: reduced ? 0.5 : [0.34, 0.62, 0.34] }}
         transition={{ duration: reduced ? 0.8 : 7, repeat: reduced ? 0 : Infinity, ease: "easeInOut" }}
       />
 
-      {/* One-time light sweep on entry. */}
+      {/* Two light sweeps on entry — a cinematic wipe across the field. */}
       {!reduced && (
-        <motion.div
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-0"
-          style={{ background: "linear-gradient(105deg, transparent 42%, rgba(210,228,255,0.10) 50%, transparent 58%)" }}
-          initial={{ x: "-120%" }}
-          animate={{ x: "120%" }}
-          transition={{ delay: 0.55, duration: 1.7, ease: EASE }}
-        />
+        <>
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "linear-gradient(105deg, transparent 42%, rgba(210,228,255,0.12) 50%, transparent 58%)" }}
+            initial={{ x: "-120%" }}
+            animate={{ x: "120%" }}
+            transition={{ delay: 0.5, duration: 1.6, ease: EASE }}
+          />
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0"
+            style={{ background: "linear-gradient(105deg, transparent 46%, rgba(150,185,255,0.06) 50%, transparent 54%)" }}
+            initial={{ x: "-120%" }}
+            animate={{ x: "120%" }}
+            transition={{ delay: 1.0, duration: 2.0, ease: EASE }}
+          />
+        </>
       )}
 
       {/* Fixed emblem — touch it to enter. */}
@@ -69,18 +79,33 @@ export default function Home() {
         onClick={enter}
         aria-label="Enter Renew"
         className="group relative z-10 flex flex-col items-center rounded-3xl px-8 py-8 outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-        initial={{ opacity: 0, scale: 0.6, filter: "blur(10px)" }}
+        initial={{ opacity: 0, scale: 0.58, filter: "blur(12px)" }}
         animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-        transition={{ duration: 1.1, ease: EASE }}
+        transition={{
+          duration: 1.0,
+          ease: EASE,
+          scale: { duration: 0.95, ease: POP },
+        }}
         whileTap={reduced ? undefined : { scale: 0.96 }}
       >
         <span className="relative">
+          {/* One-time signal pulse — a ring that ripples out from the mark on arrival. */}
+          {!reduced && (
+            <motion.span
+              aria-hidden="true"
+              className="pointer-events-none absolute left-1/2 top-1/2 size-40 -translate-x-1/2 -translate-y-1/2 rounded-full"
+              style={{ border: "1.5px solid var(--glass-edge)" }}
+              initial={{ scale: 0.5, opacity: 0 }}
+              animate={{ scale: [0.5, 2.4], opacity: [0, 0.5, 0] }}
+              transition={{ delay: 0.55, duration: 1.5, ease: "easeOut" }}
+            />
+          )}
           {/* Pulsing bloom (glow only — behind the mark). */}
           <motion.span
             aria-hidden="true"
             className="pointer-events-none absolute left-1/2 top-1/2 size-56 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[46px]"
             style={{ background: "radial-gradient(circle, var(--bokeh-3), transparent 62%)" }}
-            animate={reduced ? undefined : { opacity: [0.4, 0.75, 0.4] }}
+            animate={reduced ? undefined : { opacity: [0.4, 0.78, 0.4] }}
             transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
           />
           {/* Slow-rotating halo ring (behind). */}
@@ -92,10 +117,13 @@ export default function Home() {
                 "conic-gradient(from 0deg, transparent, var(--bokeh-1), transparent 38%, var(--bokeh-3), transparent 72%)",
               maskImage: "radial-gradient(closest-side, transparent 57%, #000 60%, #000 71%, transparent 74%)",
               WebkitMaskImage: "radial-gradient(closest-side, transparent 57%, #000 60%, #000 71%, transparent 74%)",
-              opacity: 0.55,
             }}
-            animate={reduced ? undefined : { rotate: 360 }}
-            transition={{ duration: 26, repeat: Infinity, ease: "linear" }}
+            initial={{ opacity: 0 }}
+            animate={reduced ? { opacity: 0.55 } : { rotate: 360, opacity: 0.55 }}
+            transition={{
+              rotate: { duration: 26, repeat: Infinity, ease: "linear" },
+              opacity: { duration: 1.4, delay: 0.4, ease: EASE },
+            }}
           />
           {/* The mark — fixed; only the press animation moves it. */}
           <motion.span
@@ -116,9 +144,9 @@ export default function Home() {
 
         <motion.span
           className="mt-9"
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.9, ease: EASE }}
+          initial={{ opacity: 0, y: 16, filter: "blur(6px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ delay: 0.55, duration: 0.9, ease: EASE }}
         >
           <Wordmark sizeClassName="text-5xl sm:text-7xl" />
         </motion.span>
@@ -129,7 +157,7 @@ export default function Home() {
         className="absolute inset-x-0 bottom-7 z-10 flex items-center justify-center gap-3 text-xs text-[var(--text-muted)]"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 1.1, duration: 0.9, ease: EASE }}
+        transition={{ delay: 1.2, duration: 0.9, ease: EASE }}
       >
         <Link href="/privacy" className="transition-colors hover:text-[var(--text-body)]">Privacy</Link>
         <span aria-hidden="true" className="opacity-50">·</span>
