@@ -2,7 +2,7 @@
 
 import { useReducer, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Tags, X, Briefcase, ChevronRight } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Tags, X, Briefcase, ChevronRight, Lock } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -24,6 +24,7 @@ import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } fr
 import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
 import { useCategories } from "@/hooks/useCategories";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
+import { AppLockControl } from "@/components/settings/AppLockControl";
 import { CURRENCY_CODES, REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
 import { browserNotifyStatus, requestBrowserNotify, type NotifyStatus } from "@/lib/notify";
@@ -79,6 +80,10 @@ export function SettingsView() {
 
       <Section icon={Database} title="Data">
         <DataControl />
+      </Section>
+
+      <Section icon={Lock} title="App lock">
+        <AppLockControl />
       </Section>
 
       <Section icon={ShieldCheck} title="Security">

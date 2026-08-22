@@ -5,8 +5,10 @@ import { updateProfile } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
 import { getFirebaseAuth } from "@/lib/firebase/client";
+import { deleteField } from "firebase/firestore";
 import type { NotificationPrefs, AccountType } from "@/hooks/useUserProfile";
 import type { CustomCategory } from "@/lib/types";
+import type { PasscodeRecord } from "@/lib/security/passcode";
 
 function profileRef(uid: string) {
   return doc(getDb(), "users", uid);
@@ -25,6 +27,21 @@ export async function updateDisplayName(uid: string, name: string): Promise<void
 
 export async function updateTimezone(uid: string, timezone: string): Promise<void> {
   await updateDoc(profileRef(uid), { timezone, updatedAt: serverTimestamp() });
+}
+
+/** Set (or update) the app-lock passcode + biometric record. */
+export async function setSecurity(uid: string, security: PasscodeRecord): Promise<void> {
+  await updateDoc(profileRef(uid), { security, updatedAt: serverTimestamp() });
+}
+
+/** Turn the app lock off entirely. */
+export async function clearSecurity(uid: string): Promise<void> {
+  await updateDoc(profileRef(uid), { security: deleteField(), updatedAt: serverTimestamp() });
+}
+
+/** Toggle just the biometric preference without touching the passcode. */
+export async function setBiometricEnabled(uid: string, current: PasscodeRecord, enabled: boolean): Promise<void> {
+  await updateDoc(profileRef(uid), { security: { ...current, biometricEnabled: enabled, updatedAt: Date.now() }, updatedAt: serverTimestamp() });
 }
 
 /** Personal / business / both — how the person uses Renew. */

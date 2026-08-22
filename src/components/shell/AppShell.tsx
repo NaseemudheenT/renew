@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { TopBar } from "./TopBar";
 import { NotificationSync } from "./NotificationSync";
+import { AppLock } from "@/components/security/AppLock";
 import type { ShellUser } from "./shell-types";
 
 /** Persistent application frame: glass sidebar (desktop), bottom tabs (mobile). */
@@ -19,6 +20,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
         Skip to content
       </a>
       <NotificationSync />
+      <AppLock />
       <Sidebar user={user} />
       <div className="flex min-h-dvh flex-col">
         <TopBar user={user} />

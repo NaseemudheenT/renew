@@ -5,6 +5,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
 import { useAuth } from "@/components/providers/AuthProvider";
 import type { CustomCategory } from "@/lib/types";
+import type { PasscodeRecord } from "@/lib/security/passcode";
 
 export interface NotificationPrefs {
   reminders: boolean;
@@ -49,6 +50,8 @@ export interface ProfileDoc {
   hour12?: boolean;
   /** User-defined income/expense categories. */
   customCategories?: CustomCategory[];
+  /** App-lock passcode + biometric settings (see lib/security/passcode). */
+  security?: PasscodeRecord;
 }
 
 /** Realtime subscription to the signed-in user's profile document. */
