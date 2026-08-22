@@ -26,6 +26,12 @@ const nextConfig: NextConfig = {
             key: "Permissions-Policy",
             value: "camera=(), microphone=(), geolocation=()",
           },
+          // Force HTTPS for two years (incl. subdomains) — bank-grade transport
+          // security for a money app. Applies only over HTTPS (Vercel).
+          {
+            key: "Strict-Transport-Security",
+            value: "max-age=63072000; includeSubDomains; preload",
+          },
         ],
       },
     ];
