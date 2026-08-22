@@ -17,8 +17,12 @@ export type ConnectionStatus =
 
 export type AccountKind = "current" | "savings" | "credit_card" | "loan" | "investment" | "wallet" | "other";
 
+/** A bank/UPI connection, or a brokerage/trading connection (Groww, Zerodha…). */
+export type ConnectionKind = "bank" | "brokerage";
+
 export interface UserBankConnection {
   id: string;
+  kind: ConnectionKind;
   /** Provider adapter id, e.g. "sandbox", "yapily", "rbi-aa". */
   provider: string;
   /** true = test/sandbox connection (never real money). Always shown as such. */
@@ -63,7 +67,19 @@ export interface BankTransaction {
   bookedAt: number;
 }
 
-export type ConsentScope = "accounts" | "balances" | "transactions";
+/** A single investment holding from a connected brokerage. */
+export interface Holding {
+  id: string;
+  connectionId: string;
+  symbol: string;
+  name: string;
+  quantity: number;
+  avgCost: number; // per unit, in `currency`
+  lastPrice: number; // per unit
+  currency: string;
+}
+
+export type ConsentScope = "accounts" | "balances" | "transactions" | "holdings";
 
 export interface ConsentRecord {
   id: string;

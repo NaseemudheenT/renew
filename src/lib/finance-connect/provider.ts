@@ -13,8 +13,10 @@ import type {
   BankAccount,
   AccountBalance,
   BankTransaction,
+  Holding,
   ConnectionInit,
   ConsentScope,
+  ConnectionKind,
 } from "./types";
 
 export interface ProviderInstitution {
@@ -31,11 +33,11 @@ export interface BankConnectionProvider {
   /** true once this returns a real, live, regulated feed. */
   live: boolean;
 
-  /** Institutions this provider covers for a region (empty if none verified). */
-  listInstitutions(region: string): Promise<ProviderInstitution[]>;
+  /** Institutions this provider covers for a region + kind (empty if none). */
+  listInstitutions(region: string, kind: ConnectionKind): Promise<ProviderInstitution[]>;
 
   /** Begin a connection: create a consent and return the provider auth URL. */
-  createConnection(input: { uid: string; institutionId: string; region: string; scopes: ConsentScope[] }): Promise<ConnectionInit>;
+  createConnection(input: { uid: string; institutionId: string; region: string; kind: ConnectionKind; scopes: ConsentScope[] }): Promise<ConnectionInit>;
 
   /** Handle the provider redirect/callback and finalize the connection. */
   handleCallback(input: { connectionId: string; params: Record<string, string> }): Promise<UserBankConnection>;
@@ -43,6 +45,7 @@ export interface BankConnectionProvider {
   getAccounts(connectionId: string): Promise<BankAccount[]>;
   getBalances(connectionId: string): Promise<AccountBalance[]>;
   getTransactions(connectionId: string, opts?: { since?: number }): Promise<BankTransaction[]>;
+  getHoldings(connectionId: string): Promise<Holding[]>;
 
   /** Refresh tokens / re-pull. */
   refreshConnection(connectionId: string): Promise<UserBankConnection>;

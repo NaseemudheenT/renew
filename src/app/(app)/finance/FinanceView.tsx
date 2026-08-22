@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react";
 import { motion } from "framer-motion";
-import { Landmark, ShieldCheck, RefreshCw, Trash2, Search, Check, FlaskConical, ChevronRight, Loader2 } from "lucide-react";
+import { Landmark, ShieldCheck, RefreshCw, Trash2, Search, Check, FlaskConical, ChevronRight, Loader2, TrendingUp } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -13,10 +13,10 @@ import { useLocale } from "@/components/providers/LocaleProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useReauth } from "@/components/security/ReauthProvider";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
-import { sandboxProvider, listSandboxConnections, getSandboxDetail } from "@/lib/finance-connect/sandbox";
+import { sandboxProvider, listSandboxConnections, getSandboxDetail, sandboxInstitutions } from "@/lib/finance-connect/sandbox";
 import { isSandbox } from "@/lib/finance-connect/provider";
 import type { ProviderInstitution } from "@/lib/finance-connect/provider";
-import { institutionsForRegion } from "@/lib/bank/banks";
+import type { ConnectionKind } from "@/lib/finance-connect/types";
 import { cn } from "@/lib/utils";
 
 const CHANGE_EVENT = "renew-sandbox-bank-change";
@@ -45,11 +45,11 @@ export function FinanceView() {
   const connections = useMemo(() => JSON.parse(connectionsJson) as ReturnType<typeof listSandboxConnections>, [connectionsJson]);
   const sandbox = isSandbox();
 
-  const [open, setOpen] = useState(false);
+  const [connectKind, setConnectKind] = useState<ConnectionKind | null>(null);
 
-  async function openConnect() {
-    if (!(await requireReauth("to connect a bank"))) return;
-    setOpen(true);
+  async function openConnect(kind: ConnectionKind) {
+    if (!(await requireReauth(kind === "brokerage" ? "to connect your trading account" : "to connect a bank"))) return;
+    setConnectKind(kind);
   }
 
   async function disconnect(id: string) {
@@ -65,9 +65,14 @@ export function FinanceView() {
   return (
     <div className="mx-auto max-w-3xl">
       <PageHeader
-        title="Bank connections"
-        subtitle="Connect a bank securely — Renew never sees your password or card details."
-        action={<AnimatedButton onClick={openConnect}><Landmark className="size-4" />Connect a bank</AnimatedButton>}
+        title="Connections"
+        subtitle="Connect your banks and trading apps securely — Renew never sees your password or card details, and shows only what you reveal."
+        action={
+          <div className="flex flex-wrap items-center gap-2">
+            <AnimatedButton variant="glass" onClick={() => openConnect("brokerage")}><TrendingUp className="size-4" />Connect trading</AnimatedButton>
+            <AnimatedButton onClick={() => openConnect("bank")}><Landmark className="size-4" />Connect a bank</AnimatedButton>
+          </div>
+        }
       />
 
       {sandbox && (
@@ -79,7 +84,7 @@ export function FinanceView() {
 
       {connections.length === 0 ? (
         <GlassCard padded>
-          <EmptyState icon={Landmark} title="No banks connected" description="Connect a bank to see balances and transactions here. You'll authorize on your bank's own secure page — Renew only ever receives read-only, consented data." action={<AnimatedButton onClick={openConnect}><Landmark className="size-4" />Connect a bank</AnimatedButton>} />
+          <EmptyState icon={Landmark} title="Nothing connected yet" description="Connect a bank or a trading app to see balances and holdings here. You'll authorize on the provider's own secure page — Renew only ever receives read-only, consented data." action={<AnimatedButton onClick={() => openConnect("bank")}><Landmark className="size-4" />Connect a bank</AnimatedButton>} />
         </GlassCard>
       ) : (
         <div className="flex flex-col gap-4">
@@ -89,7 +94,7 @@ export function FinanceView() {
             return (
               <GlassCard key={c.id} padded>
                 <div className="flex items-center gap-3">
-                  <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]"><Landmark className="size-5 text-[var(--color-gold-500)]" /></span>
+                  <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]">{c.kind === "brokerage" ? <TrendingUp className="size-5 text-[var(--color-gold-500)]" /> : <Landmark className="size-5 text-[var(--color-gold-500)]" />}</span>
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-strong truncate text-sm font-medium">{c.institutionName}</p>
@@ -106,7 +111,30 @@ export function FinanceView() {
                   <button type="button" onClick={() => disconnect(c.id)} aria-label="Disconnect" className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] hover:bg-rose-500/10 hover:text-rose-500"><Trash2 className="size-4" /></button>
                 </div>
 
-                {detail && detail.accounts.length > 0 && (
+                {c.kind === "brokerage" && detail && detail.holdings.length > 0 && (
+                  <ul className="mt-3 flex flex-col gap-2">
+                    {detail.holdings.map((h) => {
+                      const value = h.quantity * h.lastPrice;
+                      const cost = h.quantity * h.avgCost;
+                      const pct = cost > 0 ? ((value - cost) / cost) * 100 : 0;
+                      const up = pct >= 0;
+                      return (
+                        <li key={h.id} className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5">
+                          <div className="min-w-0">
+                            <p className="text-body truncate text-sm font-medium">{h.symbol}</p>
+                            <p className="text-muted truncate text-xs">{h.name} · {h.quantity} units</p>
+                          </div>
+                          <div className="shrink-0 text-end">
+                            <p className="text-strong text-sm font-medium tabular-nums">{hidden ? mask : money(value, h.currency)}</p>
+                            <p className={cn("text-xs font-medium tabular-nums", up ? "text-emerald-500" : "text-rose-500")}>{up ? "▲" : "▼"} {Math.abs(pct).toFixed(1)}%</p>
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+
+                {c.kind === "bank" && detail && detail.accounts.length > 0 && (
                   <ul className="mt-3 grid gap-2 sm:grid-cols-2">
                     {detail.accounts.map((a) => {
                       const b = bal.find((x) => x.accountId === a.id);
@@ -129,14 +157,14 @@ export function FinanceView() {
         </div>
       )}
 
-      <ConnectFlow open={open} onClose={() => setOpen(false)} region={prefs.region} uid={user?.uid ?? null} />
+      <ConnectFlow open={connectKind !== null} kind={connectKind ?? "bank"} onClose={() => setConnectKind(null)} region={prefs.region} uid={user?.uid ?? null} />
     </div>
   );
 }
 
 type FlowStep = "pick" | "authorize" | "done";
 
-function ConnectFlow({ open, onClose, region, uid }: { open: boolean; onClose: () => void; region: string; uid: string | null }) {
+function ConnectFlow({ open, kind, onClose, region, uid }: { open: boolean; kind: ConnectionKind; onClose: () => void; region: string; uid: string | null }) {
   const [step, setStep] = useState<FlowStep>("pick");
   const [reg, setReg] = useState(region);
   const [q, setQ] = useState("");
@@ -144,10 +172,7 @@ function ConnectFlow({ open, onClose, region, uid }: { open: boolean; onClose: (
   const [connId, setConnId] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const insts = useMemo<ProviderInstitution[]>(
-    () => institutionsForRegion(reg).map((i) => ({ id: i.id, name: i.name, region: reg, short: i.short, color: i.color })),
-    [reg],
-  );
+  const insts = useMemo<ProviderInstitution[]>(() => sandboxInstitutions(reg, kind), [reg, kind]);
 
   const filtered = useMemo(() => {
     const s = q.trim().toLowerCase();
@@ -171,7 +196,7 @@ function ConnectFlow({ open, onClose, region, uid }: { open: boolean; onClose: (
     setActive(inst);
     setBusy(true);
     try {
-      const init = await sandboxProvider.createConnection({ uid, institutionId: inst.id, region: reg, scopes: ["accounts", "balances", "transactions"] });
+      const init = await sandboxProvider.createConnection({ uid, institutionId: inst.id, region: reg, kind, scopes: kind === "brokerage" ? ["holdings"] : ["accounts", "balances", "transactions"] });
       setConnId(init.connectionId);
       setStep("authorize");
     } finally {
@@ -192,7 +217,7 @@ function ConnectFlow({ open, onClose, region, uid }: { open: boolean; onClose: (
     }
   }
 
-  const title = step === "pick" ? "Connect a bank" : step === "authorize" ? "Authorize" : "Connected";
+  const title = step === "pick" ? (kind === "brokerage" ? "Connect trading" : "Connect a bank") : step === "authorize" ? "Authorize" : "Connected";
 
   return (
     <AnimatedModal open={open} onClose={close} title={title}>
@@ -201,7 +226,7 @@ function ConnectFlow({ open, onClose, region, uid }: { open: boolean; onClose: (
           <CountrySelect label="Country / region" value={reg} onChange={setReg} locale={reg} />
           <div className="flex items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5">
             <Search className="size-4 shrink-0 text-[var(--text-muted)]" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search your bank…" aria-label="Search bank" className="h-11 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none" />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={kind === "brokerage" ? "Search trading apps…" : "Search your bank…"} aria-label="Search" className="h-11 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none" />
           </div>
           <div className="grid max-h-[40vh] grid-cols-2 gap-2 overflow-y-auto pr-0.5 sm:grid-cols-3">
             {filtered.map((inst) => (
@@ -228,7 +253,7 @@ function ConnectFlow({ open, onClose, region, uid }: { open: boolean; onClose: (
         <div className="flex flex-col items-center py-4 text-center">
           <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: "spring", stiffness: 260, damping: 18 }} className="grid size-16 place-items-center rounded-full bg-emerald-500/15"><Check className="size-7 text-emerald-400" /></motion.div>
           <h3 className="text-strong mt-4 text-lg font-medium">{active.name} connected</h3>
-          <p className="text-muted mt-1 text-sm">Your accounts and balances are in Renew. Manage or disconnect any time.</p>
+          <p className="text-muted mt-1 text-sm">{kind === "brokerage" ? "Your holdings are in Renew." : "Your accounts and balances are in Renew."} Manage or disconnect any time.</p>
           <AnimatedButton size="lg" className="mt-5 w-full max-w-xs" onClick={close}>Done</AnimatedButton>
         </div>
       )}
