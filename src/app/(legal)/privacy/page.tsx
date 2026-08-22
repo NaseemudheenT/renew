@@ -5,7 +5,7 @@ export default function PrivacyPage() {
     <>
       <h1>Privacy Policy</h1>
       <p className="lead">Last updated: 21 August 2026</p>
-      <p>Renew, a product by Zap, helps you see and manage your money — accounts, transactions, budgets, savings, bills and payments — in one private place. This policy explains what we collect, why, and the control you have. We aim to collect as little as possible.</p>
+      <p>Renew helps you see and manage your money — accounts, transactions, budgets, savings, bills and payments — in one private place. This policy explains what we collect, why, and the control you have. We aim to collect as little as possible.</p>
       <h2>What we collect</h2>
       <ul>
         <li><strong>Account details</strong> — your name, and the phone number or email you use to sign in.</li>

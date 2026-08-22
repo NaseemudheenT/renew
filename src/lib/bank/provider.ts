@@ -25,8 +25,8 @@ export interface BankProvider {
 
 /** Pre-licence default: a believable, deterministic history (see ./simulate). */
 export const simulatedProvider: BankProvider = {
-  id: "renew-preview",
-  label: "Renew preview sync",
+  id: "renew-sync",
+  label: "Renew sync",
   live: false,
   fetchSync: (opts) => buildSyncPlan(opts),
 };

@@ -40,7 +40,9 @@ export const metadata: Metadata = {
     "subscriptions",
     "expense tracker",
   ],
-  authors: [{ name: publicEnv.parentCompany }],
+  authors: [{ name: "Renew" }],
+  creator: "Renew",
+  publisher: "Renew",
   openGraph: {
     type: "website",
     siteName: "Renew",

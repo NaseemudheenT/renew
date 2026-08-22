@@ -5,7 +5,7 @@ export default function TermsPage() {
     <>
       <h1>Terms of Service</h1>
       <p className="lead">Last updated: 21 August 2026</p>
-      <p>These terms govern your use of Renew (&ldquo;the service&rdquo;), a product by Zap. By creating an account you agree to them.</p>
+      <p>These terms govern your use of Renew (&ldquo;the service&rdquo;). By creating an account you agree to them.</p>
       <h2>Your account</h2>
       <ul>
         <li>You&apos;re responsible for keeping your login secure and for activity on your account.</li>

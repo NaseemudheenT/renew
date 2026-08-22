@@ -132,7 +132,7 @@ export function ConnectBankModal({
           </div>
           <div className="text-muted mt-4 flex items-start gap-2 text-xs">
             <ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-[var(--color-gold-500)]" />
-            <span>Bank-grade encryption. Renew is read-only — it can never move your money. Preview data until live bank connections open in your region.</span>
+            <span>Bank-grade encryption. Renew is read-only — it can never move your money.</span>
           </div>
         </div>
       )}
