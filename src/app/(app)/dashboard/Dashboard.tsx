@@ -23,6 +23,7 @@ import { computeInsights } from "@/lib/insights";
 import { Insights } from "@/components/finance/Insights";
 import { ConnectBankModal } from "@/components/bank/ConnectBankModal";
 import { hasLinkedAccount } from "@/lib/bank/connect";
+import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
@@ -44,6 +45,7 @@ const greetSubscribe = () => () => {};
 export function Dashboard({ firstName }: { firstName: string }) {
   const router = useRouter();
   const { prefs, money, dueLabel, date } = useLocale();
+  const { hidden: amountsHidden, mask } = usePrivacy();
   const { resolve } = useCategories();
   const { isBusiness } = useAccountType();
   // Server renders the neutral "Hello"; the client swaps to the local-time
@@ -217,7 +219,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
                           <Link href="/accounts" className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--focus-ring)]/50">
                             <AIcon className="size-4 shrink-0 text-[var(--color-gold-500)]" />
                             <span className="text-body min-w-0 flex-1 truncate text-sm">{a.name}</span>
-                            <span className={cn("text-sm font-medium tabular-nums", bal < 0 ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(bal, a.currency)}</span>
+                            <span className={cn("text-sm font-medium tabular-nums", bal < 0 ? "text-rose-500" : "text-[var(--text-strong)]")}>{amountsHidden ? mask : money(bal, a.currency)}</span>
                           </Link>
                         </li>
                       );

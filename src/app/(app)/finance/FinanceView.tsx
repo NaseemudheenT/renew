@@ -12,6 +12,7 @@ import { toast } from "@/components/ui/toast-store";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useReauth } from "@/components/security/ReauthProvider";
+import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { sandboxProvider, listSandboxConnections, getSandboxDetail } from "@/lib/finance-connect/sandbox";
 import { isSandbox } from "@/lib/finance-connect/provider";
 import type { ProviderInstitution } from "@/lib/finance-connect/provider";
@@ -37,6 +38,7 @@ function useConnections() {
 
 export function FinanceView() {
   const { prefs, money, shortDate } = useLocale();
+  const { hidden, mask } = usePrivacy();
   const { user } = useAuth();
   const requireReauth = useReauth();
   const connectionsJson = useConnections();
@@ -114,7 +116,7 @@ export function FinanceView() {
                             <p className="text-body truncate text-sm">{a.name}</p>
                             <p className="text-muted text-xs capitalize">{a.kind.replace("_", " ")} · {a.maskedNumber}</p>
                           </div>
-                          {b && <span className="text-strong shrink-0 text-sm font-medium tabular-nums">{money(b.current, b.currency)}</span>}
+                          {b && <span className="text-strong shrink-0 text-sm font-medium tabular-nums">{hidden ? mask : money(b.current, b.currency)}</span>}
                         </li>
                       );
                     })}

@@ -20,6 +20,7 @@ import { useLocale } from "@/components/providers/LocaleProvider";
 import { createAccount, updateAccount, setAccountStatus, deleteAccount, type AccountInput } from "@/lib/firestore/accounts";
 import { createTransfer, deleteTransfer, type TransferInput } from "@/lib/firestore/transfers";
 import { ACCOUNT_TYPES, accountTypeMeta, computeAccountBalance } from "@/lib/accounts";
+import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Account, AccountType, Transaction, Transfer } from "@/lib/types";
@@ -183,6 +184,7 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
   onRestore?: () => void;
   onDelete: () => void;
 }) {
+  const { hidden, mask } = usePrivacy();
   const meta = accountTypeMeta(account.atype);
   const Icon = meta.icon;
   const negative = balance < 0;
@@ -203,7 +205,7 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
         </div>
         <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
       </div>
-      <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(balance, account.currency)}</span>
+      <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{hidden ? mask : money(balance, account.currency)}</span>
       <RowMenu items={items} />
     </motion.div>
   );

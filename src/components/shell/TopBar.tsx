@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { Eye, EyeOff } from "lucide-react";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { NotificationBell } from "./NotificationBell";
 import { GlobalSearch } from "./GlobalSearch";
@@ -11,11 +12,13 @@ import { AccountMenu } from "./AccountMenu";
 import type { ShellUser } from "./shell-types";
 import { titleKeyForPath } from "@/lib/nav";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { cn } from "@/lib/utils";
 
 export function TopBar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const { t } = useLocale();
+  const { hidden, toggle } = usePrivacy();
   const titleKey = titleKeyForPath(pathname);
   const title = titleKey ? t(titleKey) : "Renew";
   const [scrolled, setScrolled] = useState(false);
@@ -38,6 +41,15 @@ export function TopBar({ user }: { user: ShellUser }) {
       </Link>
       <h1 className="text-strong hidden text-lg font-medium lg:block">{title}</h1>
       <div className="flex items-center gap-2 sm:gap-3">
+        <button
+          type="button"
+          onClick={toggle}
+          aria-label={hidden ? "Show amounts" : "Hide amounts"}
+          title={hidden ? "Show amounts" : "Hide amounts"}
+          className="grid size-10 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
+        >
+          {hidden ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
+        </button>
         <InstallRenew />
         <GlobalSearch />
         <NotificationBell />
