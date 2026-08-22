@@ -30,7 +30,7 @@ export function TopBar({ user }: { user: ShellUser }) {
     <header
       className={cn(
         "sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3 transition-all duration-300 sm:px-6 lg:px-8",
-        scrolled && "border-b border-[var(--glass-border)] bg-[var(--glass-bg-soft)] backdrop-blur-md",
+        scrolled && "border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)] backdrop-blur-xl backdrop-saturate-150",
       )}
     >
       <Link href="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Renew home">

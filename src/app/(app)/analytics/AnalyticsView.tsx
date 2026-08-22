@@ -83,8 +83,8 @@ export function AnalyticsView() {
               {months.map((m, i) => (
                 <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
                   <div className="flex h-full w-full items-end justify-center gap-1">
-                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-emerald-500 to-emerald-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.income / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 }} title={`Income: ${money(m.income, currency)}`} />
-                    <motion.div className="w-1/2 max-w-4 rounded-t-md bg-gradient-to-t from-rose-500 to-rose-300" initial={reduced ? false : { height: 0 }} animate={{ height: `${(m.expense / maxMonth) * 100}%` }} transition={{ duration: 0.5, delay: i * 0.04 + 0.05 }} title={`Expense: ${money(m.expense, currency)}`} />
+                    <motion.div className="w-1/2 max-w-4 origin-bottom rounded-t-md bg-gradient-to-t from-emerald-500 to-emerald-300" style={{ height: `${(m.income / maxMonth) * 100}%` }} initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: i * 0.04 }} title={`Income: ${money(m.income, currency)}`} />
+                    <motion.div className="w-1/2 max-w-4 origin-bottom rounded-t-md bg-gradient-to-t from-rose-500 to-rose-300" style={{ height: `${(m.expense / maxMonth) * 100}%` }} initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: i * 0.04 + 0.05 }} title={`Expense: ${money(m.expense, currency)}`} />
                   </div>
                   <span className="text-muted text-[10px]">{m.label}</span>
                 </div>

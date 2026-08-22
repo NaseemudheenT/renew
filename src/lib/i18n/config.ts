@@ -66,7 +66,7 @@ export const ALL_LANGUAGE_CODES: string[] = [
   "la", "lb", "lo", "lt", "lv", "mg", "mi", "mk", "ml", "mn", "mr", "ms", "mt",
   "my", "ne", "nl", "no", "ny", "or", "pa", "pl", "ps", "pt", "ro", "ru", "sd",
   "si", "sk", "sl", "sm", "sn", "so", "sq", "sr", "st", "su", "sv", "sw", "ta",
-  "te", "tg", "th", "tk", "tl", "tr", "tt", "ug", "uk", "ur", "uz", "vi", "xh",
+  "te", "tg", "th", "tk", "tr", "tt", "ug", "uk", "ur", "uz", "vi", "xh",
   "yi", "yo", "zh", "zu",
 ];
 
@@ -111,6 +111,7 @@ export function languageOptions(uiLocale: string): LanguageOption[] {
     nativeCache.set(code, name);
     return name;
   };
+  const seen = new Set<string>();
   return ALL_LANGUAGE_CODES
     .map((code) => ({
       code,
@@ -118,6 +119,9 @@ export function languageOptions(uiLocale: string): LanguageOption[] {
       native: nativeOf(code),
       dir: directionFor(code),
     }))
+    // Intl can render two codes to the same name (e.g. tl/fil → "Filipino");
+    // keep the first so the list never shows a visible duplicate.
+    .filter((o) => (seen.has(o.label) ? false : (seen.add(o.label), true)))
     .sort((a, b) => a.label.localeCompare(b.label, lang));
 }
 

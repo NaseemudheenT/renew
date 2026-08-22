@@ -5,6 +5,7 @@ import {
   weekStartFor,
   hour12For,
   directionFor,
+  languageOptions,
   LANGUAGES,
   REGION_CURRENCY,
   FALLBACK_PREFS,
@@ -62,5 +63,30 @@ describe("region helpers", () => {
     expect(directionFor("en")).toBe("ltr");
     expect(directionFor("ar")).toBe("rtl");
     expect(directionFor("ar-EG")).toBe("rtl");
+  });
+});
+
+describe("languageOptions", () => {
+  const opts = languageOptions("en");
+
+  it("offers a large, global set with codes, labels and native names", () => {
+    expect(opts.length).toBeGreaterThan(90);
+    for (const o of opts) {
+      expect(o.code).toMatch(/^[a-z]{2,3}$/);
+      expect(o.label.length).toBeGreaterThan(0);
+      expect(o.native.length).toBeGreaterThan(0);
+    }
+  });
+  it("has no duplicate display labels (e.g. tl/fil collapsing to Filipino)", () => {
+    const labels = opts.map((o) => o.label);
+    expect(new Set(labels).size).toBe(labels.length);
+  });
+  it("is sorted A–Z by the localized label", () => {
+    const labels = opts.map((o) => o.label);
+    expect(labels).toEqual([...labels].sort((a, b) => a.localeCompare(b, "en")));
+  });
+  it("marks Arabic as rtl and English as ltr", () => {
+    expect(opts.find((o) => o.code === "ar")?.dir).toBe("rtl");
+    expect(opts.find((o) => o.code === "en")?.dir).toBe("ltr");
   });
 });
