@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { orderBy, where, limit } from "firebase/firestore";
 import {
-  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, Landmark, ShieldCheck,
+  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, Landmark, ShieldCheck, Mic,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedButton, AnimatedModal, StaggerContainer, StaggerItem } from "@/components/motion";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
+import { VoiceAdd } from "@/components/finance/VoiceAdd";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
@@ -63,6 +64,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
 
   const [modalOpen, setModalOpen] = useState(false);
   const [connectOpen, setConnectOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const hasBank = useMemo(() => hasLinkedAccount(accounts.data), [accounts.data]);
 
@@ -111,15 +113,16 @@ export function Dashboard({ firstName }: { firstName: string }) {
 
   const brandNew = !loading && txAll.data.length === 0 && savings.data.length === 0 && investments.data.length === 0 && bills.data.length === 0 && accounts.data.length === 0;
 
-  async function quickAdd(input: TransactionInput) {
-    if (!txAll.uid) return;
+  async function addTransaction(input: TransactionInput): Promise<boolean> {
+    if (!txAll.uid) return false;
     setSubmitting(true);
     try {
       await createTransaction(txAll.uid, input);
       toast({ title: "Transaction added", variant: "success" });
-      setModalOpen(false);
+      return true;
     } catch {
       toast({ title: "Something went wrong", variant: "error" });
+      return false;
     } finally {
       setSubmitting(false);
     }
@@ -141,6 +144,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
               ) : (
                 <AnimatedButton onClick={() => setConnectOpen(true)}><Landmark className="size-4" />Connect bank</AnimatedButton>
               )}
+              <AnimatedButton variant="glass" onClick={() => setVoiceOpen(true)} aria-label="Add by voice"><Mic className="size-4" /></AnimatedButton>
               <AnimatedButton variant="glass" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add</AnimatedButton>
             </div>
           </div>
@@ -297,8 +301,10 @@ export function Dashboard({ firstName }: { firstName: string }) {
       </StaggerContainer>
 
       <AnimatedModal open={modalOpen} onClose={() => setModalOpen(false)} title="Add transaction">
-        <TransactionForm defaultCurrency={currency} submitting={submitting} onSubmit={quickAdd} onCancel={() => setModalOpen(false)} />
+        <TransactionForm defaultCurrency={currency} submitting={submitting} onSubmit={async (i) => { if (await addTransaction(i)) setModalOpen(false); }} onCancel={() => setModalOpen(false)} />
       </AnimatedModal>
+
+      <VoiceAdd open={voiceOpen} onClose={() => setVoiceOpen(false)} currency={currency} submitting={submitting} onSubmit={async (i) => { if (await addTransaction(i)) setVoiceOpen(false); }} />
 
       <ConnectBankModal
         open={connectOpen}
