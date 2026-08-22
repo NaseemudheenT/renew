@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Archive, ArchiveRestore, ArrowLeftRight, ArrowRight, RefreshCw, Landmark } from "lucide-react";
+import { Plus, Pencil, Trash2, Archive, ArchiveRestore, ArrowLeftRight, ArrowRight, RefreshCw, Landmark, Wallet } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -12,7 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
-import { ConnectBankModal } from "@/components/bank/ConnectBankModal";
+import Link from "next/link";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
@@ -33,7 +33,6 @@ export function AccountsView() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);
   const [transferOpen, setTransferOpen] = useState(false);
-  const [connectOpen, setConnectOpen] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<Account | null>(null);
   const [showArchived, setShowArchived] = useState(false);
 
@@ -66,21 +65,27 @@ export function AccountsView() {
                 <ArrowLeftRight className="size-4" />{t("accounts.transfer")}
               </AnimatedButton>
             )}
-            <AnimatedButton variant="glass" onClick={() => { setEditing(null); setModalOpen(true); }}>
+            <AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}>
               <Plus className="size-4" />{t("accounts.new")}
-            </AnimatedButton>
-            <AnimatedButton onClick={() => setConnectOpen(true)}>
-              <Landmark className="size-4" />Connect bank
             </AnimatedButton>
           </div>
         }
       />
 
+      <Link href="/finance" className="mb-4 flex items-center gap-3 rounded-glass-lg border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] p-4 backdrop-blur-md transition-colors hover:border-[var(--focus-ring)]/60">
+        <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[var(--field-bg)]"><Landmark className="size-5 text-[var(--color-gold-500)]" /></span>
+        <span className="min-w-0 flex-1">
+          <span className="text-strong block text-sm font-medium">Connect a bank securely</span>
+          <span className="text-muted block text-xs">Open banking · read-only · Renew never sees your password</span>
+        </span>
+        <ArrowRight className="size-5 shrink-0 text-[var(--text-muted)]" />
+      </Link>
+
       {loading ? (
         <ListSkeleton />
       ) : isEmpty ? (
         <GlassCard padded>
-          <EmptyState icon={Landmark} title="Connect your bank" description="Link your bank or UPI app and Renew fills in your balances and transactions automatically — no typing. You can also add an account by hand." action={<div className="flex flex-wrap items-center justify-center gap-2"><AnimatedButton onClick={() => setConnectOpen(true)}><Landmark className="size-4" />Connect bank</AnimatedButton><AnimatedButton variant="glass" onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("accounts.new")}</AnimatedButton></div>} />
+          <EmptyState icon={Wallet} title="No accounts yet" description="Connect a bank securely above, or add an account by hand to start tracking your money." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("accounts.new")}</AnimatedButton>} />
         </GlassCard>
       ) : (
         <>
@@ -150,7 +155,6 @@ export function AccountsView() {
 
       <AccountModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} uid={uid} editing={editing} defaultCurrency={prefs.currency} />
       <TransferModal open={transferOpen} onClose={() => setTransferOpen(false)} uid={uid} accounts={active} />
-      <ConnectBankModal open={connectOpen} onClose={() => setConnectOpen(false)} onConnected={(r) => toast({ title: `${r.accountName} added`, variant: "success" })} />
       <AnimatedModal
         open={confirmDelete !== null}
         onClose={() => setConfirmDelete(null)}
