@@ -1,8 +1,8 @@
 "use client";
 
-import { useReducer, useRef, useState, useSyncExternalStore } from "react";
+import { useReducer, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X, Briefcase, ChevronRight } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Tags, X, Briefcase, ChevronRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -18,9 +18,7 @@ import { useAuth } from "@/components/providers/AuthProvider";
 import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useUserCollection } from "@/hooks/useUserCollection";
-import { toCSV, downloadFile, fileDateStamp } from "@/lib/export";
-import { parseCSV, rowsToTransactions } from "@/lib/import";
-import { importTransactions } from "@/lib/firestore/transactions";
+import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory } from "@/lib/firestore/profile";
@@ -80,7 +78,7 @@ export function SettingsView() {
       </Section>
 
       <Section icon={Database} title="Data">
-        {uid && <DataControl uid={uid} />}
+        <DataControl />
       </Section>
 
       <Section icon={ShieldCheck} title="Security">
@@ -395,8 +393,8 @@ function BrowserNotifyControl() {
   );
 }
 
-function DataControl({ uid }: { uid: string }) {
-  const { t, prefs } = useLocale();
+function DataControl() {
+  const { t } = useLocale();
   const transactions = useUserCollection<Transaction>("transactions");
   const budgets = useUserCollection<Budget>("budgets");
   const savings = useUserCollection<SavingsGoal>("savings");
@@ -406,16 +404,12 @@ function DataControl({ uid }: { uid: string }) {
   const transfers = useUserCollection<Transfer>("transfers");
   const subscriptions = useUserCollection<Subscription>("subscriptions");
 
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<ReturnType<typeof rowsToTransactions> | null>(null);
-  const [importing, setImporting] = useState(false);
-
   const total =
     transactions.data.length + budgets.data.length + savings.data.length +
     investments.data.length + payments.data.length +
     accounts.data.length + transfers.data.length + subscriptions.data.length;
 
-  function exportJson() {
+  function exportData() {
     if (total === 0) return toast({ title: t("settings.data.empty") });
     const payload = {
       app: "Renew",
@@ -429,46 +423,8 @@ function DataControl({ uid }: { uid: string }) {
       payments: payments.data,
       subscriptions: subscriptions.data,
     };
-    downloadFile(`renew-export-${fileDateStamp()}.json`, JSON.stringify(payload, null, 2), "application/json");
+    downloadFile(`renew-${fileDateStamp()}.json`, JSON.stringify(payload, null, 2), "application/json");
     toast({ title: t("settings.data.exported"), variant: "success" });
-  }
-
-  function exportCsv() {
-    if (transactions.data.length === 0) return toast({ title: t("settings.data.empty") });
-    const csv = toCSV(transactions.data as unknown as Record<string, unknown>[]);
-    downloadFile(`renew-transactions-${fileDateStamp()}.csv`, csv, "text/csv");
-    toast({ title: t("settings.data.exported"), variant: "success" });
-  }
-
-  async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file
-    if (!file) return;
-    try {
-      const text = await file.text();
-      const result = rowsToTransactions(parseCSV(text), transactions.data, prefs.currency);
-      if (result.valid.length === 0) {
-        toast({ title: t("settings.data.import.none") });
-        return;
-      }
-      setPreview(result);
-    } catch {
-      toast({ title: t("settings.data.import.failed"), variant: "error" });
-    }
-  }
-
-  async function confirmImport() {
-    if (!preview) return;
-    setImporting(true);
-    try {
-      const count = await importTransactions(uid, preview.valid);
-      toast({ title: t("settings.data.import.done", { count }), variant: "success" });
-      setPreview(null);
-    } catch {
-      toast({ title: t("settings.data.import.failed"), variant: "error" });
-    } finally {
-      setImporting(false);
-    }
   }
 
   const stored = [
@@ -480,7 +436,7 @@ function DataControl({ uid }: { uid: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-muted text-xs">{t("settings.data.hint")}</p>
+      <p className="text-muted text-xs">Your money data is private, encrypted and always yours.</p>
 
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         {stored.map((s) => (
@@ -491,29 +447,7 @@ function DataControl({ uid }: { uid: string }) {
         ))}
       </div>
 
-      <div className="flex flex-col gap-2">
-        <DataAction icon={Download} title={t("settings.data.exportJson")} desc="A full, portable copy of everything in Renew" onClick={exportJson} />
-        <DataAction icon={Download} title={t("settings.data.exportCsv")} desc="Your transactions as a spreadsheet" onClick={exportCsv} />
-        <DataAction icon={Upload} title={t("settings.data.import")} desc="Bring transactions in from a CSV file" onClick={() => fileRef.current?.click()} />
-      </div>
-      <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
-
-      <AnimatedModal
-        open={preview !== null}
-        onClose={() => setPreview(null)}
-        title={t("settings.data.import.title")}
-        description={preview ? t("settings.data.import.summary", { valid: preview.valid.length, duplicates: preview.duplicates, invalid: preview.invalid }) : undefined}
-      >
-        <div className="flex items-center justify-end gap-3">
-          <AnimatedButton variant="ghost" onClick={() => setPreview(null)} disabled={importing}>
-            {t("common.cancel")}
-          </AnimatedButton>
-          <AnimatedButton onClick={confirmImport} loading={importing}>
-            <Upload className="size-4" />
-            {preview ? t("settings.data.import.confirm", { valid: preview.valid.length }) : t("common.add")}
-          </AnimatedButton>
-        </div>
-      </AnimatedModal>
+      <DataAction icon={Download} title="Download my data" desc="Save your own private copy of everything in Renew" onClick={exportData} />
     </div>
   );
 }

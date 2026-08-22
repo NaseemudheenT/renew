@@ -150,7 +150,7 @@ export function AccountsView() {
 
       <AccountModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} uid={uid} editing={editing} defaultCurrency={prefs.currency} />
       <TransferModal open={transferOpen} onClose={() => setTransferOpen(false)} uid={uid} accounts={active} />
-      <ConnectBankModal open={connectOpen} onClose={() => setConnectOpen(false)} onConnected={(r) => toast({ title: `Synced ${r.transactions} transactions`, variant: "success" })} />
+      <ConnectBankModal open={connectOpen} onClose={() => setConnectOpen(false)} onConnected={(r) => toast({ title: `${r.accountName} added`, variant: "success" })} />
       <AnimatedModal
         open={confirmDelete !== null}
         onClose={() => setConfirmDelete(null)}

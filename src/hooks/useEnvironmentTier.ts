@@ -28,8 +28,10 @@ function computeTier(): EnvironmentTier {
   const reduced = window.matchMedia(
     "(prefers-reduced-motion: reduce)",
   ).matches;
-  const tooSmall = window.innerWidth < 640;
-  if (reduced || tooSmall || !hasWebGL()) return "soft2d";
+  // Phones are first-class here — the living background must run there too, so we
+  // no longer gate on screen width. Only reduced-motion or missing WebGL falls
+  // back to the calm static field.
+  if (reduced || !hasWebGL()) return "soft2d";
   return "full3d";
 }
 

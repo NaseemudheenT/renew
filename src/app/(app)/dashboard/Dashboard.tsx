@@ -154,13 +154,13 @@ export function Dashboard({ firstName }: { firstName: string }) {
               <div className="pointer-events-none absolute -right-16 -top-16 size-56 rounded-full bg-[radial-gradient(circle,var(--bokeh-1),transparent_70%)] blur-2xl" />
               <div className="mx-auto flex max-w-md flex-col items-center py-4">
                 <div className="mb-4 grid size-14 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]"><Landmark className="size-7 text-[var(--color-gold-500)]" /></div>
-                <h2 className="text-strong text-xl font-medium">Connect your bank — Renew does the rest</h2>
-                <p className="text-muted mt-2 text-sm">No typing, no uploads. Connect once and Renew pulls in your balance, sorts every transaction, and tracks your bills and subscriptions — automatically.</p>
+                <h2 className="text-strong text-xl font-medium">Add your money, see it all clearly</h2>
+                <p className="text-muted mt-2 text-sm">Add your bank or wallet, then track every payment — by tap, scan or voice. Renew sorts each one, watches your bills, and shows you exactly where your money goes. Only real money, always.</p>
                 <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
-                  <AnimatedButton size="lg" onClick={() => setConnectOpen(true)}><Landmark className="size-4" />Connect your bank</AnimatedButton>
-                  <AnimatedButton size="lg" variant="glass" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add manually</AnimatedButton>
+                  <AnimatedButton size="lg" onClick={() => setConnectOpen(true)}><Landmark className="size-4" />Add your bank</AnimatedButton>
+                  <AnimatedButton size="lg" variant="glass" onClick={() => setModalOpen(true)}><Plus className="size-4" />Add a transaction</AnimatedButton>
                 </div>
-                <p className="text-muted mt-4 inline-flex items-center gap-1.5 text-xs"><ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />Bank-grade encryption · read-only · your data stays private</p>
+                <p className="text-muted mt-4 inline-flex items-center gap-1.5 text-xs"><ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />Private &amp; secure · your data stays yours</p>
               </div>
             </GlassCard>
           </StaggerItem>
@@ -171,8 +171,8 @@ export function Dashboard({ firstName }: { firstName: string }) {
                 <button type="button" onClick={() => setConnectOpen(true)} className="group flex w-full items-center gap-4 rounded-glass-lg border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] p-4 text-left backdrop-blur-md transition-colors hover:border-[var(--focus-ring)]/60">
                   <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-[var(--field-bg)]"><Landmark className="size-5 text-[var(--color-gold-500)]" /></span>
                   <span className="min-w-0 flex-1">
-                    <span className="text-strong block text-sm font-medium">Connect your bank for automatic tracking</span>
-                    <span className="text-muted block text-xs">Stop typing transactions — let Renew sync and sort them for you.</span>
+                    <span className="text-strong block text-sm font-medium">Add your bank or wallet</span>
+                    <span className="text-muted block text-xs">Track all your money in one place — Renew keeps it organised.</span>
                   </span>
                   <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5" />
                 </button>
@@ -303,7 +303,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
       <ConnectBankModal
         open={connectOpen}
         onClose={() => setConnectOpen(false)}
-        onConnected={(r) => toast({ title: `Synced ${r.transactions} transactions from your bank`, variant: "success" })}
+        onConnected={(r) => toast({ title: `${r.accountName} added`, variant: "success" })}
       />
     </div>
   );

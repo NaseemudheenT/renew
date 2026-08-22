@@ -79,7 +79,12 @@ export const viewport: Viewport = {
   ],
   width: "device-width",
   initialScale: 1,
+  // A fixed, app-like page: no pinch-zoom, no double-tap zoom, and the layout
+  // resizes to sit above the on-screen keyboard instead of being covered by it.
+  maximumScale: 1,
+  userScalable: false,
   viewportFit: "cover",
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({
