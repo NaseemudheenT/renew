@@ -3,7 +3,8 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { orderBy } from "firebase/firestore";
-import { Plus, ArrowLeftRight, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Plus, ArrowLeftRight, Search, Upload } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -25,6 +26,7 @@ import { cn } from "@/lib/utils";
 type Filter = "all" | TxType;
 
 export function TransactionsView() {
+  const router = useRouter();
   const { prefs, t } = useLocale();
   const { resolve } = useCategories();
   const loc = `${prefs.language}-${prefs.region}`;
@@ -93,7 +95,7 @@ export function TransactionsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={<AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton>} />
+      <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={<div className="flex items-center gap-2"><AnimatedButton variant="glass" onClick={() => router.push("/import")}><Upload className="size-4" />Import</AnimatedButton><AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton></div>} />
 
       {!isEmpty && (
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
