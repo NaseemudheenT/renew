@@ -48,9 +48,10 @@ export interface ColumnMapping {
   debit: string | null; // separate debit column
   credit: string | null; // separate credit column
   description: string | null;
+  type: string | null; // an explicit income/expense (or CR/DR) column
 }
 
-/** Auto-detect which CSV columns hold date / amount / debit / credit / desc. */
+/** Auto-detect which CSV columns hold date / amount / debit / credit / desc / type. */
 export function detectMapping(headers: string[]): ColumnMapping {
   const find = (...needles: string[]) =>
     headers.find((h) => needles.some((n) => h.includes(n))) ?? null;
@@ -60,7 +61,17 @@ export function detectMapping(headers: string[]): ColumnMapping {
     credit: find("credit", "deposit", "paid in", "money in"),
     amount: find("amount", "value"),
     description: find("description", "narration", "particulars", "merchant", "details", "note", "remarks"),
+    type: find("type", "cr/dr", "dr/cr", "indicator"),
   };
+}
+
+/** Normalise a raw type token ("income"/"CR"/"credit"/"expense"/"DR") to a TxType, or null. */
+function readType(raw: string | undefined): TxType | null {
+  const s = (raw ?? "").trim().toLowerCase();
+  if (!s) return null;
+  if (s === "income" || s === "cr" || s === "credit" || s === "c") return "income";
+  if (s === "expense" || s === "dr" || s === "debit" || s === "d") return "expense";
+  return null;
 }
 
 export interface DraftRow {
@@ -106,6 +117,10 @@ export function buildDrafts(
       if (Number.isFinite(raw)) { amount = Math.abs(raw); type = raw < 0 ? "expense" : "income"; }
     }
     if (!Number.isFinite(amount) || amount <= 0) return;
+
+    // An explicit type column overrides the sign/debit-credit inference.
+    const explicit = mapping.type ? readType(row[mapping.type]) : null;
+    if (explicit) type = explicit;
 
     const note = (mapping.description ? row[mapping.description] ?? "" : "").trim();
     const category = guessCategory(note, type);
@@ -244,4 +259,51 @@ export function rowsToTransactions(
   }
 
   return { valid, invalid, duplicates };
+}
+
+/* ---- PDF / plain-text statement line parsing ----------------------------- */
+
+const MONTHS = "jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec";
+const DATE_RE = new RegExp(`\\b(\\d{1,2}[/\\-.]\\d{1,2}[/\\-.]\\d{2,4}|\\d{1,2}\\s+(?:${MONTHS})[a-z]*\\.?\\s+\\d{2,4})\\b`, "i");
+const AMOUNT_RE = /\d[\d,]*\.\d{2}/g;
+const SKIP_RE = /(opening balance|closing balance|balance b\/?f|balance c\/?f|brought forward|carried forward|statement of|page \d)/i;
+
+/** Normalise a day-first date (dd/mm/yyyy — India/intl default) to ISO; else raw. */
+function normalizeDate(raw: string): string {
+  const m = raw.match(/^(\d{1,2})[/\-.](\d{1,2})[/\-.](\d{2,4})$/);
+  if (!m) return raw; // "01 Aug 2026" etc. — Date.parse handles it
+  let [, d, mo, y] = m;
+  if (y!.length === 2) y = `20${y}`;
+  return `${y}-${mo!.padStart(2, "0")}-${d!.padStart(2, "0")}`;
+}
+
+/**
+ * Best-effort parse of a text statement (e.g. PDF text) into rows of
+ * date/description/amount/type. Unreliable by nature (formats vary), which is
+ * exactly why every row goes through the review-and-confirm step before saving.
+ */
+export function parseStatement(text: string): Record<string, string>[] {
+  const out: Record<string, string>[] = [];
+  for (const line of text.split("\n")) {
+    const l = line.trim();
+    if (l.length < 8) continue;
+    const dm = l.match(DATE_RE);
+    if (!dm) continue;
+    const amts = l.match(AMOUNT_RE);
+    if (!amts || amts.length === 0) continue;
+    if (SKIP_RE.test(l) && amts.length <= 1) continue;
+
+    // With multiple amounts, the last is usually the running balance.
+    const amount = (amts.length >= 2 ? amts[amts.length - 2]! : amts[amts.length - 1]!).replace(/,/g, "");
+    const isCredit = /\bcr\b|credit|deposit/i.test(l);
+    const isDebit = /\bdr\b|debit|withdraw/i.test(l);
+    const type = isCredit && !isDebit ? "income" : "expense";
+
+    let desc = l.replace(dm[0], " ");
+    for (const a of amts) desc = desc.replace(a, " ");
+    desc = desc.replace(/\b(cr|dr)\b/gi, " ").replace(/\s+/g, " ").trim();
+
+    out.push({ date: normalizeDate(dm[0]), description: desc, amount, type });
+  }
+  return out;
 }

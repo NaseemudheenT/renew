@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, ArrowRight, Info } from "lucide-react";
+import { Upload, FileText, ArrowRight, Info, Loader2 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
@@ -10,7 +10,8 @@ import { AnimatedButton } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { parseCSV, detectMapping, buildDrafts, type DraftRow, type ColumnMapping } from "@/lib/import";
+import { parseCSV, parseStatement, detectMapping, buildDrafts, type DraftRow, type ColumnMapping } from "@/lib/import";
+import { extractPdfText } from "@/lib/pdf";
 import { importTransactions, type TransactionInput } from "@/lib/firestore/transactions";
 import { categoriesFor } from "@/lib/finance";
 import { toDateInput } from "@/lib/dates";
@@ -28,6 +29,7 @@ export function ImportView() {
   const [mapping, setMapping] = useState<ColumnMapping | null>(null);
   const [drafts, setDrafts] = useState<DraftRow[]>([]);
   const [fileName, setFileName] = useState("");
+  const [parsing, setParsing] = useState(false);
   const [importing, setImporting] = useState(false);
 
   const included = useMemo(() => drafts.filter((d) => d.include), [drafts]);
@@ -38,11 +40,18 @@ export function ImportView() {
     e.target.value = "";
     if (!file) return;
     setFileName(file.name);
+    setParsing(true);
     try {
-      const text = await file.text();
-      const parsed = parseCSV(text);
+      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+      let parsed: Record<string, string>[];
+      if (isPdf) {
+        const text = await extractPdfText(file);
+        parsed = parseStatement(text);
+      } else {
+        parsed = parseCSV(await file.text());
+      }
       if (parsed.length === 0) {
-        toast({ title: "Couldn't read any rows from that file", variant: "error" });
+        toast({ title: isPdf ? "Couldn't find transactions in that PDF" : "Couldn't read any rows from that file", description: isPdf ? "It may be a scanned image — try the CSV export instead." : undefined, variant: "error" });
         return;
       }
       const hdrs = Object.keys(parsed[0]!);
@@ -53,6 +62,8 @@ export function ImportView() {
       setDrafts(buildDrafts(parsed, map, existing, prefs.currency));
     } catch {
       toast({ title: "That file couldn't be read", variant: "error" });
+    } finally {
+      setParsing(false);
     }
   }
 
@@ -100,14 +111,15 @@ export function ImportView() {
           <button
             type="button"
             onClick={() => fileRef.current?.click()}
-            className="flex w-full flex-col items-center gap-3 rounded-2xl border border-dashed border-[var(--field-border)] bg-[var(--field-bg)] px-6 py-10 text-center transition-colors hover:border-[var(--focus-ring)]/60"
+            disabled={parsing}
+            className="flex w-full flex-col items-center gap-3 rounded-2xl border border-dashed border-[var(--field-border)] bg-[var(--field-bg)] px-6 py-10 text-center transition-colors hover:border-[var(--focus-ring)]/60 disabled:opacity-60"
           >
-            <span className="grid size-12 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]"><Upload className="size-6 text-[var(--color-gold-500)]" /></span>
-            <span className="text-strong text-sm font-medium">Choose a CSV file</span>
-            <span className="text-muted text-xs">Export a statement from your bank as CSV, then upload it here.</span>
+            <span className="grid size-12 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]">{parsing ? <Loader2 className="size-6 animate-spin text-[var(--color-gold-500)]" /> : <Upload className="size-6 text-[var(--color-gold-500)]" />}</span>
+            <span className="text-strong text-sm font-medium">{parsing ? "Reading your file…" : "Choose a CSV or PDF statement"}</span>
+            <span className="text-muted text-xs">Export a statement from your bank (CSV or PDF) and upload it here.</span>
           </button>
-          <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={onFile} />
-          <p className="text-muted mt-4 flex items-start gap-2 text-xs"><Info className="mt-0.5 size-3.5 shrink-0" />PDF statements and photo/receipt scanning are coming next. Everything is processed on your device and shown for review before anything is saved.</p>
+          <input ref={fileRef} type="file" accept=".csv,text/csv,.pdf,application/pdf" className="hidden" onChange={onFile} />
+          <p className="text-muted mt-4 flex items-start gap-2 text-xs"><Info className="mt-0.5 size-3.5 shrink-0" />Photo/receipt scanning is coming next. Everything is processed on your device and shown for review before anything is saved.</p>
         </GlassCard>
       ) : (
         <div className="flex flex-col gap-4">
@@ -122,6 +134,7 @@ export function ImportView() {
                 <Select label="Debit / out" value={mapping?.debit ?? ""} onChange={(e) => remap({ debit: e.target.value || null })} options={colOptions} />
                 <Select label="Credit / in" value={mapping?.credit ?? ""} onChange={(e) => remap({ credit: e.target.value || null })} options={colOptions} />
               </div>
+              <Select label="Type column (CR/DR)" value={mapping?.type ?? ""} onChange={(e) => remap({ type: e.target.value || null })} options={colOptions} />
             </div>
           </GlassCard>
 

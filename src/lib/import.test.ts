@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseCSV, rowsToTransactions, guessCategory, detectMapping, buildDrafts } from "@/lib/import";
+import { parseCSV, rowsToTransactions, guessCategory, detectMapping, buildDrafts, parseStatement } from "@/lib/import";
 import type { Transaction } from "@/lib/types";
 
 describe("parseCSV", () => {
@@ -99,5 +99,35 @@ describe("detectMapping + buildDrafts", () => {
     const second = buildDrafts(rows, m, existing, "INR");
     expect(second[0]!.duplicate).toBe(true);
     expect(second[0]!.include).toBe(false);
+  });
+});
+
+describe("parseStatement (PDF/text)", () => {
+  const sample = [
+    "Statement of Account",
+    "01/08/2026 UBER TRIP 120.00 DR 5,880.00",
+    "02/08/2026 SALARY CREDIT 50,000.00 CR 55,880.00",
+    "Closing Balance 55,880.00",
+  ].join("\n");
+
+  it("extracts transactions, normalising dd/mm dates and CR/DR type", () => {
+    const rows = parseStatement(sample);
+    expect(rows).toHaveLength(2);
+    expect(rows[0]).toMatchObject({ date: "2026-08-01", amount: "120.00", type: "expense" });
+    expect(rows[0]!.description).toContain("UBER");
+    expect(rows[1]).toMatchObject({ date: "2026-08-02", amount: "50000.00", type: "income" });
+  });
+
+  it("takes the transaction amount, not the running balance", () => {
+    const rows = parseStatement("10-08-2026 AMAZON 999.00 DR 4,881.00");
+    expect(rows[0]!.amount).toBe("999.00");
+  });
+
+  it("feeds cleanly into buildDrafts", () => {
+    const rows = parseStatement(sample);
+    const map = detectMapping(Object.keys(rows[0]!));
+    const drafts = buildDrafts(rows, map, [] as Transaction[], "INR");
+    expect(drafts).toHaveLength(2);
+    expect(drafts.find((d: { type: string }) => d.type === "income")!.amount).toBe(50000);
   });
 });
