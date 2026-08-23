@@ -10,38 +10,23 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { PaymentRow } from "@/components/payments/PaymentRow";
 import { PaymentForm } from "@/components/payments/PaymentForm";
-import { PaymentReceipt } from "@/components/payments/PaymentReceipt";
-import { PayMethodModal } from "@/components/payments/PayMethodModal";
-import { useReauth } from "@/components/security/ReauthProvider";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { createPayment, updatePayment, deletePayment, markPaid, markUnpaid, restorePayment, type PaymentInput } from "@/lib/firestore/payments";
 import { dueLabel, isOverdue } from "@/lib/dates";
-import { payWithRazorpay } from "@/lib/payments/checkout";
-import { publicEnv } from "@/lib/env";
 import type { Payment } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 type Tab = "upcoming" | "paid";
 
 export function PaymentsView() {
-  const { t, money } = useLocale();
-  const requireReauth = useReauth();
+  const { t } = useLocale();
   const { data, loading, uid } = useUserCollection<Payment>("payments");
   const [tab, setTab] = useState<Tab>("upcoming");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Payment | null>(null);
-  const [payingFor, setPayingFor] = useState<Payment | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [receipt, setReceipt] = useState<{
-    amount: number;
-    currency: string;
-    name: string;
-    date: Date;
-    method?: string;
-    reference: string;
-  } | null>(null);
 
   const upcoming = useMemo(() => data.filter((p) => p.status !== "paid").sort((a, b) => a.dueAt - b.dueAt), [data]);
   const paid = useMemo(() => data.filter((p) => p.status === "paid").sort((a, b) => (b.paidAt ?? 0) - (a.paidAt ?? 0)), [data]);
@@ -73,42 +58,10 @@ export function PaymentsView() {
     if (res.rolled && res.nextDue) toast({ title: "Paid", description: `Next due ${dueLabel(res.nextDue)}`, variant: "success" });
     else toast({ title: "Paid", variant: "success" });
   }
-  /** Tapping "Pay" opens the method chooser first, so paying feels rich + easy. */
-  function onPay(payment: Payment) {
-    setPayingFor(payment);
-  }
-  async function onConfirmMethod(methodLabel: string) {
-    const payment = payingFor;
-    setPayingFor(null);
-    if (!uid || !payment) return;
-    if (!(await requireReauth("to pay this bill"))) return;
-    // A real online rail (UPI/card via provider) runs only when payment keys are
-    // set AND the person picked an online method; otherwise Renew records the
-    // payment against the chosen method and keeps the recurring bill rolling.
-    const online = methodLabel !== "Pay from Renew";
-    if (publicEnv.razorpayKeyId && online) {
-      const result = await payWithRazorpay({
-        amount: payment.amount,
-        currency: payment.currency,
-        name: payment.name,
-        description: `Renew · ${payment.name}`,
-        paymentId: payment.id,
-      });
-      if (result.status === "cancelled") { toast({ title: "Payment cancelled" }); return; }
-      if (result.status === "failed") { toast({ title: "Payment failed", description: result.message, variant: "error" }); return; }
-      await finishMarkPaid(payment);
-      setReceipt({ amount: payment.amount, currency: payment.currency, name: payment.name, date: new Date(), method: methodLabel, reference: result.paymentId ?? "—" });
-      return;
-    }
+  /** Renew tracks bills — it never moves money. Tapping the action marks the
+   *  bill paid (and rolls a recurring one to its next due date). */
+  async function onPay(payment: Payment) {
     await finishMarkPaid(payment);
-    setReceipt({
-      amount: payment.amount,
-      currency: payment.currency,
-      name: payment.name,
-      date: new Date(),
-      method: methodLabel,
-      reference: `RNW-${Date.now().toString(36).toUpperCase()}`,
-    });
   }
   async function onDelete(payment: Payment) {
     if (!uid) return;
@@ -161,15 +114,9 @@ export function PaymentsView() {
         <div className="flex flex-col gap-2"><AnimatePresence initial={false}>{paid.map(renderRow)}</AnimatePresence></div>
       )}
 
-      <AnimatedModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} title={editing ? "Edit payment" : "New payment"}>
+      <AnimatedModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} title={editing ? "Edit bill" : "New bill"}>
         <PaymentForm initial={editing ?? undefined} submitting={submitting} onSubmit={onSubmitForm} onCancel={() => { setModalOpen(false); setEditing(null); }} />
       </AnimatedModal>
-
-      <PayMethodModal open={payingFor !== null} payment={payingFor} money={money} onClose={() => setPayingFor(null)} onConfirm={onConfirmMethod} />
-
-      <AnimatePresence>
-        {receipt ? <PaymentReceipt {...receipt} onDone={() => setReceipt(null)} /> : null}
-      </AnimatePresence>
     </div>
   );
 

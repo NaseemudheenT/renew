@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, Pencil, Trash2, Archive, ArchiveRestore, ArrowLeftRight, ArrowRight, RefreshCw, Landmark, Wallet } from "lucide-react";
+import { Plus, Pencil, Trash2, Archive, ArchiveRestore, ArrowLeftRight, ArrowRight, Wallet } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -12,7 +12,6 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
-import Link from "next/link";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useUserCollection } from "@/hooks/useUserCollection";
@@ -72,15 +71,6 @@ export function AccountsView() {
           </div>
         }
       />
-
-      <Link href="/finance" className="mb-4 flex items-center gap-3 rounded-glass-lg border border-[var(--glass-border)] bg-[var(--glass-bg-strong)] p-4 backdrop-blur-md transition-colors hover:border-[var(--focus-ring)]/60">
-        <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[var(--field-bg)]"><Landmark className="size-5 text-[var(--color-gold-500)]" /></span>
-        <span className="min-w-0 flex-1">
-          <span className="text-strong block text-sm font-medium">Connect a bank securely</span>
-          <span className="text-muted block text-xs">Open banking · read-only · Renew never sees your password</span>
-        </span>
-        <ArrowRight className="size-5 shrink-0 text-[var(--text-muted)]" />
-      </Link>
 
       {loading ? (
         <ListSkeleton />
@@ -195,14 +185,7 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
     <motion.div layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass flex items-center gap-3 p-3.5">
       <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="text-strong truncate text-sm font-medium">{account.name}</p>
-          {account.linked && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/10 px-1.5 py-0.5 text-[0.62rem] font-medium text-emerald-500 dark:text-emerald-300">
-              <RefreshCw className="size-2.5" />Auto-synced
-            </span>
-          )}
-        </div>
+        <p className="text-strong truncate text-sm font-medium">{account.name}</p>
         <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
       </div>
       <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{hidden ? mask : money(balance, account.currency)}</span>

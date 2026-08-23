@@ -53,7 +53,6 @@ export const publicEnv = {
   },
   sentryDsn: clean(process.env.NEXT_PUBLIC_SENTRY_DSN),
   stripePublishableKey: clean(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY),
-  razorpayKeyId: clean(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID),
   supabase: {
     url: clean(process.env.NEXT_PUBLIC_SUPABASE_URL),
     // The publishable (anon) key is RLS-protected and safe for the browser.
@@ -111,11 +110,6 @@ export function getServerEnv() {
     stripe: {
       secretKey: clean(process.env.STRIPE_SECRET_KEY),
       webhookSecret: clean(process.env.STRIPE_WEBHOOK_SECRET),
-    },
-    razorpay: {
-      keyId: clean(process.env.RAZORPAY_KEY_ID),
-      keySecret: clean(process.env.RAZORPAY_KEY_SECRET),
-      webhookSecret: clean(process.env.RAZORPAY_WEBHOOK_SECRET),
     },
     // Server-only Supabase service-role key — bypasses RLS; never sent to the
     // browser. Empty until added; admin/server writes use it when present.

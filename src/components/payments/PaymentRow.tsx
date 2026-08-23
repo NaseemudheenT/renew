@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Pencil, Trash2, RotateCcw, Repeat, CreditCard } from "lucide-react";
-import { PayButton } from "./PayButton";
+import { Pencil, Trash2, RotateCcw, Repeat, Check } from "lucide-react";
+import { AnimatedButton } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { categoryMeta } from "@/lib/categories";
@@ -39,7 +39,7 @@ export function PaymentRow({
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
     >
       <SwipeRow
-        swipeRight={paid ? undefined : { label: "Pay", icon: CreditCard, bg: "bg-emerald-500", onTrigger: () => { void onPay(); } }}
+        swipeRight={paid ? undefined : { label: "Paid", icon: Check, bg: "bg-emerald-500", onTrigger: () => { void onPay(); } }}
         swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: onDelete }}
       >
         <div className="glass flex items-center gap-3 p-3.5 sm:gap-4">
@@ -54,7 +54,7 @@ export function PaymentRow({
               <span className={cn(overdue ? "text-rose-500" : "text-[var(--text-muted)]")}>{paid ? "Paid" : dueLabel(payment.dueAt)}</span>
             </div>
           </div>
-          {!paid && <PayButton onPay={onPay} size="sm" />}
+          {!paid && <AnimatedButton size="sm" onClick={() => void onPay()}><Check className="size-4" />Mark paid</AnimatedButton>}
           <RowMenu
             items={
               paid
