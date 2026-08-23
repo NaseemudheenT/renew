@@ -56,6 +56,7 @@ export const EN = {
   "notif.savings.reached.body": "You've reached your goal: {name}. 🎉",
 
   "nav.dashboard": "Overview",
+  "nav.income": "Income",
   "nav.transactions": "Transactions",
   "nav.budget": "Budget",
   "nav.savings": "Savings",
