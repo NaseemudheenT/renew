@@ -87,7 +87,7 @@ export function SpendingBreakdown({ transactions, currency }: { transactions: Tr
           </div>
         </div>
 
-        <ul className="w-full min-w-0 flex-1 flex-col gap-2">
+        <ul className="flex w-full min-w-0 flex-1 flex-col gap-1">
           {top.map((row, i) => {
             const meta = resolve(row.category);
             const pct = Math.round((row.amount / total) * 100);

@@ -16,13 +16,8 @@ export default function TermsPage() {
       <p>Use Renew to manage your own money. Don&apos;t upload unlawful content, attempt to breach security, or disrupt the service for others.</p>
       <h2>Your content</h2>
       <p>You own the money data you add. You grant us only the limited permission needed to store it and show it back to you. You can export your data or delete it at any time.</p>
-      <h2>Payments</h2>
-      <ul>
-        <li>When you pay through Renew, the payment is carried out by our payment provider (Razorpay). Renew initiates the payment on your instruction and never stores your full card or bank details.</li>
-        <li>You are responsible for confirming each payment&apos;s amount and recipient before you approve it.</li>
-      </ul>
       <h2>Not a bank, not financial advice</h2>
-      <p>Renew is a tool to help you see and organise your money. <strong>Renew is not a bank, does not hold your funds, and does not provide financial, investment or tax advice.</strong> You remain responsible for your own money decisions, payments and deadlines.</p>
+      <p>Renew is a tool to help you see and organise your money. <strong>Renew is not a bank; it does not connect to your bank accounts, hold your funds, move or process money, and does not provide financial, investment or tax advice.</strong> You record and track your own money in Renew, and you remain responsible for your own money decisions, payments and deadlines.</p>
       <h2>The service</h2>
       <ul>
         <li>Renew is provided &ldquo;as is&rdquo;; we work to keep it reliable but can&apos;t guarantee it will always be available or error-free.</li>

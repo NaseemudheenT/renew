@@ -22,7 +22,7 @@ export default function PrivacyPage() {
       </ul>
       <p>We do not sell your personal data, and we do not use your money data for advertising.</p>
       <h2>Where your data lives</h2>
-      <p>Your account and content are stored in Google Firebase, files (if any) in Cloudinary, and payments are processed by Razorpay. Access is restricted so that only you can read or write your own data.</p>
+      <p>Your account and content are stored in Google Firebase, and any files you upload in Cloudinary. Renew is a tracking tool — it does not connect to your bank, hold, move, or process money, so we never handle payment or banking credentials. Access is restricted so that only you can read or write your own data.</p>
       <h2>Your choices</h2>
       <ul>
         <li>Edit or delete any account, transaction, budget or bill at any time.</li>

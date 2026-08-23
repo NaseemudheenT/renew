@@ -76,7 +76,7 @@ export function AccountsView() {
         <ListSkeleton />
       ) : isEmpty ? (
         <GlassCard padded>
-          <EmptyState icon={Wallet} title="No accounts yet" description="Connect a bank securely above, or add an account by hand to start tracking your money." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("accounts.new")}</AnimatedButton>} />
+          <EmptyState icon={Wallet} title="No accounts yet" description="Add the accounts your money lives in — bank, cash, credit card, wallet — so Renew can organise where everything belongs. Renew only tracks; it never connects to or moves your money." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("accounts.new")}</AnimatedButton>} />
         </GlassCard>
       ) : (
         <>

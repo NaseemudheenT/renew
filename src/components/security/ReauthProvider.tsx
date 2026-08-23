@@ -17,7 +17,7 @@ export function useReauth(): RequireReauth {
 }
 
 /**
- * Gates sensitive actions (pay, connect a bank, export data) behind the person's
+ * Gates sensitive actions (e.g. exporting your data, revealing balances) behind the person's
  * App Lock. If no passcode is configured, actions pass straight through — the
  * lock is the second factor when it exists. Promise-based: callers do
  * `if (await requireReauth("to pay this bill")) { ...act... }`.

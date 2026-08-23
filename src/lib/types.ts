@@ -206,12 +206,6 @@ export interface Account {
   /** Starting balance; the current balance is derived (opening + tx + transfers). */
   openingBalance: number;
   status: AccountStatus;
-  /** True when this account came from a linked bank/UPI connection (auto-synced)
-   *  rather than being added by hand. Drives the "auto-sync" UI and the
-   *  connect-your-bank prompts. */
-  linked?: boolean;
-  /** Epoch millis of the last successful sync for a linked account. */
-  lastSyncedAt?: number;
   createdAt: number;
   updatedAt: number;
 }

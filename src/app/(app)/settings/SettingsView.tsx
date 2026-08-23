@@ -2,7 +2,7 @@
 
 import { useReducer, useState, useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Tags, X, Briefcase, ChevronRight, Lock } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X, Briefcase, ChevronRight, Lock } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -428,6 +428,7 @@ function BrowserNotifyControl() {
 
 function DataControl() {
   const { t } = useLocale();
+  const router = useRouter();
   const requireReauth = useReauth();
   const transactions = useUserCollection<Transaction>("transactions");
   const budgets = useUserCollection<Budget>("budgets");
@@ -482,6 +483,7 @@ function DataControl() {
         ))}
       </div>
 
+      <DataAction icon={Upload} title="Import a statement" desc="Add transactions from a CSV or PDF bank statement" onClick={() => router.push("/import")} />
       <DataAction icon={Download} title="Download my data" desc="Save your own private copy of everything in Renew" onClick={exportData} />
     </div>
   );
