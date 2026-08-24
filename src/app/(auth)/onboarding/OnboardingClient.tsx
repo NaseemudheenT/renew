@@ -94,20 +94,31 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
     }
   }
 
+  // Required fields per step — advancing is blocked until they're filled.
+  function stepValid(s: number): boolean {
+    switch (s) {
+      case 0: return name.trim().length > 0;
+      case 1: return Boolean(region && currency && language);
+      case 4: return acceptedLegal;
+      default: return true;
+    }
+  }
+
   function next() {
     if (step === 0 && !name.trim()) return setError("Please tell us your name.");
+    if (step === 1 && !stepValid(1)) return setError("Please choose your language, region and currency.");
     if (step === 4 && !acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
+    if (!stepValid(step)) return;
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS - 1));
   }
 
   async function finish() {
     setError(null);
-    // If a passcode was entered on the security step, validate it.
-    if (code.trim()) {
-      if (!isValidPasscode(code, pcKind)) return setError(pcKind === "pin" ? "PIN must be 4–8 digits." : "Passphrase must be at least 4 characters.");
-      if (code !== confirm) return setError("The two entries don't match.");
-    }
+    // App Lock is mandatory — a passcode must be set before entering Renew.
+    if (!code.trim()) return setError(pcKind === "pin" ? "Please set a PIN to protect Renew." : "Please set a passphrase to protect Renew.");
+    if (!isValidPasscode(code, pcKind)) return setError(pcKind === "pin" ? "PIN must be 4–8 digits." : "Passphrase must be at least 4 characters.");
+    if (code !== confirm) return setError("The two entries don't match.");
     setSubmitting(true);
     try {
       // Save the App Lock first (client-side), so it's ready on next open.
@@ -268,7 +279,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         {step === 5 && (
           <motion.div key="s5" {...slide}>
             <h1 className="text-strong text-xl font-medium">Lock Renew</h1>
-            <p className="text-muted mt-1 text-sm">Set a passcode and Face ID so only you can open Renew. Recommended — you can add it later in Settings too.</p>
+            <p className="text-muted mt-1 text-sm">Set a passcode and Face ID so only you can open Renew. This is required — it keeps your money private on this device.</p>
             <div className="mt-5 inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
               {(["pin", "text"] as PasscodeKind[]).map((k) => (
                 <button key={k} type="button" onClick={() => { setPcKind(k); setCode(""); setConfirm(""); setError(null); }} className={cn("rounded-full px-4 py-1.5 transition-colors", pcKind === k ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>{k === "pin" ? "PIN" : "Passphrase"}</button>
@@ -297,10 +308,10 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
           <AnimatedButton variant="ghost" onClick={() => setStep((s) => s - 1)} disabled={submitting}>Back</AnimatedButton>
         )}
         {step < STEPS - 1 ? (
-          <AnimatedButton size="lg" fullWidth onClick={next}>Continue</AnimatedButton>
+          <AnimatedButton size="lg" fullWidth onClick={next} disabled={!stepValid(step)}>Continue</AnimatedButton>
         ) : (
-          <AnimatedButton size="lg" fullWidth loading={submitting} onClick={finish}>
-            {code.trim() ? <><Lock className="size-4" />Turn on & enter</> : "Enter Renew"}
+          <AnimatedButton size="lg" fullWidth loading={submitting} onClick={finish} disabled={!code.trim() || code !== confirm}>
+            <Lock className="size-4" />Turn on & enter
           </AnimatedButton>
         )}
       </div>

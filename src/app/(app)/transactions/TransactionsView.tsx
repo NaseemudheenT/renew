@@ -9,6 +9,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { TransactionRow } from "@/components/finance/TransactionRow";
 import { TransactionForm } from "@/components/finance/TransactionForm";
@@ -98,11 +99,8 @@ export function TransactionsView() {
       <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={<div className="flex items-center gap-2"><AnimatedButton variant="glass" onClick={() => router.push("/import")}><Upload className="size-4" />Import</AnimatedButton><AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton></div>} />
 
       {!isEmpty && (
-        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center">
-          <div className="glass flex flex-1 items-center gap-2 p-2 ps-4">
-            <Search className="size-4.5 shrink-0 text-[var(--text-muted)]" />
-            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search transactions…" aria-label="Search transactions" className="h-9 flex-1 bg-transparent text-sm text-[var(--text-strong)] placeholder:text-[var(--text-muted)] focus:outline-none" />
-          </div>
+        <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <SearchInput value={q} onChange={setQ} placeholder="Search transactions…" ariaLabel="Search transactions" className="w-full sm:w-64" />
           <div className="inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
             {(["all", "income", "expense"] as Filter[]).map((f) => (
               <button key={f} type="button" onClick={() => setFilter(f)} className={cn("rounded-full px-3.5 py-1.5 capitalize transition-colors", filter === f ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]")}>{f}</button>
