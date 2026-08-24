@@ -38,9 +38,9 @@ export function TransactionRow({
       <div className="min-w-0 flex-1">
         <div className="text-strong truncate text-sm font-medium">{tx.note || meta.label}</div>
         <div className="text-muted mt-0.5 flex items-center gap-2 text-xs">
-          <span>{meta.label}</span>
+          <span className="truncate">{meta.label}{tx.subcategory ? ` · ${tx.subcategory}` : ""}</span>
           <span aria-hidden>·</span>
-          <span>{dueLabel(tx.date)}</span>
+          <span className="shrink-0">{dueLabel(tx.date)}</span>
         </div>
       </div>
       <div className={cn("flex items-center gap-1 text-sm font-semibold tabular-nums", income ? "text-emerald-500" : "text-rose-500")}>

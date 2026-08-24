@@ -11,6 +11,7 @@ export interface TransactionInput {
   amount: number;
   currency: string;
   category: string;
+  subcategory?: string;
   note?: string;
   date: number;
   /** Optional account this transaction belongs to. */
@@ -20,6 +21,7 @@ export interface TransactionInput {
 export async function createTransaction(uid: string, input: TransactionInput): Promise<string> {
   const ref = await addDoc(userCollection(uid, "transactions"), {
     ...input,
+    subcategory: input.subcategory ?? "",
     note: input.note ?? "",
     accountId: input.accountId ?? "",
     scope: getActiveWorkspace(),
@@ -39,6 +41,7 @@ export async function importTransactions(uid: string, inputs: TransactionInput[]
     for (const input of inputs.slice(i, i + 400)) {
       batch.set(doc(col), {
         ...input,
+        subcategory: input.subcategory ?? "",
         note: input.note ?? "",
         accountId: input.accountId ?? "",
         scope: getActiveWorkspace(),

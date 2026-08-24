@@ -6,7 +6,7 @@ import { Plus, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
-import { makeCustomCategoryId } from "@/lib/finance";
+import { makeCustomCategoryId, subcategoriesFor } from "@/lib/finance";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
@@ -40,6 +40,8 @@ export function TransactionForm({
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
   const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? "expense")[0]!.id);
+  const [subcategory, setSubcategory] = useState(initial?.subcategory ?? "");
+  const subs = subcategoriesFor(category);
   const [accountId, setAccountId] = useState(initial?.accountId ?? "");
   const selectedAccount = activeAccounts.find((a) => a.id === accountId);
   const [date, setDate] = useState(() => toDateInput(initial?.date ?? Date.now()));
@@ -53,6 +55,12 @@ export function TransactionForm({
   function switchType(t: TxType) {
     setType(t);
     setCategory(forType(t)[0]!.id);
+    setSubcategory("");
+  }
+
+  function pickCategory(id: string) {
+    setCategory(id);
+    setSubcategory("");
   }
 
   async function saveCustom() {
@@ -61,7 +69,7 @@ export function TransactionForm({
     const cat = { id: makeCustomCategoryId(label, type), label, type };
     try {
       await addCustomCategory(user.uid, cat);
-      setCategory(cat.id);
+      pickCategory(cat.id);
       setNewCat("");
       setAdding(false);
     } catch {
@@ -80,7 +88,7 @@ export function TransactionForm({
     // A transaction attributed to an account MUST use that account's currency,
     // otherwise it silently drops out of the account's balance.
     const effectiveCurrency = selectedAccount ? selectedAccount.currency : currency;
-    onSubmit({ type, amount: amt, currency: effectiveCurrency, category, note: note.trim() || undefined, date: fromDateTimeInputs(date), accountId: accountId || undefined });
+    onSubmit({ type, amount: amt, currency: effectiveCurrency, category, subcategory: subcategory || undefined, note: note.trim() || undefined, date: fromDateTimeInputs(date), accountId: accountId || undefined });
   }
 
   return (
@@ -101,7 +109,7 @@ export function TransactionForm({
       </div>
 
       <div>
-        <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value)} options={cats.map((c) => ({ value: c.id, label: c.label }))} />
+        <Select label="Category" value={category} onChange={(e) => pickCategory(e.target.value)} options={cats.map((c) => ({ value: c.id, label: c.label }))} />
         {adding ? (
           <div className="mt-2 flex items-center gap-2">
             <Input
@@ -120,6 +128,14 @@ export function TransactionForm({
           </button>
         )}
       </div>
+      {subs.length > 0 && (
+        <Select
+          label="Subcategory (optional)"
+          value={subcategory}
+          onChange={(e) => setSubcategory(e.target.value)}
+          options={[{ value: "", label: "None" }, ...subs.map((s) => ({ value: s, label: s }))]}
+        />
+      )}
       {activeAccounts.length > 0 && (
         <Select
           label="Account (optional)"

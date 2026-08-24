@@ -159,6 +159,7 @@ export interface Transaction {
   amount: number; // positive magnitude
   currency: string;
   category: string; // category id (see lib/finance)
+  subcategory?: string; // optional finer label (see subcategoriesFor)
   note?: string;
   date: number; // epoch millis when it occurred
   /** Optional account this transaction belongs to. */
