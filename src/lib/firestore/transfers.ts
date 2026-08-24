@@ -2,6 +2,7 @@
 
 import { addDoc, deleteDoc, serverTimestamp } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getActiveWorkspace } from "@/lib/workspace";
 
 export interface TransferInput {
   fromAccountId: string;
@@ -31,6 +32,7 @@ export function validateTransfer(input: TransferInput): void {
 export async function createTransfer(uid: string, input: TransferInput): Promise<string> {
   validateTransfer(input);
   const ref = await addDoc(userCollection(uid, "transfers"), {
+    scope: getActiveWorkspace(),
     fromAccountId: input.fromAccountId,
     toAccountId: input.toAccountId,
     amount: input.amount,

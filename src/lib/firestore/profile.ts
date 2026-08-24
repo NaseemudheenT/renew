@@ -49,7 +49,7 @@ export async function setBiometricEnabled(uid: string, current: PasscodeRecord, 
   await updateDoc(profileRef(uid), { security: { ...current, biometricEnabled: enabled, updatedAt: Date.now() }, updatedAt: serverTimestamp() });
 }
 
-/** Personal / business / both — how the person uses Renew. */
+/** Personal / business — how the person uses Renew. */
 export async function updateAccountType(
   uid: string,
   accountType: AccountType,

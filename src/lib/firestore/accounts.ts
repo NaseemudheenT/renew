@@ -2,6 +2,7 @@
 
 import { addDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getActiveWorkspace } from "@/lib/workspace";
 import type { AccountType, AccountStatus } from "@/lib/types";
 
 export interface AccountInput {
@@ -14,6 +15,7 @@ export interface AccountInput {
 
 export async function createAccount(uid: string, input: AccountInput): Promise<string> {
   const ref = await addDoc(userCollection(uid, "accounts"), {
+    scope: getActiveWorkspace(),
     ...input,
     institution: input.institution ?? "",
     status: "active" as AccountStatus,

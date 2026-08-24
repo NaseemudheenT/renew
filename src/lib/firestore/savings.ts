@@ -2,6 +2,7 @@
 
 import { addDoc, deleteDoc, updateDoc, serverTimestamp, increment } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getActiveWorkspace } from "@/lib/workspace";
 
 export interface SavingsInput {
   name: string;
@@ -13,6 +14,7 @@ export interface SavingsInput {
 
 export async function createSavings(uid: string, input: SavingsInput): Promise<string> {
   const ref = await addDoc(userCollection(uid, "savings"), {
+    scope: getActiveWorkspace(),
     ...input,
     targetDate: input.targetDate ?? null,
     createdAt: serverTimestamp(),

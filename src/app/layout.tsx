@@ -3,7 +3,6 @@ import { Inter, Jost } from "next/font/google";
 import { Providers } from "@/components/providers/Providers";
 import { RenewBackground } from "@/components/environment/RenewBackground";
 import { GlassFilter } from "@/components/ui/GlassFilter";
-import { GlobalTapSound } from "@/components/ui/GlobalTapSound";
 import { themeNoFlashScript } from "@/lib/theme";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
@@ -100,7 +99,6 @@ export default function RootLayout({
       <body className={`${inter.variable} ${jost.variable} antialiased`}>
         <GlassFilter />
         <RenewBackground />
-        <GlobalTapSound />
         <Providers>{children}</Providers>
       </body>
     </html>

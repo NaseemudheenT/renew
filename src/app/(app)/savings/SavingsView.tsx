@@ -12,7 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createSavings, updateSavings, deleteSavings, addToSavings } from "@/lib/firestore/savings";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -21,7 +21,7 @@ import type { SavingsGoal } from "@/lib/types";
 
 export function SavingsView() {
   const { money, shortDate, t } = useLocale();
-  const { data, loading, uid } = useUserCollection<SavingsGoal>("savings");
+  const { data, loading, uid } = useScopedUserCollection<SavingsGoal>("savings");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<SavingsGoal | null>(null);
   const [addTo, setAddTo] = useState<SavingsGoal | null>(null);

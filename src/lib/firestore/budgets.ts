@@ -2,6 +2,7 @@
 
 import { addDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getActiveWorkspace } from "@/lib/workspace";
 
 export interface BudgetInput {
   category: string;
@@ -11,6 +12,7 @@ export interface BudgetInput {
 
 export async function createBudget(uid: string, input: BudgetInput): Promise<string> {
   const ref = await addDoc(userCollection(uid, "budgets"), {
+    scope: getActiveWorkspace(),
     ...input,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

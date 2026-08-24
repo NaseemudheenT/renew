@@ -14,7 +14,7 @@ import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { createAccount, updateAccount, setAccountStatus, deleteAccount, type AccountInput } from "@/lib/firestore/accounts";
 import { createTransfer, deleteTransfer, type TransferInput } from "@/lib/firestore/transfers";
@@ -26,9 +26,9 @@ import type { Account, AccountType, Transaction, Transfer } from "@/lib/types";
 
 export function AccountsView() {
   const { prefs, money, t, shortDate } = useLocale();
-  const { data: accounts, loading, uid } = useUserCollection<Account>("accounts");
-  const { data: txs } = useUserCollection<Transaction>("transactions");
-  const { data: transfers } = useUserCollection<Transfer>("transfers");
+  const { data: accounts, loading, uid } = useScopedUserCollection<Account>("accounts");
+  const { data: txs } = useScopedUserCollection<Transaction>("transactions");
+  const { data: transfers } = useScopedUserCollection<Transfer>("transfers");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Account | null>(null);

@@ -13,7 +13,7 @@ import { Select } from "@/components/ui/Select";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createBudget, updateBudget, deleteBudget } from "@/lib/firestore/budgets";
 import { monthRange } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
@@ -25,8 +25,8 @@ export function BudgetView() {
   const { money, t } = useLocale();
   const { resolve } = useCategories();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
-  const { data: budgets, loading, uid } = useUserCollection<Budget>("budgets");
-  const { data: txs } = useUserCollection<Transaction>("transactions", txC);
+  const { data: budgets, loading, uid } = useScopedUserCollection<Budget>("budgets");
+  const { data: txs } = useScopedUserCollection<Transaction>("transactions", txC);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
 

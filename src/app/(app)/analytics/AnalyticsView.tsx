@@ -9,7 +9,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { subscriptionTotals } from "@/lib/accounts";
 import { monthRange } from "@/lib/finance";
@@ -26,8 +26,8 @@ export function AnalyticsView() {
   const loc = `${prefs.language}-${prefs.region}`;
   const monthFmt = useMemo(() => new Intl.DateTimeFormat(loc, { month: "short" }), [loc]);
   const txC = useMemo(() => [orderBy("date", "desc")], []);
-  const { data, loading } = useUserCollection<Transaction>("transactions", txC);
-  const subs = useUserCollection<Subscription>("subscriptions");
+  const { data, loading } = useScopedUserCollection<Transaction>("transactions", txC);
+  const subs = useScopedUserCollection<Subscription>("subscriptions");
   const reduced = useReducedMotion();
   const currency = data[0]?.currency ?? prefs.currency;
 

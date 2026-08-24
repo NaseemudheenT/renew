@@ -13,7 +13,7 @@ import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { TransactionRow } from "@/components/finance/TransactionRow";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import {
   createTransaction, updateTransaction, deleteTransaction, restoreTransaction, type TransactionInput,
 } from "@/lib/firestore/transactions";
@@ -35,7 +35,7 @@ export function TransactionsView() {
     [loc],
   );
   const constraints = useMemo(() => [orderBy("date", "desc")], []);
-  const { data, loading, uid } = useUserCollection<Transaction>("transactions", constraints);
+  const { data, loading, uid } = useScopedUserCollection<Transaction>("transactions", constraints);
   const [filter, setFilter] = useState<Filter>("all");
   const [q, setQ] = useState("");
   const [modalOpen, setModalOpen] = useState(false);

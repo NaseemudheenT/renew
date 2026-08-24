@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { User, Briefcase, Layers, type LucideIcon } from "lucide-react";
+import { User, Briefcase, type LucideIcon } from "lucide-react";
 import { updateAccountType } from "@/lib/firestore/profile";
+import { setActiveWorkspace } from "@/lib/workspace";
 import { toast } from "@/components/ui/toast-store";
 import { cn } from "@/lib/utils";
 import type { AccountType } from "@/hooks/useUserProfile";
@@ -10,7 +11,6 @@ import type { AccountType } from "@/hooks/useUserProfile";
 const OPTIONS: { value: AccountType; label: string; desc: string; icon: LucideIcon }[] = [
   { value: "personal", label: "Personal", desc: "Your own money — spending, bills, savings.", icon: User },
   { value: "business", label: "Business", desc: "Revenue and expenses for your work.", icon: Briefcase },
-  { value: "both", label: "Both", desc: "Personal and business, one calm place.", icon: Layers },
 ];
 
 export function AccountTypeControl({
@@ -30,6 +30,8 @@ export function AccountTypeControl({
     setSaving(true);
     try {
       await updateAccountType(uid, next);
+      // Switch the app to that workspace right away.
+      setActiveWorkspace(next);
       toast({ title: "Saved", variant: "success" });
     } catch {
       setValue(prev);
@@ -40,7 +42,7 @@ export function AccountTypeControl({
   }
 
   return (
-    <div className="grid gap-2 sm:grid-cols-3">
+    <div className="grid gap-2 sm:grid-cols-2">
       {OPTIONS.map((o) => {
         const Icon = o.icon;
         const active = value === o.value;

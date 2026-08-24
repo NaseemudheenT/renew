@@ -7,6 +7,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getActiveWorkspace } from "@/lib/workspace";
 import { nextOccurrence } from "@/lib/dates";
 import type { Payment, Category, RepeatRule } from "@/lib/types";
 
@@ -25,6 +26,7 @@ export async function createPayment(
   input: PaymentInput,
 ): Promise<string> {
   const ref = await addDoc(userCollection(uid, "payments"), {
+    scope: getActiveWorkspace(),
     ...input,
     notes: input.notes ?? "",
     status: "upcoming",

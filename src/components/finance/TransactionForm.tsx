@@ -11,7 +11,7 @@ import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { addCustomCategory } from "@/lib/firestore/profile";
 import { toast } from "@/components/ui/toast-store";
 import { CURRENCIES, cn } from "@/lib/utils";
@@ -34,7 +34,7 @@ export function TransactionForm({
   const { prefs } = useLocale();
   const { user } = useAuth();
   const { forType } = useCategories();
-  const { data: accounts } = useUserCollection<Account>("accounts");
+  const { data: accounts } = useScopedUserCollection<Account>("accounts");
   const activeAccounts = accounts.filter((a) => a.status === "active");
   const [type, setType] = useState<TxType>(initial?.type ?? "expense");
   const [amount, setAmount] = useState(initial ? String(initial.amount) : "");

@@ -19,6 +19,9 @@ export interface UserProfile {
 
 /* ---- Shared domain enums ------------------------------------------------- */
 
+/** Renew runs as two separate workspaces the person switches between. */
+export type WorkspaceMode = "personal" | "business";
+
 export type Priority = "low" | "normal" | "high";
 
 export type RepeatRule =

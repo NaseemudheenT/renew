@@ -13,7 +13,7 @@ import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createInvestment, updateInvestment, deleteInvestment } from "@/lib/firestore/investments";
 import { INVESTMENT_TYPES, investmentMeta } from "@/lib/finance";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -22,7 +22,7 @@ import type { Investment, InvestmentType } from "@/lib/types";
 
 export function InvestmentsView() {
   const { prefs, money, t } = useLocale();
-  const { data, loading, uid } = useUserCollection<Investment>("investments");
+  const { data, loading, uid } = useScopedUserCollection<Investment>("investments");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Investment | null>(null);
 

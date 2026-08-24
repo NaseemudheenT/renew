@@ -9,7 +9,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { AnimatedButton } from "@/components/motion";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { dayStart } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import type { Payment, Subscription } from "@/lib/types";
@@ -46,8 +46,8 @@ export function CalendarView() {
     const s = prefs.weekStart;
     return [...names.slice(s), ...names.slice(0, s)];
   }, [loc, prefs.weekStart]);
-  const payments = useUserCollection<Payment>("payments");
-  const subscriptions = useUserCollection<Subscription>("subscriptions");
+  const payments = useScopedUserCollection<Payment>("payments");
+  const subscriptions = useScopedUserCollection<Subscription>("subscriptions");
 
   const items: CalItem[] = useMemo(() => {
     const out: CalItem[] = [];

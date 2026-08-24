@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { parseCSV, parseStatement, detectMapping, buildDrafts, type DraftRow, type ColumnMapping } from "@/lib/import";
 import { extractPdfText } from "@/lib/pdf";
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 export function ImportView() {
   const router = useRouter();
   const { prefs, money } = useLocale();
-  const { data: existing, uid } = useUserCollection<Transaction>("transactions");
+  const { data: existing, uid } = useScopedUserCollection<Transaction>("transactions");
   const fileRef = useRef<HTMLInputElement>(null);
 
   const [headers, setHeaders] = useState<string[]>([]);

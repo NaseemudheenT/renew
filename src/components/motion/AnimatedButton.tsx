@@ -4,7 +4,6 @@ import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { forwardRef, useState, type PointerEvent, type ReactNode } from "react";
 import { Loader2 } from "lucide-react";
 import { spring } from "@/lib/motion";
-import { playTap } from "@/lib/sound";
 import { cn } from "@/lib/utils";
 
 type Variant = "primary" | "glass" | "ghost" | "danger";
@@ -75,7 +74,6 @@ export const AnimatedButton = forwardRef<HTMLButtonElement, AnimatedButtonProps>
         };
 
     function handlePointerDown(e: PointerEvent<HTMLButtonElement>) {
-      playTap();
       if (!reduced) {
         const r = e.currentTarget.getBoundingClientRect();
         const size = Math.max(r.width, r.height) * 2;

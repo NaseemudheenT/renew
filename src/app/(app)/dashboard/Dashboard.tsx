@@ -16,7 +16,7 @@ import { TransactionForm } from "@/components/finance/TransactionForm";
 import { VoiceAdd } from "@/components/finance/VoiceAdd";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange } from "@/lib/finance";
 import { computeAccountBalance, accountTypeMeta, subscriptionMonthly } from "@/lib/accounts";
@@ -41,7 +41,7 @@ function timeGreeting(): string {
 }
 const greetSubscribe = () => () => {};
 
-export function Dashboard({ firstName }: { firstName: string }) {
+export function Dashboard({ name }: { name: string }) {
   const router = useRouter();
   const { prefs, money, dueLabel, date } = useLocale();
   const { hidden: amountsHidden, mask } = usePrivacy();
@@ -54,14 +54,14 @@ export function Dashboard({ firstName }: { firstName: string }) {
   const recentC = useMemo(() => [orderBy("date", "desc"), limit(6)], []);
   const upcomingC = useMemo(() => [where("status", "in", ["upcoming", "overdue"])], []);
 
-  const txAll = useUserCollection<Transaction>("transactions", txC);
-  const recent = useUserCollection<Transaction>("transactions", recentC);
-  const savings = useUserCollection<SavingsGoal>("savings");
-  const investments = useUserCollection<Investment>("investments");
-  const bills = useUserCollection<Payment>("payments", upcomingC);
-  const accounts = useUserCollection<Account>("accounts");
-  const transfers = useUserCollection<Transfer>("transfers");
-  const subscriptions = useUserCollection<Subscription>("subscriptions");
+  const txAll = useScopedUserCollection<Transaction>("transactions", txC);
+  const recent = useScopedUserCollection<Transaction>("transactions", recentC);
+  const savings = useScopedUserCollection<SavingsGoal>("savings");
+  const investments = useScopedUserCollection<Investment>("investments");
+  const bills = useScopedUserCollection<Payment>("payments", upcomingC);
+  const accounts = useScopedUserCollection<Account>("accounts");
+  const transfers = useScopedUserCollection<Transfer>("transfers");
+  const subscriptions = useScopedUserCollection<Subscription>("subscriptions");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
@@ -134,8 +134,7 @@ export function Dashboard({ firstName }: { firstName: string }) {
           <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
             <div>
               <p className="text-muted text-sm capitalize">{date(new Date(), { weekday: "long", day: "numeric", month: "long" })}</p>
-              <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {firstName}.</h1>
-              <p className="text-muted mt-1 text-sm">Your money, automatically clear.</p>
+              <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {name}.</h1>
             </div>
             <div className="flex items-center gap-2">
               <AnimatedButton variant="glass" onClick={() => setVoiceOpen(true)} aria-label="Add by voice"><Mic className="size-4" /></AnimatedButton>

@@ -2,6 +2,7 @@
 
 import { addDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getActiveWorkspace } from "@/lib/workspace";
 import type { InvestmentType } from "@/lib/types";
 
 export interface InvestmentInput {
@@ -15,6 +16,7 @@ export interface InvestmentInput {
 
 export async function createInvestment(uid: string, input: InvestmentInput): Promise<string> {
   const ref = await addDoc(userCollection(uid, "investments"), {
+    scope: getActiveWorkspace(),
     ...input,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),

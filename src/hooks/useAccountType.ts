@@ -1,11 +1,13 @@
 "use client";
 
 import { useUserProfile, type AccountType } from "./useUserProfile";
+import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 
 /**
- * The person's Renew mode. Defaults to "personal" until they choose otherwise.
- * `isBusiness` is true for business or both — used to shape labels (e.g.
- * "Revenue / Expenses" instead of "In / Out"). It NEVER hides money.
+ * The person's active Renew workspace. `isBusiness` follows the live
+ * Personal/Business switch (not a stored preference) so labels flip with the
+ * workspace — e.g. "Revenue / Expenses" instead of "In / Out". It NEVER hides
+ * money. `accountType` is their onboarding/primary choice, kept for settings.
  */
 export function useAccountType(): {
   accountType: AccountType;
@@ -13,10 +15,10 @@ export function useAccountType(): {
   loading: boolean;
 } {
   const { profile, loading } = useUserProfile();
-  const accountType = profile?.accountType ?? "personal";
+  const { mode } = useWorkspace();
   return {
-    accountType,
-    isBusiness: accountType === "business" || accountType === "both",
+    accountType: profile?.accountType ?? "personal",
+    isBusiness: mode === "business",
     loading,
   };
 }

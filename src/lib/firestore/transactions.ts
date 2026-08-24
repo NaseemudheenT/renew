@@ -3,6 +3,7 @@
 import { addDoc, deleteDoc, updateDoc, serverTimestamp, writeBatch, doc } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
 import { getDb } from "@/lib/firebase/client";
+import { getActiveWorkspace } from "@/lib/workspace";
 import type { Transaction, TxType } from "@/lib/types";
 
 export interface TransactionInput {
@@ -21,6 +22,7 @@ export async function createTransaction(uid: string, input: TransactionInput): P
     ...input,
     note: input.note ?? "",
     accountId: input.accountId ?? "",
+    scope: getActiveWorkspace(),
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
@@ -39,6 +41,7 @@ export async function importTransactions(uid: string, inputs: TransactionInput[]
         ...input,
         note: input.note ?? "",
         accountId: input.accountId ?? "",
+        scope: getActiveWorkspace(),
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
       });

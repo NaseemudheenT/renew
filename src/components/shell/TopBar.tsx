@@ -9,6 +9,7 @@ import { NotificationBell } from "./NotificationBell";
 import { GlobalSearch } from "./GlobalSearch";
 import { InstallRenew } from "@/components/pwa/InstallRenew";
 import { AccountMenu } from "./AccountMenu";
+import { WorkspaceSwitch } from "./WorkspaceSwitch";
 import type { ShellUser } from "./shell-types";
 import { titleKeyForPath } from "@/lib/nav";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -36,10 +37,13 @@ export function TopBar({ user }: { user: ShellUser }) {
         scrolled && "border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)] backdrop-blur-xl backdrop-saturate-150",
       )}
     >
-      <Link href="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Renew home">
-        <RenewMark size={30} />
-      </Link>
-      <h1 className="text-strong hidden text-lg font-medium lg:block">{title}</h1>
+      <div className="flex min-w-0 items-center gap-3">
+        <Link href="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Renew home">
+          <RenewMark size={30} />
+        </Link>
+        <h1 className="text-strong hidden text-lg font-medium lg:block">{title}</h1>
+        <WorkspaceSwitch />
+      </div>
       <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"

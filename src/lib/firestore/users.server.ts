@@ -61,7 +61,7 @@ export interface OnboardingInput {
   currency?: string;
   weekStart?: 0 | 1;
   hour12?: boolean;
-  accountType?: "personal" | "business" | "both";
+  accountType?: "personal" | "business";
   /** The person accepted the Privacy Policy + Terms during setup. */
   acceptedLegal?: boolean;
   /** Chosen preset avatar id (see lib/avatars). */

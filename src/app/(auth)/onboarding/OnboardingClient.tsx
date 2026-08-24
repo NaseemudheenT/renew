@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Wallet, Receipt, PiggyBank, TrendingUp, User, Briefcase, Layers, AlertCircle, Check,
+  Wallet, Receipt, PiggyBank, TrendingUp, User, Briefcase, AlertCircle, Check,
   Bell, ShieldCheck, Lock, Fingerprint,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -21,6 +21,7 @@ import { makePasscodeRecord, isValidPasscode, type PasscodeKind } from "@/lib/se
 import { setSecurity } from "@/lib/firestore/profile";
 import { markUnlocked } from "@/components/security/AppLock";
 import { requestBrowserNotify } from "@/lib/notify";
+import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
 import {
   detectPrefs, REGION_CURRENCY,
@@ -35,11 +36,10 @@ const FOCUS = [
   { id: "investments", label: "Investments", icon: TrendingUp },
 ] as const;
 
-type AccountType = "personal" | "business" | "both";
+type AccountType = "personal" | "business";
 const ACCOUNT_TYPES = [
   { value: "personal", label: "Personal", icon: User },
   { value: "business", label: "Business", icon: Briefcase },
-  { value: "both", label: "Both", icon: Layers },
 ] as const;
 
 const slide = {
@@ -141,6 +141,8 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Could not save.");
       }
+      // Open the app in the workspace they chose here.
+      setActiveWorkspace(accountType);
       // Full navigation so the server re-reads the freshly-set onboarded flag.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional reload to pick up the new session state
       window.location.assign("/dashboard");

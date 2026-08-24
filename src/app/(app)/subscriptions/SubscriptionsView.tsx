@@ -15,7 +15,7 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import {
   createSubscription, updateSubscription, setSubscriptionStatus, deleteSubscription, type SubscriptionInput,
@@ -28,8 +28,8 @@ import type { Subscription, Account, BillingCycle, Category } from "@/lib/types"
 
 export function SubscriptionsView() {
   const { prefs, money, t, dueLabel } = useLocale();
-  const { data: subs, loading, uid } = useUserCollection<Subscription>("subscriptions");
-  const { data: accounts } = useUserCollection<Account>("accounts");
+  const { data: subs, loading, uid } = useScopedUserCollection<Subscription>("subscriptions");
+  const { data: accounts } = useScopedUserCollection<Account>("accounts");
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Subscription | null>(null);
   const [showCancelled, setShowCancelled] = useState(false);

@@ -2,6 +2,7 @@
 
 import { addDoc, deleteDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import { userCollection, userDoc } from "@/lib/firestore/db";
+import { getActiveWorkspace } from "@/lib/workspace";
 import type { BillingCycle, SubscriptionStatus } from "@/lib/types";
 
 export interface SubscriptionInput {
@@ -17,6 +18,7 @@ export interface SubscriptionInput {
 
 export async function createSubscription(uid: string, input: SubscriptionInput): Promise<string> {
   const ref = await addDoc(userCollection(uid, "subscriptions"), {
+    scope: getActiveWorkspace(),
     ...input,
     accountId: input.accountId ?? "",
     notes: input.notes ?? "",

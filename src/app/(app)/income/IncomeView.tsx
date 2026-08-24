@@ -7,7 +7,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
-import { useUserCollection } from "@/hooks/useUserCollection";
+import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { useCategories } from "@/hooks/useCategories";
@@ -19,7 +19,7 @@ export function IncomeView() {
   const { money, date } = useLocale();
   const { hidden, mask } = usePrivacy();
   const { resolve } = useCategories();
-  const { data, loading } = useUserCollection<Transaction>("transactions");
+  const { data, loading } = useScopedUserCollection<Transaction>("transactions");
 
   const income = useMemo(() => data.filter((t) => t.type === "income").sort((a, b) => b.date - a.date), [data]);
   const currency = income[0]?.currency ?? data[0]?.currency;

@@ -25,15 +25,15 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   savings: true,
 };
 
-/** How a person uses Renew — one app, either mode, or both together. */
-export type AccountType = "personal" | "business" | "both";
+/** How a person uses Renew — Personal or Business. */
+export type AccountType = "personal" | "business";
 
 export interface ProfileDoc {
   displayName: string | null;
   timezone: string;
   focus: string[];
   onboarded: boolean;
-  /** Personal (default), business, or both. Shapes labels, never hides money. */
+  /** Personal (default) or business. Seeds the workspace; never hides money. */
   accountType?: AccountType;
   notificationPrefs?: NotificationPrefs;
   createdAt?: number;
