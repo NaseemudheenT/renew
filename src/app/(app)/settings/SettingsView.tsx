@@ -1,8 +1,9 @@
 "use client";
 
 import { useReducer, useState, useSyncExternalStore } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Tags, X, Briefcase, ChevronRight, Lock } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, Lock } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -22,9 +23,8 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, removeCustomCategory, updateAvatar } from "@/lib/firestore/profile";
+import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, updateAvatar } from "@/lib/firestore/profile";
 import { AVATARS } from "@/lib/avatars";
-import { useCategories } from "@/hooks/useCategories";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AppLockControl } from "@/components/settings/AppLockControl";
 import { useReauth } from "@/components/security/ReauthProvider";
@@ -78,10 +78,6 @@ export function SettingsView() {
         <BillingControl />
       </Section>
 
-      <Section icon={Tags} title="Categories">
-        {uid && <CategoriesControl uid={uid} />}
-      </Section>
-
       <Section icon={Database} title="Data">
         <DataControl />
       </Section>
@@ -93,6 +89,12 @@ export function SettingsView() {
       <Section icon={ShieldCheck} title="Security">
         <SecurityControl />
       </Section>
+
+      <footer className="flex items-center justify-center gap-4 pt-2 text-xs text-[var(--text-muted)]">
+        <Link href="/privacy" className="hover:text-[var(--text-strong)]">Privacy</Link>
+        <span aria-hidden="true">·</span>
+        <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
+      </footer>
     </div>
   );
 }
@@ -353,50 +355,6 @@ function BillingControl() {
   );
 }
 
-function CategoriesControl({ uid }: { uid: string }) {
-  const { custom } = useCategories();
-
-  async function remove(cat: (typeof custom)[number]) {
-    try {
-      await removeCustomCategory(uid, cat);
-      toast({ title: "Category removed", variant: "success" });
-    } catch {
-      toast({ title: "Couldn't remove category", variant: "error" });
-    }
-  }
-
-  if (custom.length === 0) {
-    return (
-      <p className="text-muted text-xs">
-        You haven&apos;t added any custom categories yet. Create one from the
-        &ldquo;New category&rdquo; option when adding a transaction.
-      </p>
-    );
-  }
-
-  return (
-    <div className="flex flex-wrap gap-2">
-      {custom.map((c) => (
-        <span
-          key={c.id}
-          className="glass inline-flex items-center gap-2 !rounded-full py-1.5 ps-3.5 pe-2 text-sm text-[var(--text-strong)]"
-        >
-          <span className={cn("size-1.5 rounded-full", c.type === "income" ? "bg-emerald-400" : "bg-rose-400")} />
-          {c.label}
-          <button
-            type="button"
-            onClick={() => remove(c)}
-            aria-label={`Remove ${c.label}`}
-            className="grid size-5 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-strong)] hover:text-[var(--text-strong)]"
-          >
-            <X className="size-3.5" />
-          </button>
-        </span>
-      ))}
-    </div>
-  );
-}
-
 function BrowserNotifyControl() {
   const { t } = useLocale();
   const status = useSyncExternalStore<NotifyStatus>(noopSubscribe, browserNotifyStatus, () => "unsupported");
@@ -504,6 +462,7 @@ function DataAction({ icon: Icon, title, desc, onClick }: { icon: typeof Downloa
 
 function SecurityControl() {
   const router = useRouter();
+  const requireReauth = useReauth();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [confirmText, setConfirmText] = useState("");
@@ -513,6 +472,8 @@ function SecurityControl() {
     router.replace("/sign-in");
   }
   async function onDelete() {
+    // Deleting everything is irreversible — re-verify the person first.
+    if (!(await requireReauth("to delete your account"))) return;
     setDeleting(true);
     try {
       const res = await fetch("/api/account/delete", { method: "POST" });

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion, useAnimationControls } from "framer-motion";
 import { RenewMark } from "@/components/brand/RenewMark";
@@ -152,17 +151,8 @@ export default function Home() {
         </motion.span>
       </motion.button>
 
-      {/* Privacy · Terms — quietly present on the entry. */}
-      <motion.footer
-        className="absolute inset-x-0 bottom-7 z-10 flex items-center justify-center gap-3 text-xs text-[var(--text-muted)]"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 1.2, duration: 0.9, ease: EASE }}
-      >
-        <Link href="/privacy" className="transition-colors hover:text-[var(--text-body)]">Privacy</Link>
-        <span aria-hidden="true" className="opacity-50">·</span>
-        <Link href="/terms" className="transition-colors hover:text-[var(--text-body)]">Terms</Link>
-      </motion.footer>
+      {/* Privacy & Terms live in onboarding (where you accept them) and in
+          Settings afterwards — kept off this first screen by design. */}
     </main>
   );
 }

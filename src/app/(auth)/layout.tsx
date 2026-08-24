@@ -12,12 +12,8 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
       </Link>
 
       <div className="w-full max-w-md">{children}</div>
-
-      <footer className="mt-8 flex items-center gap-4 text-xs text-[var(--text-muted)]">
-        <Link href="/privacy" className="hover:text-[var(--text-strong)]">Privacy</Link>
-        <span aria-hidden="true">·</span>
-        <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
-      </footer>
+      {/* Privacy & Terms are accepted during onboarding and linked in Settings —
+          intentionally not shown on these entry screens (see punch-list #2). */}
     </div>
   );
 }
