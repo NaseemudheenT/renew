@@ -32,9 +32,9 @@ const DARK: GradientCustomConfig = {
 };
 
 const LIGHT: GradientCustomConfig = {
-  color1: "#cdddf7",
-  color2: "#7ea6ee",
-  color3: "#e4edfd",
+  color1: "#aac1ef",
+  color2: "#6f9aec",
+  color3: "#dbe8fc",
   rotation: 24,
   proportion: 46,
   scale: 0.5,
