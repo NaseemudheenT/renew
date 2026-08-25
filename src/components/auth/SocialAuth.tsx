@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { AlertCircle, Fingerprint, QrCode, ChevronRight, ShieldCheck } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { FadeScale } from "@/components/motion";
+import { FadeScale, StaggerContainer, StaggerItem } from "@/components/motion";
 import { GoogleIcon } from "@/components/brand/GoogleIcon";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { signInWithGoogle, AuthError } from "@/lib/auth/client";
@@ -68,19 +68,25 @@ export function SocialAuth({ title, subtitle }: { title: string; subtitle: strin
           </div>
         )}
 
-        <div className="flex flex-col gap-3">
-          <AuthTile onClick={google} disabled={busy} loading={pending === "google"} icon={<GoogleIcon className="size-5" />} label="Continue with Google" primary />
+        <StaggerContainer className="flex flex-col gap-3" stagger={0.08}>
+          <StaggerItem>
+            <AuthTile onClick={google} disabled={busy} loading={pending === "google"} icon={<GoogleIcon className="size-5" />} label="Continue with Google" primary />
+          </StaggerItem>
 
           {passkeySupported && (
-            <AuthTile onClick={passkey} disabled={busy} loading={pending === "passkey"} icon={<Fingerprint className="size-5 text-[var(--color-gold-500)]" />} label="Continue with a passkey" hint="Face ID / Touch ID" />
+            <StaggerItem>
+              <AuthTile onClick={passkey} disabled={busy} loading={pending === "passkey"} icon={<Fingerprint className="size-5 text-[var(--color-gold-500)]" />} label="Continue with a passkey" hint="Face ID / Touch ID" />
+            </StaggerItem>
           )}
 
           {/* QR pairing is a browser-only affordance — the installed app is the
               thing you scan FROM, so it never needs to show a QR to itself. */}
           {isBrowser && (
-            <AuthTile onClick={() => setQrOpen(true)} disabled={busy} icon={<QrCode className="size-5 text-[var(--color-gold-500)]" />} label="Scan QR to sign in" hint="Use a device you're signed in on" />
+            <StaggerItem>
+              <AuthTile onClick={() => setQrOpen(true)} disabled={busy} icon={<QrCode className="size-5 text-[var(--color-gold-500)]" />} label="Scan QR to sign in" hint="Use a device you're signed in on" />
+            </StaggerItem>
           )}
-        </div>
+        </StaggerContainer>
 
         <p className="text-muted mt-6 flex items-center justify-center gap-1.5 text-xs">
           <ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />No passwords. Your money stays private on your device.
@@ -109,13 +115,15 @@ function AuthTile({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        "group relative flex h-[3.75rem] w-full items-center gap-3.5 rounded-2xl border px-4 text-start transition-all active:scale-[0.98] disabled:opacity-55",
+        "group relative flex h-[3.75rem] w-full items-center gap-3.5 overflow-hidden rounded-2xl border px-4 text-start transition-all duration-300 hover:-translate-y-0.5 active:scale-[0.98] disabled:opacity-55 disabled:hover:translate-y-0",
         primary
           ? "border-[var(--focus-ring)]/40 bg-[var(--glass-bg-strong)] shadow-[var(--glass-shadow)]"
           : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50",
       )}
     >
-      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-soft)]">{icon}</span>
+      {/* A light sheen sweeps across on hover — premium, tactile. */}
+      <span aria-hidden className="pointer-events-none absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-[var(--glass-highlight)] to-transparent opacity-40 transition-transform duration-700 ease-out group-hover:translate-x-full" />
+      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-soft)] transition-colors duration-300 group-hover:bg-[var(--glass-bg-strong)]">{icon}</span>
       <span className="min-w-0 flex-1">
         <span className="text-strong block text-[0.95rem] font-medium leading-tight">{label}</span>
         {hint && <span className="text-muted block text-xs">{hint}</span>}
