@@ -294,6 +294,73 @@ function normalizeDate(raw: string): string {
  * date/description/amount/type. Unreliable by nature (formats vary), which is
  * exactly why every row goes through the review-and-confirm step before saving.
  */
+/* ---- Receipt / bill photo parsing (OCR text → one reviewable row) --------- */
+
+// A money figure on a receipt: "1,234.56", "1234.56", or a bare "1234".
+const RECEIPT_AMOUNT_RE = /\d[\d,]*(?:\.\d{1,2})?/g;
+// Lines that state the amount actually payable — checked before any fallback.
+const TOTAL_LABELS = /(grand\s*total|amount\s*due|balance\s*due|amount\s*paid|total\s*payable|net\s*payable|total\b)/i;
+// Never read the total from these lines.
+const NOT_TOTAL = /(sub\s*-?\s*total|tax|gst|vat|cgst|sgst|tip|change|cash|tender|discount|savings|qty|item)/i;
+
+function toAmount(raw: string): number {
+  const n = Number(raw.replace(/,/g, ""));
+  return Number.isFinite(n) ? n : NaN;
+}
+
+/**
+ * Best-effort parse of receipt/bill OCR text into a single expense row
+ * (merchant, total, date) for the review step. Deliberately conservative — it
+ * proposes; the user confirms and corrects before anything is saved. Returns []
+ * only when no plausible amount is found (so the caller can fall back to a
+ * multi-line statement parse for things like a photographed bank statement).
+ */
+export function parseReceipt(text: string): Record<string, string>[] {
+  const lines = text
+    .split("\n")
+    .map((l) => l.trim())
+    .filter(Boolean);
+  if (lines.length === 0) return [];
+
+  // 1) The total: prefer a labelled total line; take the largest amount on it.
+  let total = NaN;
+  for (const l of lines) {
+    if (!TOTAL_LABELS.test(l) || NOT_TOTAL.test(l)) continue;
+    const amts = l.match(RECEIPT_AMOUNT_RE);
+    if (!amts) continue;
+    const best = Math.max(...amts.map(toAmount).filter((n) => Number.isFinite(n)));
+    if (Number.isFinite(best)) total = Number.isFinite(total) ? Math.max(total, best) : best;
+  }
+  // Fallback: the single largest money figure anywhere (receipts print the
+  // grand total in the biggest, boldest number — usually the largest value).
+  if (!Number.isFinite(total)) {
+    const all = (text.match(RECEIPT_AMOUNT_RE) ?? [])
+      .map(toAmount)
+      .filter((n) => Number.isFinite(n) && n > 0);
+    if (all.length === 0) return [];
+    total = Math.max(...all);
+  }
+  if (!Number.isFinite(total) || total <= 0) return [];
+
+  // 2) Merchant: the first meaningful line near the top (mostly letters, not a
+  // price/date/phone line) — that's the shop name on virtually every receipt.
+  const merchant =
+    lines
+      .slice(0, 6)
+      .find((l) => /[a-z]/i.test(l) && (l.replace(/[^a-z]/gi, "").length >= 3) && !DATE_RE.test(l) && !/\d{4,}/.test(l))
+      ?.replace(/\s+/g, " ")
+      .slice(0, 60) ?? "Receipt";
+
+  // 3) Date: first date-looking token, else today (so the row is never dropped
+  // for a missing date — the user can adjust it in review).
+  const dm = text.match(DATE_RE);
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  const date = dm ? normalizeDate(dm[0]) : today;
+
+  return [{ date, description: merchant, amount: String(total), type: "expense" }];
+}
+
 export function parseStatement(text: string): Record<string, string>[] {
   const out: Record<string, string>[] = [];
   for (const line of text.split("\n")) {

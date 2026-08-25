@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import QRCode from "qrcode";
 import { Loader2, RefreshCw, CheckCircle2, Smartphone } from "lucide-react";
 import { AnimatedModal } from "@/components/motion";
+import { BrandedQr } from "@/components/auth/BrandedQr";
 import { signInWithCustomTokenAndSession, AuthError } from "@/lib/auth/client";
 
 type Phase = "loading" | "waiting" | "approved" | "expired" | "error";
@@ -16,7 +16,7 @@ type Phase = "loading" | "waiting" | "approved" | "expired" | "error";
  */
 export function QrSignIn({ open, onClose }: { open: boolean; onClose: () => void }) {
   const [phase, setPhase] = useState<Phase>("loading");
-  const [svg, setSvg] = useState<string>("");
+  const [qrUrl, setQrUrl] = useState<string>("");
   const [error, setError] = useState<string | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -28,14 +28,12 @@ export function QrSignIn({ open, onClose }: { open: boolean; onClose: () => void
     stop();
     setPhase("loading");
     setError(null);
-    setSvg("");
+    setQrUrl("");
     try {
       const res = await fetch("/api/auth/qr/create", { method: "POST" });
       if (!res.ok) throw new Error();
       const { sessionId } = (await res.json()) as { sessionId: string };
-      const url = `${window.location.origin}/link#${sessionId}`;
-      const markup = await QRCode.toString(url, { type: "svg", margin: 1, errorCorrectionLevel: "M", color: { dark: "#0b1020", light: "#ffffff" } });
-      setSvg(markup);
+      setQrUrl(`${window.location.origin}/link#${sessionId}`);
       setPhase("waiting");
 
       pollRef.current = setInterval(async () => {
@@ -75,8 +73,8 @@ export function QrSignIn({ open, onClose }: { open: boolean; onClose: () => void
       <div className="flex flex-col items-center gap-4 text-center">
         <div className="grid size-56 place-items-center rounded-2xl bg-white p-3">
           {phase === "loading" && <Loader2 className="size-8 animate-spin text-[var(--color-gold-500)]" />}
-          {(phase === "waiting" || phase === "approved") && svg && (
-            <div className="size-full [&>svg]:size-full" dangerouslySetInnerHTML={{ __html: svg }} />
+          {(phase === "waiting" || phase === "approved") && qrUrl && (
+            <BrandedQr value={qrUrl} size={200} className="size-full" />
           )}
           {phase === "expired" && (
             <button type="button" onClick={() => void start()} className="flex flex-col items-center gap-2 text-[var(--text-muted)]">

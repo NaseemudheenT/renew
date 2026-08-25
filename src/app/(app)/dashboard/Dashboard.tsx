@@ -18,6 +18,7 @@ import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
 import { AskRenew } from "@/components/finance/AskRenew";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange } from "@/lib/finance";
 import { computeAccountBalance, accountTypeMeta, subscriptionMonthly } from "@/lib/accounts";
@@ -42,12 +43,23 @@ function timeGreeting(): string {
 }
 const greetSubscribe = () => () => {};
 
+/** Setup's "what matters most" choices → personalized home shortcuts. This is
+ *  how the onboarding answers visibly shape each person's Renew. */
+const FOCUS_SHORTCUTS: Record<string, { label: string; href: string; icon: typeof Wallet }> = {
+  spending: { label: "Spending & budgets", href: "/budget", icon: Wallet },
+  bills: { label: "Bills & subscriptions", href: "/payments", icon: ReceiptText },
+  savings: { label: "Savings goals", href: "/savings", icon: PiggyBank },
+  investments: { label: "Investments", href: "/investments", icon: TrendingUp },
+};
+
 export function Dashboard({ name }: { name: string }) {
   const router = useRouter();
   const { prefs, money, dueLabel, date } = useLocale();
   const { hidden: amountsHidden, mask } = usePrivacy();
   const { resolve } = useCategories();
   const { isBusiness } = useAccountType();
+  const { profile } = useUserProfile();
+  const focus = useMemo(() => (profile?.focus ?? []).filter((f) => f in FOCUS_SHORTCUTS), [profile?.focus]);
   // Server renders the neutral "Hello"; the client swaps to the local-time
   // greeting on hydration (no mismatch, no setState-in-effect).
   const greeting = useSyncExternalStore(greetSubscribe, timeGreeting, () => "Hello");
@@ -179,6 +191,25 @@ export function Dashboard({ name }: { name: string }) {
                 </div>
               </GlassCard>
             </StaggerItem>
+
+            {focus.length > 0 && (
+              <StaggerItem>
+                <div>
+                  <p className="text-muted mb-2 px-1 text-xs font-medium uppercase tracking-wide">For you</p>
+                  <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+                    {focus.map((f) => {
+                      const s = FOCUS_SHORTCUTS[f]!;
+                      const Icon = s.icon;
+                      return (
+                        <Link key={f} href={s.href} className="glass text-body flex shrink-0 items-center gap-2 !rounded-full px-3.5 py-2 text-sm transition-colors hover:text-[var(--text-strong)]">
+                          <Icon className="size-4 text-[var(--color-gold-500)]" />{s.label}
+                        </Link>
+                      );
+                    })}
+                  </div>
+                </div>
+              </StaggerItem>
+            )}
 
             <StaggerItem>
               <AskRenew transactions={txAll.data} netWorth={netWorth} monthlySubs={recurring.monthly} activeSubs={recurring.count} upcomingBillsTotal={comingTotal} currency={currency} />

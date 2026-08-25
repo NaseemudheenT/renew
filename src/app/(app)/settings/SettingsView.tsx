@@ -63,36 +63,36 @@ export function SettingsView() {
         {uid && <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} />}
       </Section>
 
-      <Section icon={Palette} title="Appearance">
+      <Section id="appearance" icon={Palette} title="Appearance">
         <AppearanceControl />
       </Section>
 
-      <Section icon={Globe} title={t("settings.region.title")}>
+      <Section id="region" icon={Globe} title={t("settings.region.title")}>
         {uid && <RegionLanguageControl uid={uid} />}
       </Section>
 
-      <Section icon={Bell} title="Notifications">
+      <Section id="notifications" icon={Bell} title="Notifications">
         {uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}
         <BrowserNotifyControl />
       </Section>
 
-      <Section icon={CreditCard} title="Billing">
+      <Section id="billing" icon={CreditCard} title="Billing">
         <BillingControl />
       </Section>
 
-      <Section icon={Database} title="Data">
+      <Section id="data" icon={Database} title="Data">
         <DataControl />
       </Section>
 
-      <Section icon={Accessibility} title="Accessibility">
+      <Section id="accessibility" icon={Accessibility} title="Accessibility">
         <AccessibilityControl />
       </Section>
 
-      <Section icon={MonitorSmartphone} title="Linked devices">
+      <Section id="devices" icon={MonitorSmartphone} title="Linked devices">
         <DeviceLinkControl />
       </Section>
 
-      <Section icon={Lock} title="App lock">
+      <Section id="applock" icon={Lock} title="App lock">
         <AppLockControl />
       </Section>
 
@@ -109,9 +109,10 @@ export function SettingsView() {
   );
 }
 
-function Section({ icon: Icon, title, children }: { icon: typeof UserIcon; title: string; children: React.ReactNode }) {
+function Section({ id, icon: Icon, title, children }: { id?: string; icon: typeof UserIcon; title: string; children: React.ReactNode }) {
   return (
-    <GlassCard padded>
+    // scroll-mt keeps the section clear of the sticky top bar when deep-linked.
+    <GlassCard padded id={id} className="scroll-mt-24">
       <div className="mb-4 flex items-center gap-2.5"><Icon className="size-5 text-[var(--color-gold-500)]" /><h2 className="text-strong text-base font-medium">{title}</h2></div>
       <div className="flex flex-col gap-4">{children}</div>
     </GlassCard>
