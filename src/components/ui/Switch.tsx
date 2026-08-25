@@ -23,9 +23,9 @@ export function Switch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={cn(
-        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors disabled:opacity-50",
+        "relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-all duration-300 disabled:opacity-50",
         checked
-          ? "bg-gradient-to-r from-gold-300 to-gold-500"
+          ? "bg-gradient-to-r from-gold-300 to-gold-500 shadow-[0_2px_14px_-3px_var(--color-gold-500)]"
           : "bg-[var(--glass-bg-soft)] border border-[var(--field-border)]",
       )}
     >

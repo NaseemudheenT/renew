@@ -51,6 +51,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             "px-4 text-[0.95rem] transition-all duration-300 ease-[var(--ease-calm)]",
             "border-[var(--field-border)] focus:border-[var(--focus-ring)]",
             "focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25",
+            "focus:shadow-[0_8px_28px_-12px_var(--focus-ring)]",
             icon && "ps-11",
             isPassword && "pe-11",
             error && "border-rose-400/70 focus:ring-rose-400/20",

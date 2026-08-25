@@ -31,6 +31,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(function Select
             "text-[0.95rem] text-[var(--text-strong)] backdrop-blur-md transition-all",
             "border-[var(--field-border)] focus:border-[var(--focus-ring)]",
             "focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25",
+            "focus:shadow-[0_8px_28px_-12px_var(--focus-ring)]",
             error && "border-rose-400/70",
             className,
           )}
