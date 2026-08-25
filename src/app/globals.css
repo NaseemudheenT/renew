@@ -148,6 +148,39 @@
   --menu-border: rgba(64, 84, 146, 0.22);
 }
 
+/* ---- Accessibility preferences (Settings › Accessibility) --------------- */
+/* Larger text — scales the whole rem-based UI. Capped so layouts don't break. */
+:root[data-text-size="large"] {
+  font-size: 112.5%;
+}
+:root[data-text-size="larger"] {
+  font-size: 125%;
+}
+/* High contrast — firmer text and borders for low-vision readability. */
+:root[data-contrast="1"] {
+  --text-body: var(--text-strong);
+  --text-muted: var(--text-strong);
+  --glass-border: color-mix(in srgb, var(--text-strong) 55%, transparent);
+  --field-border: color-mix(in srgb, var(--text-strong) 60%, transparent);
+}
+:root[data-contrast="1"] :focus-visible {
+  outline-width: 3px;
+}
+/* Reduce motion — honour the in-app toggle exactly like the OS setting. */
+:root[data-reduce-motion="1"] *,
+:root[data-reduce-motion="1"] *::before,
+:root[data-reduce-motion="1"] *::after {
+  animation-duration: 0.001ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important;
+  scroll-behavior: auto !important;
+}
+:root[data-reduce-motion="1"] button:active,
+:root[data-reduce-motion="1"] [role="button"]:active,
+:root[data-reduce-motion="1"] .pressable:active {
+  transform: none;
+}
+
 /* ---- Base --------------------------------------------------------------- */
 * {
   border-color: var(--glass-border);

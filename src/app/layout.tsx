@@ -4,6 +4,7 @@ import { Providers } from "@/components/providers/Providers";
 import { RenewBackground } from "@/components/environment/RenewBackground";
 import { GlassFilter } from "@/components/ui/GlassFilter";
 import { themeNoFlashScript } from "@/lib/theme";
+import { a11yNoFlashScript } from "@/lib/a11y";
 import { publicEnv } from "@/lib/env";
 import "./globals.css";
 
@@ -93,8 +94,9 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        {/* No-flash theme: set data-theme before hydration. */}
+        {/* No-flash theme + accessibility prefs: set on <html> before hydration. */}
         <script dangerouslySetInnerHTML={{ __html: themeNoFlashScript }} />
+        <script dangerouslySetInnerHTML={{ __html: a11yNoFlashScript }} />
       </head>
       <body className={`${inter.variable} ${jost.variable} antialiased`}>
         <GlassFilter />

@@ -3,7 +3,7 @@
 import { useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, Lock } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, Lock, Accessibility } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -27,6 +27,7 @@ import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, updateAv
 import { AVATARS } from "@/lib/avatars";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AppLockControl } from "@/components/settings/AppLockControl";
+import { AccessibilityControl } from "@/components/settings/AccessibilityControl";
 import { useReauth } from "@/components/security/ReauthProvider";
 import { REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
@@ -80,6 +81,10 @@ export function SettingsView() {
 
       <Section icon={Database} title="Data">
         <DataControl />
+      </Section>
+
+      <Section icon={Accessibility} title="Accessibility">
+        <AccessibilityControl />
       </Section>
 
       <Section icon={Lock} title="App lock">

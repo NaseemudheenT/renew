@@ -1,8 +1,10 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useEnvironmentTier } from "@/hooks/useEnvironmentTier";
 import { useTheme } from "@/hooks/useTheme";
+import { subscribeA11y, getReduceMotion } from "@/lib/a11y";
 import AnimatedGradient, {
   type GradientCustomConfig,
 } from "@/components/ui/animated-gradient";
@@ -49,9 +51,10 @@ const LIGHT: GradientCustomConfig = {
 
 export function RenewBackground() {
   const reduced = useReducedMotion();
+  const a11yReduced = useSyncExternalStore(subscribeA11y, getReduceMotion, () => false);
   const tier = useEnvironmentTier();
   const { theme } = useTheme();
-  const live = !(reduced || tier === "soft2d");
+  const live = !(reduced || a11yReduced || tier === "soft2d");
   const config = theme === "light" ? LIGHT : DARK;
 
   return (
