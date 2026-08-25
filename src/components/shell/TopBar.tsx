@@ -33,7 +33,8 @@ export function TopBar({ user }: { user: ShellUser }) {
   return (
     <header
       className={cn(
-        "sticky top-0 z-20 flex items-center justify-between gap-3 px-4 py-3 transition-all duration-300 sm:px-6 lg:px-8",
+        // pt clears the notch/status bar when installed (safe-area inset); falls back to the normal padding in a browser.
+        "sticky top-0 z-20 flex items-center justify-between gap-3 px-4 pb-3 pt-[calc(env(safe-area-inset-top,0px)+0.75rem)] transition-all duration-300 sm:px-6 lg:px-8",
         scrolled && "border-b border-[var(--glass-border)] bg-[var(--glass-bg-strong)] backdrop-blur-xl backdrop-saturate-150",
       )}
     >
