@@ -8,7 +8,7 @@
  * primary auth). Biometric unlock uses the existing passkey (WebAuthn) assertion.
  */
 
-export type PasscodeKind = "pin" | "text";
+export type PasscodeKind = "pin" | "text" | "pattern";
 
 export interface PasscodeRecord {
   hash: string;
@@ -65,5 +65,7 @@ export async function verifyPasscode(code: string, record: PasscodeRecord): Prom
 
 export function isValidPasscode(code: string, kind: PasscodeKind): boolean {
   if (kind === "pin") return /^\d{4,8}$/.test(code);
+  // A pattern is a sequence of connected node indices, e.g. "0-3-6-7".
+  if (kind === "pattern") return code.split("-").filter(Boolean).length >= 4;
   return code.trim().length >= 4;
 }

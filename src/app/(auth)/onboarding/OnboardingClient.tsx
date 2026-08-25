@@ -20,6 +20,7 @@ import { usePasskeySupport, registerPasskey } from "@/lib/auth/passkey-client";
 import { makePasscodeRecord, isValidPasscode, type PasscodeKind } from "@/lib/security/passcode";
 import { setSecurity } from "@/lib/firestore/profile";
 import { markUnlocked } from "@/components/security/AppLock";
+import { PatternPad } from "@/components/security/PatternPad";
 import { requestBrowserNotify } from "@/lib/notify";
 import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
@@ -281,13 +282,28 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
             <h1 className="text-strong text-xl font-medium">Lock Renew</h1>
             <p className="text-muted mt-1 text-sm">Set a passcode and Face ID so only you can open Renew. This is required — it keeps your money private on this device.</p>
             <div className="mt-5 inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
-              {(["pin", "text"] as PasscodeKind[]).map((k) => (
-                <button key={k} type="button" onClick={() => { setPcKind(k); setCode(""); setConfirm(""); setError(null); }} className={cn("rounded-full px-4 py-1.5 transition-colors", pcKind === k ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>{k === "pin" ? "PIN" : "Passphrase"}</button>
+              {(["pin", "text", "pattern"] as PasscodeKind[]).map((k) => (
+                <button key={k} type="button" onClick={() => { setPcKind(k); setCode(""); setConfirm(""); setError(null); }} className={cn("rounded-full px-4 py-1.5 transition-colors", pcKind === k ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>{k === "pin" ? "PIN" : k === "text" ? "Passphrase" : "Pattern"}</button>
               ))}
             </div>
             <div className="mt-4 grid gap-3">
-              <Input label={pcKind === "pin" ? "Passcode (4–8 digits)" : "Passphrase"} type="password" inputMode={pcKind === "pin" ? "numeric" : "text"} value={code} onChange={(e) => { setCode(e.target.value); setError(null); }} placeholder={pcKind === "pin" ? "••••" : "At least 4 characters"} />
-              <Input label="Confirm" type="password" inputMode={pcKind === "pin" ? "numeric" : "text"} value={confirm} onChange={(e) => { setConfirm(e.target.value); setError(null); }} placeholder="Re-enter" />
+              {pcKind === "pattern" ? (
+                <div className="flex flex-col items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] py-4">
+                  <span className="text-muted text-xs">{!code ? "Draw your pattern" : code !== confirm ? "Draw it again to confirm" : "Pattern confirmed ✓"}</span>
+                  <PatternPad
+                    key={!code ? "draw" : "confirm"}
+                    onComplete={(c) => { if (!code) { setCode(c); } else { setConfirm(c); } setError(null); }}
+                  />
+                  {code && (
+                    <button type="button" onClick={() => { setCode(""); setConfirm(""); }} className="text-xs font-medium text-[var(--color-gold-600)] hover:underline">Start over</button>
+                  )}
+                </div>
+              ) : (
+                <>
+                  <Input label={pcKind === "pin" ? "Passcode (4–8 digits)" : "Passphrase"} type="password" inputMode={pcKind === "pin" ? "numeric" : "text"} value={code} onChange={(e) => { setCode(e.target.value); setError(null); }} placeholder={pcKind === "pin" ? "••••" : "At least 4 characters"} />
+                  <Input label="Confirm" type="password" inputMode={pcKind === "pin" ? "numeric" : "text"} value={confirm} onChange={(e) => { setConfirm(e.target.value); setError(null); }} placeholder="Re-enter" />
+                </>
+              )}
               {passkeySupported && (
                 <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
                   <span className="text-body flex items-center gap-2.5 text-sm"><Fingerprint className="size-4.5 text-[var(--color-gold-500)]" />Also unlock with Face ID</span>

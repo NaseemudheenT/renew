@@ -9,6 +9,7 @@ import { AnimatedButton } from "@/components/motion";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { usePasskeySupport, signInWithPasskey } from "@/lib/auth/passkey-client";
 import { verifyPasscode } from "@/lib/security/passcode";
+import { PatternPad } from "./PatternPad";
 import { cn } from "@/lib/utils";
 
 const UNLOCK_EVENT = "renew-unlock";
@@ -61,6 +62,7 @@ export function AppLock() {
   if (!uid || !security || unlocked) return null;
 
   const isPin = security.kind === "pin";
+  const isPattern = security.kind === "pattern";
 
   async function submit(value: string) {
     if (!security || !uid || busy) return;
@@ -114,10 +116,14 @@ export function AppLock() {
       >
         <RenewMark size={64} idSuffix="lock" />
         <div className="mt-3"><Wordmark sizeClassName="text-xl" /></div>
-        <p className="text-muted mt-6 text-sm">Enter your passcode to unlock</p>
+        <p className="text-muted mt-6 text-sm">{isPattern ? "Draw your pattern to unlock" : "Enter your passcode to unlock"}</p>
 
-        {/* Masked dots for PIN, or a field for text. */}
-        {isPin ? (
+        {/* Pattern grid, masked dots for PIN, or a field for text. */}
+        {isPattern ? (
+          <div className="mt-5">
+            <PatternPad disabled={busy} onComplete={(c) => void submit(c)} />
+          </div>
+        ) : isPin ? (
           <div className="mt-4 flex items-center gap-2.5" aria-hidden="true">
             {Array.from({ length: Math.max(4, code.length) }).map((_, i) => (
               <span key={i} className={cn("size-3 rounded-full border transition-colors", i < code.length ? "border-transparent bg-[var(--color-gold-500)]" : "border-[var(--field-border)]")} />
@@ -154,13 +160,23 @@ export function AppLock() {
           </div>
         )}
 
-        <AnimatedButton className="mt-6 w-full" onClick={() => void submit(code)} loading={busy} disabled={code.length < 4}>
-          Unlock <ArrowRight className="size-4" />
-        </AnimatedButton>
+        {!isPattern && (
+          <AnimatedButton className="mt-6 w-full" onClick={() => void submit(code)} loading={busy} disabled={code.length < 4}>
+            Unlock <ArrowRight className="size-4" />
+          </AnimatedButton>
+        )}
 
         {security.biometricEnabled && passkeySupported && (
           <button type="button" onClick={useBiometric} disabled={busy} className="text-body mt-4 inline-flex items-center gap-2 text-sm hover:text-[var(--text-strong)]">
             <Fingerprint className="size-5 text-[var(--color-gold-500)]" />Unlock with Face ID
+          </button>
+        )}
+
+        {/* Forgot passcode → restore with a passkey (works even if Face-ID unlock
+            wasn't enabled, as long as this device has a Renew passkey). */}
+        {passkeySupported && (
+          <button type="button" onClick={useBiometric} disabled={busy} className="text-muted mt-4 text-xs hover:text-[var(--text-strong)]">
+            Forgot passcode? Restore with a passkey
           </button>
         )}
       </motion.div>

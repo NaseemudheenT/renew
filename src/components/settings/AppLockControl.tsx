@@ -11,6 +11,7 @@ import { usePasskeySupport } from "@/lib/auth/passkey-client";
 import { makePasscodeRecord, isValidPasscode, type PasscodeKind } from "@/lib/security/passcode";
 import { setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
 import { markUnlocked } from "@/components/security/AppLock";
+import { PatternPad } from "@/components/security/PatternPad";
 import { cn } from "@/lib/utils";
 
 /** Set, change, or turn off the Renew app-lock (passcode + Face ID). */
@@ -91,7 +92,7 @@ export function AppLockControl() {
             <ShieldCheck className="size-5 shrink-0 text-emerald-500" />
             <div className="min-w-0 flex-1">
               <p className="text-strong text-sm font-medium">App lock is on</p>
-              <p className="text-muted text-xs">{security.kind === "pin" ? "PIN" : "Passphrase"}{security.biometricEnabled ? " · Face ID" : ""}</p>
+              <p className="text-muted text-xs">{security.kind === "pin" ? "PIN" : security.kind === "pattern" ? "Pattern" : "Passphrase"}{security.biometricEnabled ? " · Face ID" : ""}</p>
             </div>
           </div>
           {passkeySupported && (
@@ -112,29 +113,39 @@ export function AppLockControl() {
       <AnimatedModal open={open} onClose={() => setOpen(false)} title={security ? "Change passcode" : "Set up app lock"}>
         <div className="flex flex-col gap-4">
           <div className="inline-flex self-start rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
-            {(["pin", "text"] as PasscodeKind[]).map((k) => (
+            {(["pin", "text", "pattern"] as PasscodeKind[]).map((k) => (
               <button key={k} type="button" onClick={() => { setKind(k); setCode(""); setConfirm(""); setError(null); }} className={cn("rounded-full px-4 py-1.5 transition-colors", kind === k ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>
-                {k === "pin" ? "PIN" : "Passphrase"}
+                {k === "pin" ? "PIN" : k === "text" ? "Passphrase" : "Pattern"}
               </button>
             ))}
           </div>
-          <Input
-            label={kind === "pin" ? "New PIN (4–8 digits)" : "New passphrase"}
-            type="password"
-            inputMode={kind === "pin" ? "numeric" : "text"}
-            value={code}
-            autoFocus
-            onChange={(e) => { setCode(e.target.value); setError(null); }}
-            placeholder={kind === "pin" ? "••••" : "At least 4 characters"}
-          />
-          <Input
-            label="Confirm"
-            type="password"
-            inputMode={kind === "pin" ? "numeric" : "text"}
-            value={confirm}
-            onChange={(e) => { setConfirm(e.target.value); setError(null); }}
-            placeholder="Re-enter"
-          />
+          {kind === "pattern" ? (
+            <div className="flex flex-col items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] py-4">
+              <span className="text-muted text-xs">{!code ? "Draw your pattern" : code !== confirm ? "Draw it again to confirm" : "Pattern confirmed ✓"}</span>
+              <PatternPad key={!code ? "draw" : "confirm"} onComplete={(c) => { if (!code) setCode(c); else setConfirm(c); setError(null); }} />
+              {code && <button type="button" onClick={() => { setCode(""); setConfirm(""); }} className="text-xs font-medium text-[var(--color-gold-600)] hover:underline">Start over</button>}
+            </div>
+          ) : (
+            <>
+              <Input
+                label={kind === "pin" ? "New PIN (4–8 digits)" : "New passphrase"}
+                type="password"
+                inputMode={kind === "pin" ? "numeric" : "text"}
+                value={code}
+                autoFocus
+                onChange={(e) => { setCode(e.target.value); setError(null); }}
+                placeholder={kind === "pin" ? "••••" : "At least 4 characters"}
+              />
+              <Input
+                label="Confirm"
+                type="password"
+                inputMode={kind === "pin" ? "numeric" : "text"}
+                value={confirm}
+                onChange={(e) => { setConfirm(e.target.value); setError(null); }}
+                placeholder="Re-enter"
+              />
+            </>
+          )}
           {passkeySupported && (
             <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
               <span className="text-body flex items-center gap-2.5 text-sm"><Fingerprint className="size-4.5 text-[var(--color-gold-500)]" />Also unlock with Face ID</span>
