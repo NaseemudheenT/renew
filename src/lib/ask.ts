@@ -132,6 +132,29 @@ export function answerQuestion(question: string, ctx: AskContext): AskAnswer | n
     return { title: `Biggest spend ${TF_LABEL[tf]}`, value: Math.round(amt * 100) / 100, currency: ctx.currency, detail: label };
   }
 
+  // Comparison — this month vs last month spending.
+  if (/compare|more than|less than|vs last|versus last|than last month/.test(q)) {
+    const thisB = bounds("this_month", now);
+    const lastB = bounds("last_month", now);
+    const thisSpend = sum(ctx.transactions, (t) => t.type === "expense" && t.date >= thisB.start && t.date < thisB.end);
+    const lastSpend = sum(ctx.transactions, (t) => t.type === "expense" && t.date >= lastB.start && t.date < lastB.end);
+    const diff = Math.round((thisSpend - lastSpend) * 100) / 100;
+    const pct = lastSpend > 0 ? Math.round((diff / lastSpend) * 100) : null;
+    const detail =
+      diff === 0 ? "Exactly the same as last month."
+      : diff > 0 ? `${pct !== null ? `${pct}% ` : ""}more than last month (${lastSpend} then).`
+      : `${pct !== null ? `${Math.abs(pct)}% ` : ""}less than last month (${lastSpend} then) — nice.`;
+    return { title: "Spending vs last month", value: thisSpend, currency: ctx.currency, detail };
+  }
+
+  // Average per day this month.
+  if (/average|per day|daily|a day/.test(q)) {
+    const { start, end } = bounds("this_month", now);
+    const spent = sum(ctx.transactions, (t) => t.type === "expense" && t.date >= start && t.date < end);
+    const day = new Date(now).getDate();
+    return { title: "Average spend per day", value: Math.round((spent / Math.max(1, day)) * 100) / 100, currency: ctx.currency, detail: `Across ${day} day${day === 1 ? "" : "s"} this month.` };
+  }
+
   // Income / earnings.
   if (/income|earn|earned|salary|made|revenue/.test(q)) {
     const cat = detectCategory(q);

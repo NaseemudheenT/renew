@@ -56,6 +56,19 @@ describe("answerQuestion", () => {
     expect(a?.value).toBeGreaterThan(1500); // more than spent-so-far
   });
 
+  it("compares this month vs last month spending", () => {
+    // this month expenses = 1500, last month = 400
+    const a = answerQuestion("am I spending more than last month?", ctx);
+    expect(a?.title).toBe("Spending vs last month");
+    expect(a?.value).toBe(1500);
+    expect(a?.detail).toContain("more than last month");
+  });
+
+  it("computes average spend per day this month", () => {
+    // 1500 over 15 days = 100/day
+    expect(answerQuestion("what's my average spend per day?", ctx)?.value).toBe(100);
+  });
+
   it("returns null when it can't understand", () => {
     expect(answerQuestion("what is the meaning of life", ctx)).toBeNull();
   });
