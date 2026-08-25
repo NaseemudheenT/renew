@@ -8,8 +8,9 @@ export default async function OnboardingPage() {
   const user = await getSessionUser();
   if (!user) redirect("/sign-in");
   // No email-verification gate — phone/passkey users have no email to verify.
-  const { onboarded } = await getUserFlags(user.uid);
-  if (onboarded) redirect("/dashboard");
+  // Only skip setup for users who are onboarded AND on the current setup version.
+  const { onboarded, setupCurrent } = await getUserFlags(user.uid);
+  if (onboarded && setupCurrent) redirect("/dashboard");
 
   return <OnboardingClient defaultName={user.displayName ?? ""} />;
 }

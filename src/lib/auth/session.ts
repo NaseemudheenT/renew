@@ -2,6 +2,7 @@ import "server-only";
 
 import { cookies } from "next/headers";
 import { getAdminAuth, getAdminDb } from "@/lib/firebase/admin";
+import { CURRENT_SETUP_VERSION } from "@/lib/setup-version";
 
 /** httpOnly session cookie name. Also referenced (presence-only) by proxy.ts. */
 export const SESSION_COOKIE = "renew_session";
@@ -77,15 +78,22 @@ export async function getSessionUser(): Promise<SessionUser | null> {
   }
 }
 
-/** Convenience: has this user completed onboarding? Reads users/{uid}. */
+/**
+ * Convenience: has this user completed onboarding, and is their setup the CURRENT
+ * full-setup version? Reads users/{uid}. `setupCurrent` is false for old accounts
+ * that predate the upgraded setup — they must run the full setup again.
+ */
 export async function getUserFlags(
   uid: string,
-): Promise<{ onboarded: boolean }> {
+): Promise<{ onboarded: boolean; setupCurrent: boolean }> {
   try {
     const snap = await getAdminDb().collection("users").doc(uid).get();
     const data = snap.data();
-    return { onboarded: Boolean(data?.onboarded) };
+    return {
+      onboarded: Boolean(data?.onboarded),
+      setupCurrent: data?.setupVersion === CURRENT_SETUP_VERSION,
+    };
   } catch {
-    return { onboarded: false };
+    return { onboarded: false, setupCurrent: false };
   }
 }

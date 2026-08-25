@@ -8,8 +8,8 @@ export default async function VerifyPage() {
   const user = await getSessionUser();
   if (!user) redirect("/sign-in");
   if (user.emailVerified) {
-    const { onboarded } = await getUserFlags(user.uid);
-    redirect(onboarded ? "/dashboard" : "/onboarding");
+    const { onboarded, setupCurrent } = await getUserFlags(user.uid);
+    redirect(onboarded && setupCurrent ? "/dashboard" : "/onboarding");
   }
   return <VerifyClient email={user.email ?? ""} />;
 }

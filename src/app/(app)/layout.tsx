@@ -13,8 +13,10 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   // passkey users have no email (emailVerified === false) — forcing them to an
   // email-verification page would trap them. Phone possession and passkeys are
   // already strong proof; email verification is an optional, later nicety.
-  const { onboarded } = await getUserFlags(user.uid);
-  if (!onboarded) redirect("/onboarding");
+  // Full setup is mandatory. Anyone not onboarded — OR on an older setup version
+  // (upgraded accounts from before the current full setup) — must run it first.
+  const { onboarded, setupCurrent } = await getUserFlags(user.uid);
+  if (!onboarded || !setupCurrent) redirect("/onboarding");
 
   return (
     <AppShell user={{ uid: user.uid, email: user.email, displayName: user.displayName, photoURL: user.photoURL }}>

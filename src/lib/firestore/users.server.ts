@@ -3,6 +3,7 @@ import "server-only";
 import { FieldValue } from "firebase-admin/firestore";
 import { getAdminDb } from "@/lib/firebase/admin";
 import type { SessionUser } from "@/lib/auth/session";
+import { CURRENT_SETUP_VERSION } from "@/lib/setup-version";
 
 /**
  * Create the users/{uid} profile document if it doesn't exist yet. Idempotent —
@@ -78,6 +79,9 @@ export async function completeOnboarding(
     timezone: input.timezone,
     focus: input.focus,
     onboarded: true,
+    // Stamp the current full-setup version so this user is not asked to redo it
+    // until the setup itself changes again.
+    setupVersion: CURRENT_SETUP_VERSION,
     updatedAt: FieldValue.serverTimestamp(),
   };
   // Only persist locale fields that were provided.
