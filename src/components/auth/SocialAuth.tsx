@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type SyntheticEvent } from "react";
-import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, User2, QrCode } from "lucide-react";
+import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, User2, QrCode, ChevronDown } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/liquid-glass";
 import { Input } from "@/components/ui/Input";
@@ -69,6 +69,7 @@ export function SocialAuth({
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   const busy = pending !== null;
   const e164 = `${countryCode}${phone.replace(/\D/g, "")}`;
@@ -278,14 +279,25 @@ export function SocialAuth({
               <AppleIcon className="size-[1.15rem]" />{pending === "apple" ? "…" : "Apple"}
             </GlassButton>
           </div>
-          {passkeySupported && (
-            <GlassButton type="button" variant="neutral" fullWidth onClick={passkey} disabled={busy} className={cn("h-12 gap-2.5 text-[0.95rem] font-medium")}>
-              <Fingerprint className="size-5" />{pending === "passkey" ? "Waiting for Face ID…" : "Passkey (Face ID)"}
-            </GlassButton>
+
+          {/* Fast, secure options tucked away so the card stays clean — one tap
+              opens them (a "more options" surface, as the brief asks). */}
+          {!showMore ? (
+            <button type="button" onClick={() => setShowMore(true)} disabled={busy} className="mt-1 inline-flex items-center justify-center gap-1.5 text-sm font-medium text-[var(--text-muted)] hover:text-[var(--text-strong)] disabled:opacity-55">
+              More ways to sign in <ChevronDown className="size-4" />
+            </button>
+          ) : (
+            <>
+              {passkeySupported && (
+                <GlassButton type="button" variant="neutral" fullWidth onClick={passkey} disabled={busy} className={cn("h-12 gap-2.5 text-[0.95rem] font-medium")}>
+                  <Fingerprint className="size-5" />{pending === "passkey" ? "Waiting for Face ID…" : "Passkey (Face ID)"}
+                </GlassButton>
+              )}
+              <GlassButton type="button" variant="neutral" fullWidth onClick={() => setQrOpen(true)} disabled={busy} className="h-12 gap-2.5 text-[0.95rem] font-medium">
+                <QrCode className="size-5" />Sign in with QR
+              </GlassButton>
+            </>
           )}
-          <GlassButton type="button" variant="neutral" fullWidth onClick={() => setQrOpen(true)} disabled={busy} className="h-12 gap-2.5 text-[0.95rem] font-medium">
-            <QrCode className="size-5" />Sign in with QR
-          </GlassButton>
         </div>
 
         <div id={RECAPTCHA_ID} />
