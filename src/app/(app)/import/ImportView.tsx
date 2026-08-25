@@ -2,7 +2,7 @@
 
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, ArrowRight, Info, Loader2 } from "lucide-react";
+import { Upload, FileText, ArrowRight, Info, Camera, ImageUp, ScanLine } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
@@ -10,7 +10,8 @@ import { AnimatedButton } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { parseCSV, parseStatement, detectMapping, buildDrafts, type DraftRow, type ColumnMapping } from "@/lib/import";
+import { parseCSV, parseStatement, parseReceipt, detectMapping, buildDrafts, type DraftRow, type ColumnMapping } from "@/lib/import";
+import { getOcrEngine } from "@/lib/ocr";
 import { extractPdfText } from "@/lib/pdf";
 import { importTransactions, type TransactionInput } from "@/lib/firestore/transactions";
 import { categoriesFor } from "@/lib/finance";
@@ -23,6 +24,8 @@ export function ImportView() {
   const { prefs, money } = useLocale();
   const { data: existing, uid } = useScopedUserCollection<Transaction>("transactions");
   const fileRef = useRef<HTMLInputElement>(null);
+  const cameraRef = useRef<HTMLInputElement>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   const [headers, setHeaders] = useState<string[]>([]);
   const [rows, setRows] = useState<Record<string, string>[]>([]);
@@ -30,6 +33,7 @@ export function ImportView() {
   const [drafts, setDrafts] = useState<DraftRow[]>([]);
   const [fileName, setFileName] = useState("");
   const [parsing, setParsing] = useState(false);
+  const [scanPct, setScanPct] = useState<number | null>(null);
   const [importing, setImporting] = useState(false);
 
   const included = useMemo(() => drafts.filter((d) => d.include), [drafts]);
@@ -64,6 +68,37 @@ export function ImportView() {
       toast({ title: "That file couldn't be read", variant: "error" });
     } finally {
       setParsing(false);
+    }
+  }
+
+  async function onImage(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setFileName(file.name || "Photo");
+    setScanPct(0);
+    setParsing(true);
+    try {
+      const text = await getOcrEngine().recognize(file, (p) => setScanPct(Math.round(p * 100)));
+      // A receipt/bill first (one total); if that finds nothing, try reading it
+      // as a photographed statement (many rows). Both go through review.
+      let parsed = parseReceipt(text);
+      if (parsed.length === 0) parsed = parseStatement(text);
+      if (parsed.length === 0) {
+        toast({ title: "Couldn't read an amount from that photo", description: "Try a clearer, well-lit shot of the whole receipt.", variant: "error" });
+        return;
+      }
+      const hdrs = Object.keys(parsed[0]!);
+      const map = detectMapping(hdrs);
+      setHeaders(hdrs);
+      setRows(parsed);
+      setMapping(map);
+      setDrafts(buildDrafts(parsed, map, existing, prefs.currency));
+    } catch {
+      toast({ title: "That photo couldn't be scanned", variant: "error" });
+    } finally {
+      setParsing(false);
+      setScanPct(null);
     }
   }
 
@@ -104,23 +139,69 @@ export function ImportView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Import transactions" subtitle="Upload a bank-statement CSV — Renew extracts each transaction for you to review, then adds them. Only real data, always." />
+      <PageHeader title="Add money in seconds" subtitle="Snap a receipt, or drop in a statement — Renew reads it and lines up every transaction for you to confirm. Only real data, always." />
 
       {drafts.length === 0 ? (
-        <GlassCard padded>
-          <button
-            type="button"
-            onClick={() => fileRef.current?.click()}
-            disabled={parsing}
-            className="flex w-full flex-col items-center gap-3 rounded-2xl border border-dashed border-[var(--field-border)] bg-[var(--field-bg)] px-6 py-10 text-center transition-colors hover:border-[var(--focus-ring)]/60 disabled:opacity-60"
-          >
-            <span className="grid size-12 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]">{parsing ? <Loader2 className="size-6 animate-spin text-[var(--color-gold-500)]" /> : <Upload className="size-6 text-[var(--color-gold-500)]" />}</span>
-            <span className="text-strong text-sm font-medium">{parsing ? "Reading your file…" : "Choose a CSV or PDF statement"}</span>
-            <span className="text-muted text-xs">Export a statement from your bank (CSV or PDF) and upload it here.</span>
-          </button>
+        parsing ? (
+          <GlassCard padded>
+            <div className="flex flex-col items-center gap-4 px-6 py-10 text-center">
+              <span className="relative grid size-16 place-items-center rounded-3xl bg-[var(--glass-bg-strong)]">
+                <ScanLine className="size-7 text-[var(--color-gold-500)]" />
+                <span className="absolute inset-0 animate-ping rounded-3xl border border-[var(--color-gold-500)]/40" />
+              </span>
+              <span className="text-strong text-sm font-medium">{scanPct === null ? "Reading your file…" : "Reading your receipt…"}</span>
+              {scanPct !== null && (
+                <div className="w-full max-w-xs">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-[var(--field-bg)]">
+                    <div className="h-full rounded-full bg-[var(--color-gold-500)] transition-all duration-300" style={{ width: `${Math.max(6, scanPct)}%` }} />
+                  </div>
+                  <span className="text-muted mt-2 block text-xs tabular-nums">{scanPct}% · on your device, privately</span>
+                </div>
+              )}
+            </div>
+          </GlassCard>
+        ) : (
+        <div className="flex flex-col gap-3">
+          {/* Hero path — scan a receipt or bill with the camera/photo (on-device OCR). */}
+          <GlassCard padded>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="grid size-9 place-items-center rounded-xl bg-[var(--glass-bg-strong)]"><Camera className="size-4.5 text-[var(--color-gold-500)]" /></span>
+              <div>
+                <p className="text-strong font-medium">Scan a receipt or bill</p>
+                <p className="text-muted text-xs">Point your camera or pick a photo — Renew reads the total.</p>
+              </div>
+            </div>
+            <div className="mt-4 grid gap-2 sm:grid-cols-2">
+              <AnimatedButton size="lg" fullWidth onClick={() => cameraRef.current?.click()}>
+                <Camera className="size-4" /> Take a photo
+              </AnimatedButton>
+              <AnimatedButton size="lg" variant="glass" fullWidth onClick={() => photoRef.current?.click()}>
+                <ImageUp className="size-4" /> Choose a photo
+              </AnimatedButton>
+            </div>
+          </GlassCard>
+
+          {/* Statement path — CSV / PDF export. */}
+          <GlassCard padded>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              className="flex w-full items-center gap-3 rounded-2xl border border-dashed border-[var(--field-border)] bg-[var(--field-bg)] px-4 py-5 text-start transition-colors hover:border-[var(--focus-ring)]/60"
+            >
+              <span className="grid size-10 place-items-center rounded-xl bg-[var(--glass-bg-strong)]"><Upload className="size-5 text-[var(--color-gold-500)]" /></span>
+              <span className="min-w-0">
+                <span className="text-strong block text-sm font-medium">Upload a statement</span>
+                <span className="text-muted block text-xs">CSV or PDF export from your bank.</span>
+              </span>
+            </button>
+          </GlassCard>
+
+          <input ref={cameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={onImage} />
+          <input ref={photoRef} type="file" accept="image/*" className="hidden" onChange={onImage} />
           <input ref={fileRef} type="file" accept=".csv,text/csv,.pdf,application/pdf" className="hidden" onChange={onFile} />
-          <p className="text-muted mt-4 flex items-start gap-2 text-xs"><Info className="mt-0.5 size-3.5 shrink-0" />Photo/receipt scanning is coming next. Everything is processed on your device and shown for review before anything is saved.</p>
-        </GlassCard>
+          <p className="text-muted flex items-start gap-2 px-1 text-xs"><Info className="mt-0.5 size-3.5 shrink-0" />Everything is processed on your device and shown for review before anything is saved.</p>
+        </div>
+        )
       ) : (
         <div className="flex flex-col gap-4">
           <GlassCard padded>

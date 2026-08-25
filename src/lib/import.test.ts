@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseCSV, rowsToTransactions, guessCategory, detectMapping, buildDrafts, parseStatement } from "@/lib/import";
+import { parseCSV, rowsToTransactions, guessCategory, detectMapping, buildDrafts, parseStatement, parseReceipt } from "@/lib/import";
 import type { Transaction } from "@/lib/types";
 
 describe("parseCSV", () => {
@@ -139,5 +139,46 @@ describe("parseStatement (PDF/text)", () => {
     const drafts = buildDrafts(rows, map, [] as Transaction[], "INR");
     expect(drafts).toHaveLength(2);
     expect(drafts.find((d: { type: string }) => d.type === "income")!.amount).toBe(50000);
+  });
+});
+
+describe("parseReceipt (photo/OCR text)", () => {
+  const receipt = [
+    "STARBUCKS COFFEE",
+    "123 MG Road",
+    "12/08/2026",
+    "Latte           220.00",
+    "Croissant       180.00",
+    "Subtotal        400.00",
+    "GST 5%           20.00",
+    "TOTAL           420.00",
+    "VISA ****1234",
+  ].join("\n");
+
+  it("reads the grand total (not the subtotal or tax) as an expense", () => {
+    const rows = parseReceipt(receipt);
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({ amount: "420", type: "expense", date: "2026-08-12" });
+  });
+
+  it("picks up the merchant name from the top of the receipt", () => {
+    expect(parseReceipt(receipt)[0]!.description).toContain("STARBUCKS");
+  });
+
+  it("falls back to the largest amount when no total label is present", () => {
+    const rows = parseReceipt("Corner Store\nItem A 50.00\nItem B 130.00");
+    expect(rows[0]!.amount).toBe("130");
+  });
+
+  it("defaults an undated receipt to today so it is never dropped", () => {
+    const rows = parseReceipt("Kirana Store\nTotal 99.00");
+    expect(rows[0]!.date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    const drafts = buildDrafts(rows, detectMapping(Object.keys(rows[0]!)), [] as Transaction[], "INR");
+    expect(drafts).toHaveLength(1);
+    expect(drafts[0]!.amount).toBe(99);
+  });
+
+  it("returns [] when there is no amount to read", () => {
+    expect(parseReceipt("thank you\nplease visit again")).toEqual([]);
   });
 });
