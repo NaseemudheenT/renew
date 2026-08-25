@@ -63,6 +63,9 @@ export function QrSignIn({ open, onClose }: { open: boolean; onClose: () => void
   }, [stop]);
 
   useEffect(() => {
+    // Create the pairing + QR when the modal opens; state updates happen after
+    // awaiting the /create request (an external system), the intended pattern.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- external-system (fetch) kickoff on open
     if (open) void start();
     return stop;
   }, [open, start, stop]);
@@ -87,9 +90,9 @@ export function QrSignIn({ open, onClose }: { open: boolean; onClose: () => void
           <p className="text-body flex items-center justify-center gap-2 text-sm"><CheckCircle2 className="size-4 text-emerald-500" />Approved — signing you in…</p>
         ) : (
           <ol className="text-muted flex flex-col gap-1.5 text-start text-sm">
-            <li className="flex items-center gap-2"><Smartphone className="size-4 shrink-0 text-[var(--color-gold-500)]" />Sign in to Renew on your phone</li>
-            <li className="ps-6">Point your phone’s camera at this code</li>
-            <li className="ps-6">Tap <span className="text-body font-medium">Approve</span> to sign in here</li>
+            <li className="flex items-center gap-2"><Smartphone className="size-4 shrink-0 text-[var(--color-gold-500)]" />On your phone, open Renew → <span className="text-body font-medium">Settings › Link a device</span></li>
+            <li className="ps-6">(or just point your phone’s camera at this code)</li>
+            <li className="ps-6">Scan this code, then tap <span className="text-body font-medium">Approve</span></li>
           </ol>
         )}
       </div>
