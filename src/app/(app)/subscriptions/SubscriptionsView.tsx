@@ -14,6 +14,7 @@ import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
+import { RecurringSuggestions } from "@/components/finance/RecurringSuggestions";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -80,6 +81,12 @@ export function SubscriptionsView() {
         subtitle="Every recurring service, and what it really costs you."
         action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />{t("subs.new")}</AnimatedButton>}
       />
+
+      {!loading && (
+        <div className="mb-4">
+          <RecurringSuggestions subscriptions={subs} />
+        </div>
+      )}
 
       {loading ? (
         <ListSkeleton />

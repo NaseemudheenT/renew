@@ -103,6 +103,14 @@ export async function addCustomSubcategory(
   });
 }
 
+/** Dismiss a detected recurring-payment suggestion so it stops being offered. */
+export async function ignoreRecurring(uid: string, key: string): Promise<void> {
+  await updateDoc(profileRef(uid), {
+    ignoredRecurring: arrayUnion(key),
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function updateNotificationPrefs(
   uid: string,
   prefs: NotificationPrefs,
