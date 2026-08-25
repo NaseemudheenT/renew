@@ -8,6 +8,7 @@ import {
   Bell, ShieldCheck, Lock, Fingerprint,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
+import { RenewMark } from "@/components/brand/RenewMark";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
@@ -184,10 +185,13 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
       <AnimatePresence mode="wait" initial={false}>
         {step === 0 && (
           <motion.div key="s0" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Welcome to Renew</h1>
-            <p className="text-muted mt-1 text-sm">First, what should we call you?</p>
-            <div className="mt-6">
-              <Input label="Your name" value={name} autoFocus onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && next()} placeholder="e.g. Alex" />
+            <div className="mb-5 flex flex-col items-center text-center">
+              <RenewMark size={56} idSuffix="onboard" />
+              <h1 className="text-strong mt-4 text-xl font-medium">Welcome to Renew</h1>
+              <p className="text-muted mt-1 text-sm">Your private money, beautifully clear. Let&apos;s set it up — it takes a minute.</p>
+            </div>
+            <div className="mt-2">
+              <Input label="What should we call you?" value={name} autoFocus onChange={(e) => setName(e.target.value)} onKeyDown={(e) => e.key === "Enter" && next()} placeholder="e.g. Alex" />
             </div>
           </motion.div>
         )}
