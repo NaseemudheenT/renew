@@ -30,7 +30,10 @@ export function TransactionRow({
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -20, transition: { duration: 0.2 } }}
       transition={{ type: "spring", stiffness: 320, damping: 32 }}
-      className="glass flex items-center gap-3 p-3.5"
+      className={cn(
+        "glass flex items-center gap-3 p-3.5 transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-[var(--glass-bg-strong)]",
+        income ? "shadow-[inset_2px_0_0_rgba(16,185,129,0.7)]" : "shadow-[inset_2px_0_0_rgba(244,63,94,0.7)]",
+      )}
     >
       <span className={cn("glass grid size-10 shrink-0 place-items-center !rounded-2xl", income ? "text-emerald-400" : "text-rose-400")}>
         <Icon className="size-5" />
