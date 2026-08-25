@@ -12,17 +12,29 @@ import type { Transaction, TxType } from "@/lib/types";
 /* ---- Smart extraction (statement/CSV → reviewable drafts) ----------------- */
 
 /** Keyword → expense/income category id, first match wins. Deterministic. */
+// Order matters — the first matching hint wins, so specific merchants/keywords
+// come before broader ones (e.g. "gas station" → fuel before "gas bill" → bills).
 const CATEGORY_HINTS: { id: string; words: string[] }[] = [
   { id: "salary", words: ["salary", "payroll", "wages"] },
-  { id: "groceries", words: ["grocery", "groceries", "supermarket", "mart", "bigbasket", "dmart", "reliance fresh"] },
-  { id: "food", words: ["restaurant", "cafe", "coffee", "swiggy", "zomato", "food", "pizza", "hotel", "bakery"] },
-  { id: "transport", words: ["uber", "ola", "fuel", "petrol", "diesel", "metro", "irctc", "railway", "cab", "taxi", "toll", "parking"] },
-  { id: "rent", words: ["rent", "landlord"] },
-  { id: "bills", words: ["electricity", "power", "water bill", "gas", "broadband", "internet", "wifi", "mobile", "recharge", "bill", "dth", "airtel", "jio"] },
-  { id: "shopping", words: ["amazon", "flipkart", "myntra", "shopping", "store", "mall"] },
-  { id: "entertainment", words: ["netflix", "spotify", "prime", "hotstar", "movie", "bookmyshow", "youtube"] },
-  { id: "health", words: ["pharmacy", "hospital", "clinic", "medical", "apollo", "doctor", "medicine"] },
-  { id: "education", words: ["school", "college", "tuition", "course", "udemy", "fees"] },
+  { id: "fuel", words: ["petrol", "diesel", "fuel", "gas station", "indianoil", "indian oil", "shell", "hp petrol", "bharat petroleum"] },
+  { id: "transport", words: ["uber", "ola", "rapido", "metro", "irctc", "railway", "cab", "taxi", "toll", "parking", "bus fare"] },
+  { id: "groceries", words: ["grocery", "groceries", "supermarket", "bigbasket", "dmart", "d-mart", "reliance fresh", "blinkit", "zepto"] },
+  { id: "food", words: ["restaurant", "cafe", "coffee", "swiggy", "zomato", "pizza", "bakery", "dominos", "mcdonald", "kfc", "starbucks", "dining"] },
+  { id: "phone", words: ["mobile", "recharge", "broadband", "internet", "wifi", "airtel", "jio", "dth", "vodafone", "bsnl", "postpaid", "prepaid"] },
+  { id: "bills", words: ["electricity", "power bill", "water bill", "gas bill", "utility", "bescom", "eb bill"] },
+  { id: "travel", words: ["flight", "hotel", "airbnb", "makemytrip", "goibibo", "booking.com", "oyo", "airlines", "indigo", "vistara", "trip"] },
+  { id: "fitness", words: ["gym", "fitness", "cult.fit", "cultfit", "protein", "supplement", "workout"] },
+  { id: "entertainment", words: ["netflix", "spotify", "prime video", "hotstar", "movie", "bookmyshow", "youtube", "disney", "gaming"] },
+  { id: "clothing", words: ["zara", "h&m", "apparel", "clothing", "shoes", "fashion", "nike", "adidas", "footwear"] },
+  { id: "shopping", words: ["amazon", "flipkart", "myntra", "ajio", "shopping", "mall", "electronics", "gadget"] },
+  { id: "health", words: ["pharmacy", "hospital", "clinic", "medical", "apollo", "doctor", "medicine", "1mg", "pharmeasy", "dental"] },
+  { id: "education", words: ["school", "college", "tuition", "course", "udemy", "coursera", "byju", "fees", "book store"] },
+  { id: "insurance", words: ["insurance", "premium", "policy", "lic "] },
+  { id: "personal_care", words: ["salon", "spa", "haircut", "barber", "cosmetics", "beauty", "nykaa"] },
+  { id: "pets", words: ["pet ", "vet ", "petshop", "pet food", "grooming"] },
+  { id: "giving", words: ["donation", "charity", "temple", "gofundme", "gift"] },
+  { id: "taxes", words: ["income tax", "gst payment", "advance tax", "tax payment"] },
+  { id: "rent", words: ["rent", "landlord", "maintenance", "society"] },
   { id: "subscriptions", words: ["subscription", "membership"] },
 ];
 

@@ -63,6 +63,16 @@ describe("guessCategory", () => {
     expect(guessCategory("Salary Credit", "income")).toBe("salary");
     expect(guessCategory("random shop xyz", "expense")).toBe("other_expense");
   });
+  it("recognises the expanded category set", () => {
+    expect(guessCategory("HP Petrol Pump", "expense")).toBe("fuel");
+    expect(guessCategory("Jio Recharge", "expense")).toBe("phone");
+    expect(guessCategory("MakeMyTrip Flight", "expense")).toBe("travel");
+    expect(guessCategory("Cult.fit membership", "expense")).toBe("fitness");
+    expect(guessCategory("LIC premium", "expense")).toBe("insurance");
+    expect(guessCategory("Nykaa salon", "expense")).toBe("personal_care");
+    // Fuel wins over transport for petrol/diesel keywords (order matters).
+    expect(guessCategory("Diesel refill", "expense")).toBe("fuel");
+  });
 });
 
 describe("detectMapping + buildDrafts", () => {

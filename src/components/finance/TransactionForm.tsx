@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
 import { makeCustomCategoryId } from "@/lib/finance";
+import { guessCategory } from "@/lib/import";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
@@ -51,6 +52,8 @@ export function TransactionForm({
   const [newCat, setNewCat] = useState("");
   const [addingSub, setAddingSub] = useState(false);
   const [newSub, setNewSub] = useState("");
+  // Once the person picks a category themselves, stop auto-guessing from the note.
+  const [categoryTouched, setCategoryTouched] = useState(Boolean(initial));
 
   const cats = forType(type);
 
@@ -60,15 +63,31 @@ export function TransactionForm({
   }
   function switchType(t: TxType) {
     setType(t);
-    setCategory(forType(t)[0]!.id);
+    // Re-guess for the new type from the note, unless they've chosen a category.
+    const next = !categoryTouched && note.trim() ? guessCategory(note, t) : forType(t)[0]!.id;
+    setCategory(next);
     setSubcategory("");
     resetSubAdd();
   }
 
   function pickCategory(id: string) {
+    setCategoryTouched(true);
     setCategory(id);
     setSubcategory("");
     resetSubAdd();
+  }
+
+  /** Smart default: as the note is typed, guess the category — until the person
+   *  picks one themselves. Never overrides a manual choice or an edit. */
+  function onNoteChange(value: string) {
+    setNote(value);
+    if (!categoryTouched && value.trim()) {
+      const guess = guessCategory(value, type);
+      if (guess !== category) {
+        setCategory(guess);
+        setSubcategory("");
+      }
+    }
   }
 
   async function saveCustomSub() {
@@ -187,7 +206,7 @@ export function TransactionForm({
         />
       )}
       <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <Input label="Note (optional)" placeholder="e.g. Lunch with team" value={note} onChange={(e) => setNote(e.target.value)} />
+      <Input label="Note (optional)" placeholder="e.g. Lunch with team" value={note} onChange={(e) => onNoteChange(e.target.value)} />
 
       <div className="mt-1 flex items-center justify-end gap-3">
         <AnimatedButton type="button" variant="ghost" onClick={onCancel} disabled={submitting}>Cancel</AnimatedButton>
