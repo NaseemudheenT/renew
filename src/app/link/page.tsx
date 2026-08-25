@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { Smartphone, ShieldCheck, CheckCircle2, AlertCircle, MonitorSmartphone } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -10,6 +10,7 @@ import { Wordmark } from "@/components/brand/Wordmark";
 import { useAuth } from "@/components/providers/AuthProvider";
 
 type State = "checking" | "ready" | "approving" | "approved" | "denied" | "invalid" | "signin" | "error";
+type Action = "none" | "approving" | "approved" | "denied" | "error";
 
 /**
  * Phone-side of QR sign-in. The person scans the QR shown on their computer,
@@ -18,25 +19,27 @@ type State = "checking" | "ready" | "approving" | "approved" | "denied" | "inval
  */
 export default function LinkPage() {
   const { user, loading } = useAuth();
-  const [sessionId, setSessionId] = useState<string | null>(null);
-  const [state, setState] = useState<State>("checking");
+  // The pairing id lives in the URL fragment — read it once at mount (client).
+  const [sessionId] = useState<string>(() =>
+    typeof window !== "undefined" ? window.location.hash.replace(/^#/, "").trim() : "",
+  );
+  const [action, setAction] = useState<Action>("none");
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const id = (typeof window !== "undefined" ? window.location.hash.replace(/^#/, "") : "").trim();
-    setSessionId(id || null);
-  }, []);
-
-  useEffect(() => {
-    if (loading) return;
-    if (!sessionId) { setState("invalid"); return; }
-    if (!user) { setState("signin"); return; }
-    setState((s) => (s === "checking" || s === "signin" ? "ready" : s));
-  }, [loading, sessionId, user]);
+  // Derived during render — no effect needed.
+  const state: State =
+    action === "approving" ? "approving" :
+    action === "approved" ? "approved" :
+    action === "denied" ? "denied" :
+    action === "error" ? "error" :
+    loading ? "checking" :
+    !sessionId ? "invalid" :
+    !user ? "signin" :
+    "ready";
 
   async function approve() {
     if (!sessionId) return;
-    setState("approving");
+    setAction("approving");
     setError(null);
     try {
       const res = await fetch("/api/auth/qr/approve", {
@@ -45,11 +48,11 @@ export default function LinkPage() {
         body: JSON.stringify({ sessionId }),
       });
       const data = (await res.json().catch(() => ({}))) as { error?: string };
-      if (!res.ok) { setError(data.error ?? "Couldn't approve. Try a fresh QR."); setState("error"); return; }
-      setState("approved");
+      if (!res.ok) { setError(data.error ?? "Couldn't approve. Try a fresh QR."); setAction("error"); return; }
+      setAction("approved");
     } catch {
       setError("Network error. Please try again.");
-      setState("error");
+      setAction("error");
     }
   }
 
@@ -89,7 +92,7 @@ export default function LinkPage() {
             </p>
             <p className="text-muted flex items-center gap-1.5 text-xs"><ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />Renew never shares your password — this just links the device.</p>
             <div className="mt-1 flex w-full gap-3">
-              <AnimatedButton variant="ghost" fullWidth onClick={() => setState("denied")} disabled={state === "approving"}>Not now</AnimatedButton>
+              <AnimatedButton variant="ghost" fullWidth onClick={() => setAction("denied")} disabled={state === "approving"}>Not now</AnimatedButton>
               <AnimatedButton fullWidth onClick={approve} loading={state === "approving"}>Approve</AnimatedButton>
             </div>
           </div>
@@ -116,7 +119,7 @@ export default function LinkPage() {
             <AlertCircle className="size-8 text-rose-500" />
             <h1 className="text-strong text-lg font-medium">Couldn’t approve</h1>
             <p className="text-muted text-sm">{error}</p>
-            <AnimatedButton variant="glass" onClick={() => setState("ready")}>Try again</AnimatedButton>
+            <AnimatedButton variant="glass" onClick={() => setAction("none")}>Try again</AnimatedButton>
           </div>
         )}
       </GlassCard>
