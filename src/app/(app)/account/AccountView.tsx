@@ -10,9 +10,12 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/shell/Avatar";
+import { Input } from "@/components/ui/Input";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { AnimatedButton } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
+import { AVATARS } from "@/lib/avatars";
+import { updateDisplayName, updateAvatar } from "@/lib/firestore/profile";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
@@ -32,11 +35,32 @@ import { cn } from "@/lib/utils";
 export function AccountView() {
   const router = useRouter();
   const { user } = useAuth();
-  const { profile } = useUserProfile();
+  const { profile, uid } = useUserProfile();
   const { prefs } = useLocale();
   const { data: subs } = useScopedUserCollection<Subscription>("subscriptions");
   const passkeySupported = usePasskeySupport();
   const [addingPasskey, setAddingPasskey] = useState(false);
+  const [name, setName] = useState(user?.displayName ?? "");
+  const [savingName, setSavingName] = useState(false);
+  const dirtyName = name.trim().length > 0 && name.trim() !== (user?.displayName ?? "").trim();
+
+  async function saveName() {
+    if (!uid || !dirtyName) return;
+    setSavingName(true);
+    try {
+      await updateDisplayName(uid, name.trim());
+      toast({ title: "Profile updated", variant: "success" });
+      router.refresh();
+    } catch {
+      toast({ title: "Couldn't save", variant: "error" });
+    } finally {
+      setSavingName(false);
+    }
+  }
+  async function pickAvatar(id: string) {
+    if (!uid) return;
+    try { await updateAvatar(uid, id); } catch { toast({ title: "Couldn't update", variant: "error" }); }
+  }
 
   const shellUser = {
     uid: user?.uid ?? "",
@@ -97,6 +121,31 @@ export function AccountView() {
             App Lock {appLockOn ? "on" : "off"}
           </Chip>
           {biometricOn && <Chip icon={Fingerprint} tone="calm">Face ID</Chip>}
+        </div>
+      </GlassCard>
+
+      {/* Profile — name + avatar, in its own space (not buried in Settings) */}
+      <GlassCard padded>
+        <div className="flex items-end gap-3">
+          <Input label="Your name" value={name} onChange={(e) => setName(e.target.value)} />
+          <AnimatedButton onClick={saveName} loading={savingName} disabled={!dirtyName}>Save</AnimatedButton>
+        </div>
+        <p className="text-muted mb-2 mt-4 text-sm font-medium">Your look</p>
+        <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1">
+          {AVATARS.map((a) => (
+            <button
+              key={a.id}
+              type="button"
+              onClick={() => pickAvatar(a.id)}
+              aria-label={a.id}
+              aria-pressed={profile?.avatar === a.id}
+              className={cn(
+                "size-10 shrink-0 rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all",
+                profile?.avatar === a.id ? "ring-[var(--focus-ring)]" : "ring-transparent hover:ring-[var(--field-border)]",
+              )}
+              style={{ background: a.css }}
+            />
+          ))}
         </div>
       </GlassCard>
 

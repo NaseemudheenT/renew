@@ -23,8 +23,7 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateDisplayName, updateNotificationPrefs, updateLocalePrefs, updateAvatar } from "@/lib/firestore/profile";
-import { AVATARS } from "@/lib/avatars";
+import { updateNotificationPrefs, updateLocalePrefs } from "@/lib/firestore/profile";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AppLockControl } from "@/components/settings/AppLockControl";
 import { AccessibilityControl } from "@/components/settings/AccessibilityControl";
@@ -47,17 +46,15 @@ export function SettingsView() {
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
       <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
-      <Section icon={UserIcon} title="Profile">
-        <div className="flex items-center gap-4">
-          <Avatar user={shellUser} size={56} />
-          <div className="min-w-0">
-            <p className="text-strong truncate font-medium">{user?.displayName || "Your account"}</p>
-            <p className="text-muted truncate text-sm">{user?.email}</p>
-          </div>
+      {/* Profile + avatar live on their own Account page (kept out of this list). */}
+      <Link href="/account" className="glass flex items-center gap-4 p-4 transition-colors hover:bg-[var(--glass-bg-soft)]">
+        <Avatar user={shellUser} size={52} />
+        <div className="min-w-0 flex-1">
+          <p className="text-strong truncate font-medium">{user?.displayName || "Your account"}</p>
+          <p className="text-muted truncate text-sm">Profile, avatar &amp; account</p>
         </div>
-        {uid && <NameEditor uid={uid} initial={user?.displayName ?? ""} />}
-        {uid && <AvatarPicker uid={uid} />}
-      </Section>
+        <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
+      </Link>
 
       <Section icon={Briefcase} title="How you use Renew">
         {uid && <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} />}
@@ -116,55 +113,6 @@ function Section({ id, icon: Icon, title, children }: { id?: string; icon: typeo
       <div className="mb-4 flex items-center gap-2.5"><Icon className="size-5 text-[var(--color-gold-500)]" /><h2 className="text-strong text-base font-medium">{title}</h2></div>
       <div className="flex flex-col gap-4">{children}</div>
     </GlassCard>
-  );
-}
-
-function NameEditor({ uid, initial }: { uid: string; initial: string }) {
-  const router = useRouter();
-  const [name, setName] = useState(initial);
-  const [saving, setSaving] = useState(false);
-  const dirty = name.trim() !== initial.trim() && name.trim().length > 0;
-  async function save() {
-    setSaving(true);
-    try {
-      await updateDisplayName(uid, name);
-      toast({ title: "Profile updated", variant: "success" });
-      router.refresh();
-    } catch {
-      toast({ title: "Couldn't save", variant: "error" });
-    } finally {
-      setSaving(false);
-    }
-  }
-  return (
-    <div className="flex items-end gap-3">
-      <Input label="Display name" value={name} onChange={(e) => setName(e.target.value)} />
-      <AnimatedButton onClick={save} loading={saving} disabled={!dirty}>Save</AnimatedButton>
-    </div>
-  );
-}
-
-function AvatarPicker({ uid }: { uid: string }) {
-  const { profile } = useUserProfile();
-  const current = profile?.avatar ?? null;
-  async function pick(id: string) {
-    try {
-      await updateAvatar(uid, id);
-    } catch {
-      toast({ title: "Couldn't update", variant: "error" });
-    }
-  }
-  return (
-    <div>
-      <p className="text-muted mb-2 text-sm font-medium">Avatar</p>
-      <div className="flex flex-wrap gap-2.5">
-        {AVATARS.map((a) => (
-          <button key={a.id} type="button" onClick={() => pick(a.id)} aria-label={a.id} aria-pressed={current === a.id}
-            className={cn("size-9 rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all", current === a.id ? "ring-[var(--focus-ring)]" : "ring-transparent hover:ring-[var(--field-border)]")}
-            style={{ background: a.css }} />
-        ))}
-      </div>
-    </div>
   );
 }
 
