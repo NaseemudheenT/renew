@@ -1,6 +1,6 @@
 "use client";
 
-import { updateDoc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
+import { updateDoc, serverTimestamp, arrayUnion } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
@@ -84,17 +84,6 @@ export async function addCustomCategory(
 ): Promise<void> {
   await updateDoc(profileRef(uid), {
     customCategories: arrayUnion(cat),
-    updatedAt: serverTimestamp(),
-  });
-}
-
-/** Remove a user-defined category (existing transactions keep their id). */
-export async function removeCustomCategory(
-  uid: string,
-  cat: CustomCategory,
-): Promise<void> {
-  await updateDoc(profileRef(uid), {
-    customCategories: arrayRemove(cat),
     updatedAt: serverTimestamp(),
   });
 }
