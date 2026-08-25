@@ -10,7 +10,8 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
-import { modalVariants, backdropVariants } from "@/lib/motion";
+import { modalVariants, sheetVariants, backdropVariants } from "@/lib/motion";
+import { useIsMobile } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
 
 export interface AnimatedModalProps {
@@ -36,6 +37,7 @@ export function AnimatedModal({
   dismissible = true,
 }: AnimatedModalProps) {
   const reduced = useReducedMotion();
+  const isMobile = useIsMobile();
   const panelRef = useRef<HTMLDivElement>(null);
   const lastFocused = useRef<HTMLElement | null>(null);
   const labelId = useId();
@@ -94,7 +96,7 @@ export function AnimatedModal({
     <AnimatePresence>
       {open && (
         <div
-          className="fixed inset-0 z-[100] grid place-items-center p-4 sm:p-6"
+          className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center sm:p-6"
           role="dialog"
           aria-modal="true"
           aria-labelledby={title ? labelId : undefined}
@@ -114,14 +116,19 @@ export function AnimatedModal({
             ref={panelRef}
             tabIndex={-1}
             className={cn(
-              "glass glass-strong relative z-10 w-full max-w-lg p-6 outline-none sm:p-8",
+              // Native bottom sheet on phones (rounded top, safe-area), centred dialog on desktop.
+              "glass glass-strong relative z-10 w-full max-h-[92dvh] overflow-y-auto outline-none",
+              "!rounded-b-none !rounded-t-[1.75rem] px-5 pb-[calc(env(safe-area-inset-bottom,0px)+1.25rem)] pt-3",
+              "sm:max-w-lg sm:!rounded-glass sm:p-8 sm:max-h-[85dvh]",
               className,
             )}
-            variants={reduced ? backdropVariants : modalVariants}
+            variants={reduced ? backdropVariants : isMobile ? sheetVariants : modalVariants}
             initial="hidden"
             animate="show"
             exit="exit"
           >
+            {/* Grab handle — the native-sheet affordance (mobile only). */}
+            <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-[var(--text-muted)]/30 sm:hidden" aria-hidden="true" />
             {!hideClose && dismissible && (
               <button
                 type="button"

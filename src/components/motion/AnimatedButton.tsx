@@ -42,10 +42,9 @@ const variants: Record<Variant, string> = {
 interface Ripple { id: number; x: number; y: number; size: number }
 
 /**
- * Renew's button — transparent liquid glass with a physical press, a light-glass
- * ripple from the touch point, and a whisper-soft tap sound. One shared feel on
- * phone, tablet and laptop. Reduced-motion stills the ripple + spring (sound
- * still confirms the tap softly).
+ * Renew's button — transparent liquid glass with a physical spring press and a
+ * light-glass ripple from the touch point. One shared, tactile feel on phone,
+ * tablet and laptop. Reduced-motion stills the ripple + spring.
  */
 export const AnimatedButton = forwardRef<HTMLButtonElement, AnimatedButtonProps>(
   function AnimatedButton(

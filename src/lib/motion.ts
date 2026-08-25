@@ -91,18 +91,26 @@ export function staggerContainer(stagger = 0.06, delayChildren = 0): Variants {
   };
 }
 
-/** Page transition — a cinematic but quick cross-fade + lift. */
+/** Page transition — a cinematic focus-in: the new page lifts and settles as a
+ *  faint blur snaps to sharp, giving a modern depth-of-field feel. */
 export const pageVariants: Variants = {
-  hidden: { opacity: 0, y: 12 },
-  show: { opacity: 1, y: 0, transition: { duration: duration.slow, ease: easeCalm } },
-  exit: { opacity: 0, y: -8, transition: { duration: duration.base, ease: easeSoft } },
+  hidden: { opacity: 0, y: 14, scale: 0.992, filter: "blur(6px)" },
+  show: { opacity: 1, y: 0, scale: 1, filter: "blur(0px)", transition: { duration: duration.slow, ease: easeCalm } },
+  exit: { opacity: 0, y: -8, filter: "blur(4px)", transition: { duration: duration.base, ease: easeSoft } },
 };
 
-/** Modal / dialog surface. */
+/** Modal / dialog surface (desktop-centred dialog). */
 export const modalVariants: Variants = {
   hidden: { opacity: 0, scale: 0.96, y: 12 },
   show: { opacity: 1, scale: 1, y: 0, transition: spring.natural },
   exit: { opacity: 0, scale: 0.97, y: 8, transition: { duration: duration.fast, ease: easeSoft } },
+};
+
+/** Mobile sheet — slides up from the bottom like a native iOS sheet. */
+export const sheetVariants: Variants = {
+  hidden: { y: "100%" },
+  show: { y: 0, transition: { type: "spring", stiffness: 360, damping: 36, mass: 0.9 } },
+  exit: { y: "100%", transition: { duration: duration.base, ease: easeSoft } },
 };
 
 export const backdropVariants: Variants = {
