@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  // Ship less JS: import only the icons/helpers actually used from these big
+  // barrel packages, instead of their whole module graphs.
+  experimental: {
+    optimizePackageImports: ["lucide-react", "framer-motion", "date-fns"],
+  },
   // Hide the Next.js dev-only on-screen indicator (the "N" devtools badge) so
   // it doesn't overlap the product preview. This only affects `next dev`; the
   // indicator is never present in `next build` / production regardless.
@@ -23,8 +28,11 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
+            // Allow the site's OWN origin to use the camera (in-app QR scanning
+            // in Settings › Link a device); deny it to third parties. Mic and
+            // geolocation stay fully off — Renew never needs them.
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(self), microphone=(), geolocation=()",
           },
           // Force HTTPS for two years (incl. subdomains) — bank-grade transport
           // security for a money app. Applies only over HTTPS (Vercel).

@@ -57,6 +57,8 @@ interface AnimatedGradientProps {
   className?: string;
   /** Pause the render loop (e.g. reduced motion / offscreen). */
   paused?: boolean;
+  /** Upper bound on device-pixel-ratio for the canvas (lower = cheaper). */
+  maxDpr?: number;
 }
 
 export default function AnimatedGradient({
@@ -65,6 +67,7 @@ export default function AnimatedGradient({
   style,
   className,
   paused = false,
+  maxDpr = 1.5,
 }: AnimatedGradientProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -153,8 +156,9 @@ export default function AnimatedGradient({
       u_swirlIterations: gl.getUniformLocation(program, "u_swirlIterations"),
     };
 
-    // Cap pixel ratio for performance on hi-DPI screens.
-    const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
+    // Cap pixel ratio for performance on hi-DPI screens (a soft blurred
+    // background needs far less than the display's native ratio).
+    const dpr = Math.min(window.devicePixelRatio || 1, maxDpr);
     const resize = () => {
       const width = container.clientWidth;
       const height = container.clientHeight;
@@ -203,8 +207,15 @@ export default function AnimatedGradient({
       // Render a single still frame and stop.
       draw(0);
     } else {
+      // Throttle to ~30fps: this is a slow ambient fog, so half the frames look
+      // identical while roughly halving the shader's per-second GPU/CPU cost.
+      const minFrameMs = 1000 / 30;
+      let lastDraw = 0;
       const animate = (time: number) => {
-        draw((time - startTimeRef.current) / 1000);
+        if (time - lastDraw >= minFrameMs) {
+          lastDraw = time;
+          draw((time - startTimeRef.current) / 1000);
+        }
         frameIdRef.current = requestAnimationFrame(animate);
       };
       frameIdRef.current = requestAnimationFrame(animate);
@@ -220,7 +231,7 @@ export default function AnimatedGradient({
       gl.deleteShader(fragmentShader);
       gl.deleteBuffer(positionBuffer);
     };
-  }, [params, paused]);
+  }, [params, paused, maxDpr]);
 
   return (
     <div

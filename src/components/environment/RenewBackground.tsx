@@ -54,7 +54,9 @@ export function RenewBackground() {
   const a11yReduced = useSyncExternalStore(subscribeA11y, getReduceMotion, () => false);
   const tier = useEnvironmentTier();
   const { theme } = useTheme();
-  const live = !(reduced || a11yReduced || tier === "soft2d");
+  const softOnly = reduced || a11yReduced || tier === "soft2d";
+  const live = !softOnly; // show the live WebGL gradient (full3d or lite3d)
+  const heavy = live && tier === "full3d"; // animated aurora blur — capable devices only
   const config = theme === "light" ? LIGHT : DARK;
 
   return (
@@ -71,14 +73,19 @@ export function RenewBackground() {
         }}
       />
 
-      {live ? (
+      {live && (
         <AnimatedGradient
           key={theme}
           config={config}
+          maxDpr={heavy ? 1.5 : 1.25}
           className="opacity-90 mix-blend-soft-light"
           style={{ inset: "-10%" }}
         />
-      ) : (
+      )}
+
+      {/* Static glow field — the whole background on soft2d, and a cheap depth
+          layer under the live gradient on lite3d (no per-frame blur repaint). */}
+      {!heavy && (
         <>
           <div
             className="absolute -left-[10%] -top-[15%] h-[55vmax] w-[55vmax] rounded-full blur-[80px]"
@@ -91,7 +98,7 @@ export function RenewBackground() {
         </>
       )}
 
-      {live && (
+      {heavy && (
         <>
           {/* Aurora I — the primary midnight glow, breathing top-left. */}
           <motion.div

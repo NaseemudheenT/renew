@@ -2,9 +2,26 @@
 
 import { useSyncExternalStore } from "react";
 
-export type EnvironmentTier = "full3d" | "soft2d";
+export type EnvironmentTier = "full3d" | "lite3d" | "soft2d";
 
 let cachedWebGL: boolean | null = null;
+
+/**
+ * A rough "this device can afford the full atmosphere" check. Weak phones/laptops
+ * still get the live WebGL gradient (GPU-cheap), but skip the heavy main-thread
+ * aurora blur animations. Uses only widely-available, privacy-safe signals.
+ */
+function isLowPowerDevice(): boolean {
+  if (typeof navigator === "undefined") return true;
+  const nav = navigator as Navigator & {
+    deviceMemory?: number;
+    connection?: { saveData?: boolean };
+  };
+  if (nav.connection?.saveData) return true;
+  if (typeof nav.deviceMemory === "number" && nav.deviceMemory <= 4) return true;
+  if (typeof nav.hardwareConcurrency === "number" && nav.hardwareConcurrency <= 4) return true;
+  return false;
+}
 
 /** Detect WebGL support once (creating a throwaway context). */
 function hasWebGL(): boolean {
@@ -32,7 +49,9 @@ function computeTier(): EnvironmentTier {
   // no longer gate on screen width. Only reduced-motion or missing WebGL falls
   // back to the calm static field.
   if (reduced || !hasWebGL()) return "soft2d";
-  return "full3d";
+  // WebGL is available: full atmosphere on capable devices, a lighter (no heavy
+  // animated blur) variant on low-power ones so phones stay smooth.
+  return isLowPowerDevice() ? "lite3d" : "full3d";
 }
 
 function subscribe(callback: () => void): () => void {
