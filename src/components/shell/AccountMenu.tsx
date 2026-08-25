@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Settings, LogOut, ChevronDown, Fingerprint } from "lucide-react";
+import { Settings, LogOut, ChevronDown, Fingerprint, CircleUserRound } from "lucide-react";
 import { Avatar } from "./Avatar";
 import type { ShellUser } from "./shell-types";
 import { signOutUser, AuthError } from "@/lib/auth/client";
@@ -62,14 +62,27 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
           transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
           className="w-64 overflow-hidden rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] p-2 shadow-[var(--glass-shadow)] backdrop-blur-xl"
         >
-          <div className="flex items-center gap-3 px-3 py-3">
+          <Link
+            href="/account"
+            onClick={() => setOpen(false)}
+            className="flex items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[var(--glass-bg-soft)]"
+          >
             <Avatar user={user} size={40} />
             <div className="min-w-0">
               <p className="text-strong truncate text-sm font-medium">{user.displayName || "Your account"}</p>
               <p className="text-muted truncate text-xs">{user.email}</p>
             </div>
-          </div>
+          </Link>
           <div className="my-1 h-px bg-[var(--glass-border)]" />
+          <Link
+            href="/account"
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="text-body flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
+          >
+            <CircleUserRound className="size-4.5" />
+            Your account
+          </Link>
           <Link
             href="/settings"
             role="menuitem"
