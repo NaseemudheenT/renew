@@ -167,8 +167,9 @@ export function Dashboard({ name }: { name: string }) {
             <StaggerItem>
               <GlassCard padded className="relative overflow-hidden">
                 <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[radial-gradient(circle,var(--bokeh-1),transparent_70%)] blur-2xl" />
-                <p className="text-muted text-sm">Net worth</p>
-                <AnimatedAmount value={netWorth} currency={currency} className="text-strong mt-1 block text-4xl font-light tabular-nums sm:text-5xl" />
+                <div className="pointer-events-none absolute -bottom-16 -left-12 size-44 rounded-full bg-[radial-gradient(circle,var(--bokeh-3),transparent_72%)] blur-3xl opacity-70" />
+                <p className="text-muted text-sm">{isBusiness ? "Business net worth" : "Net worth"}</p>
+                <AnimatedAmount value={netWorth} currency={currency} className="mt-1 block bg-gradient-to-br from-[var(--text-strong)] to-[var(--text-body)] bg-clip-text text-4xl font-light tabular-nums text-transparent sm:text-5xl" />
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <Mini label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
                   <Mini label={isBusiness ? "Expenses (mo)" : "This month out"} icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
@@ -333,9 +334,18 @@ function DashboardSkeleton() {
 
 function Mini({ label, icon: Icon, value, currency, tone }: { label: string; icon: typeof Wallet; value: number; currency: string; tone?: "emerald" | "rose" }) {
   return (
-    <div className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3">
-      <div className="text-muted flex items-center gap-1.5 text-xs"><Icon className={cn("size-3.5", tone === "emerald" && "text-emerald-400", tone === "rose" && "text-rose-400")} />{label}</div>
-      <AnimatedAmount value={value} currency={currency} className={cn("mt-1 block text-lg font-medium tabular-nums", tone === "emerald" ? "text-emerald-500" : tone === "rose" ? "text-rose-500" : "text-[var(--text-strong)]")} />
+    <div className={cn(
+      "rounded-2xl border p-3 transition-colors",
+      tone === "emerald" ? "border-emerald-500/20 bg-emerald-500/[0.07]" : tone === "rose" ? "border-rose-500/20 bg-rose-500/[0.07]" : "border-[var(--field-border)] bg-[var(--field-bg)]",
+    )}>
+      <div className="text-muted flex items-center gap-1.5 text-xs">
+        <span className={cn(
+          "grid size-5 shrink-0 place-items-center rounded-md",
+          tone === "emerald" ? "bg-emerald-500/15 text-emerald-400" : tone === "rose" ? "bg-rose-500/15 text-rose-400" : "bg-[var(--glass-bg-strong)] text-[var(--color-gold-500)]",
+        )}><Icon className="size-3" /></span>
+        <span className="truncate">{label}</span>
+      </div>
+      <AnimatedAmount value={value} currency={currency} className={cn("mt-1.5 block text-lg font-semibold tabular-nums", tone === "emerald" ? "text-emerald-500" : tone === "rose" ? "text-rose-500" : "text-[var(--text-strong)]")} />
     </div>
   );
 }
