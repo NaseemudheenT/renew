@@ -15,6 +15,7 @@ import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { VoiceAdd } from "@/components/finance/VoiceAdd";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
+import { AskRenew } from "@/components/finance/AskRenew";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
@@ -177,6 +178,10 @@ export function Dashboard({ name }: { name: string }) {
                   <Mini label="Saved" icon={PiggyBank} value={savingsTotal} currency={currency} />
                 </div>
               </GlassCard>
+            </StaggerItem>
+
+            <StaggerItem>
+              <AskRenew transactions={txAll.data} netWorth={netWorth} monthlySubs={recurring.monthly} activeSubs={recurring.count} currency={currency} />
             </StaggerItem>
 
             {insights.length > 0 && (
