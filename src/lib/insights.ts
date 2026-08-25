@@ -7,7 +7,7 @@ import type { Transaction } from "@/lib/types";
  * Pure and deterministic so it's unit-tested; the UI formats the numbers.
  */
 
-export type InsightKind = "safe" | "top" | "trend" | "recurring";
+export type InsightKind = "safe" | "top" | "trend" | "recurring" | "category_change";
 
 export interface Insight {
   id: string;
@@ -48,6 +48,7 @@ export function computeInsights(input: {
   let mExpense = 0;
   let prevExpense = 0;
   const byCat = new Map<string, number>();
+  const byCatPrev = new Map<string, number>();
 
   for (const t of input.transactions) {
     const inThis = t.date >= start && t.date < end;
@@ -60,6 +61,7 @@ export function computeInsights(input: {
       byCat.set(t.category, (byCat.get(t.category) ?? 0) + t.amount);
     } else if (t.date >= prevStart && t.date < start) {
       prevExpense += t.amount;
+      byCatPrev.set(t.category, (byCatPrev.get(t.category) ?? 0) + t.amount);
     }
   }
 
@@ -81,6 +83,23 @@ export function computeInsights(input: {
   }
   if (topCat) out.push({ id: "top", kind: "top", category: topCat, amount: topAmt });
 
+  // The category that jumped the most vs last month — the most actionable signal.
+  // Needs a real prior baseline, a meaningful rise, and a non-trivial amount.
+  let jumpCat = "";
+  let jumpPct = 0;
+  let jumpAmt = 0;
+  for (const [c, a] of byCat) {
+    const prev = byCatPrev.get(c) ?? 0;
+    if (prev <= 0) continue;
+    const pct = Math.round(((a - prev) / prev) * 100);
+    if (pct >= 30 && a - prev >= 0.08 * (mExpense || a) && pct > jumpPct) {
+      jumpPct = pct;
+      jumpCat = c;
+      jumpAmt = a;
+    }
+  }
+  if (jumpCat) out.push({ id: "category_change", kind: "category_change", category: jumpCat, amount: jumpAmt, pct: jumpPct });
+
   // Trend vs last month.
   if (prevExpense > 0) {
     out.push({ id: "trend", kind: "trend", pct: Math.round(((mExpense - prevExpense) / prevExpense) * 100) });
@@ -91,5 +110,5 @@ export function computeInsights(input: {
     out.push({ id: "recurring", kind: "recurring", amount: input.recurringMonthly, count: input.activeSubs });
   }
 
-  return out.slice(0, 3);
+  return out.slice(0, 4);
 }

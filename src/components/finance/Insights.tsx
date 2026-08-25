@@ -33,6 +33,8 @@ export function Insights({ insights, currency }: { insights: Insight[]; currency
       }
       case "recurring":
         return { icon: RefreshCw, tone: "neutral", text: `${i.count} subscriptions cost about ${money(i.amount ?? 0, currency)}/month.` };
+      case "category_change":
+        return { icon: TrendingUp, tone: "warn", text: `You're spending more on ${resolve(i.category ?? "").label} — ${money(i.amount ?? 0, currency)} this month, up ${i.pct}%.` };
     }
   }
 

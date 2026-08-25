@@ -53,6 +53,29 @@ describe("computeInsights", () => {
     expect(top?.amount).toBe(200); // last month's 100 excluded
   });
 
+  it("flags a category that jumped vs last month", () => {
+    const out = computeInsights({
+      transactions: [
+        tx("income", 5000, "salary", thisMonth),
+        tx("expense", 2000, "food", thisMonth), // this month
+        tx("expense", 1000, "food", lastMonth), // last month → +100%
+      ],
+      recurringMonthly: 0, activeSubs: 0, upcomingBillsTotal: 0, now: NOW,
+    });
+    const jump = out.find((i) => i.kind === "category_change");
+    expect(jump?.category).toBe("food");
+    expect(jump?.pct).toBe(100);
+    expect(jump?.amount).toBe(2000);
+  });
+
+  it("does not flag a category jump without a prior-month baseline", () => {
+    const out = computeInsights({
+      transactions: [tx("expense", 2000, "food", thisMonth)],
+      recurringMonthly: 0, activeSubs: 0, upcomingBillsTotal: 0, now: NOW,
+    });
+    expect(out.find((i) => i.kind === "category_change")).toBeUndefined();
+  });
+
   it("surfaces recurring cost only when there are active subscriptions", () => {
     const withSubs = computeInsights({ transactions: [], recurringMonthly: 750, activeSubs: 3, upcomingBillsTotal: 0, now: NOW });
     expect(withSubs.find((i) => i.kind === "recurring")).toMatchObject({ amount: 750, count: 3 });
@@ -60,7 +83,7 @@ describe("computeInsights", () => {
     expect(none.length).toBe(0);
   });
 
-  it("returns at most three insights", () => {
+  it("returns at most four insights", () => {
     const out = computeInsights({
       transactions: [
         tx("income", 1000, "salary", thisMonth),
@@ -69,6 +92,6 @@ describe("computeInsights", () => {
       ],
       recurringMonthly: 500, activeSubs: 2, upcomingBillsTotal: 0, now: NOW,
     });
-    expect(out.length).toBeLessThanOrEqual(3);
+    expect(out.length).toBeLessThanOrEqual(4);
   });
 });
