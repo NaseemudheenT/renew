@@ -4,14 +4,19 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Bell, Check } from "lucide-react";
+import { Bell, Check, ListTodo, Wallet, FileText, ShieldCheck, Target, PiggyBank, RefreshCw, type LucideIcon } from "lucide-react";
 import { orderBy, limit } from "firebase/firestore";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { markAllNotificationsRead, markNotificationRead } from "@/lib/firestore/notifications";
 import { relativeTime } from "@/lib/dates";
 import { PopoverPortal } from "@/components/ui/PopoverPortal";
-import type { AppNotification } from "@/lib/types";
+import type { AppNotification, NotificationType } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+const TYPE_ICON: Record<NotificationType, LucideIcon> = {
+  reminder: Bell, task: ListTodo, payment: Wallet, document: FileText,
+  account: ShieldCheck, budget: Target, savings: PiggyBank, subscription: RefreshCw,
+};
 
 export function NotificationBell() {
   const router = useRouter();
@@ -52,10 +57,11 @@ export function NotificationBell() {
 
       <PopoverPortal anchorRef={anchorRef} open={open} onClose={() => setOpen(false)} minWidth={320} align="end">
         <motion.div
-          initial={{ opacity: 0, y: -6, scale: 0.98 }}
+          initial={{ opacity: 0, y: -10, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          className="flex min-h-0 w-[min(92vw,22rem)] flex-1 flex-col overflow-hidden rounded-2xl border border-[var(--menu-border)] bg-[var(--menu-bg)] shadow-[var(--glass-shadow)] backdrop-blur-xl"
+          transition={{ type: "spring", stiffness: 420, damping: 30 }}
+          style={{ transformOrigin: "top right" }}
+          className="flex min-h-0 w-[min(92vw,22rem)] flex-1 flex-col overflow-hidden rounded-3xl border border-[var(--menu-border)] bg-[var(--menu-bg)] shadow-[var(--glass-shadow)] backdrop-blur-xl"
         >
           <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
               <span className="text-strong text-sm font-medium">Notifications</span>
@@ -73,21 +79,24 @@ export function NotificationBell() {
                   <p className="text-muted text-sm">You&apos;re all caught up.</p>
                 </div>
               ) : (
-                data.map((n) => (
-                  <button
-                    key={n.id}
-                    type="button"
-                    onClick={() => openNotification(n)}
-                    className={cn("flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--glass-bg-soft)]", !n.read && "bg-[var(--glass-bg-soft)]")}
-                  >
-                    <span className={cn("mt-1.5 size-2 shrink-0 rounded-full", n.read ? "bg-transparent" : "bg-[var(--color-gold-400)]")} />
-                    <span className="min-w-0 flex-1">
-                      <span className="text-body block text-sm font-medium">{n.title}</span>
-                      {n.body && <span className="text-muted block truncate text-xs">{n.body}</span>}
-                      <span className="text-muted mt-0.5 block text-[11px]">{relativeTime(n.createdAt)}</span>
-                    </span>
-                  </button>
-                ))
+                data.map((n) => {
+                  const Icon = TYPE_ICON[n.type] ?? Bell;
+                  return (
+                    <button
+                      key={n.id}
+                      type="button"
+                      onClick={() => openNotification(n)}
+                      className={cn("flex w-full items-start gap-3 px-4 py-3 text-start transition-colors hover:bg-[var(--glass-bg-soft)]", !n.read && "bg-[var(--glass-bg-strong)] shadow-[inset_2px_0_0_var(--color-gold-500)]")}
+                    >
+                      <span className="glass grid size-8 shrink-0 place-items-center !rounded-xl"><Icon className="size-4 text-[var(--color-gold-500)]" /></span>
+                      <span className="min-w-0 flex-1">
+                        <span className="text-strong flex items-center gap-1.5 text-sm font-medium">{n.title}{!n.read && <span className="size-1.5 shrink-0 rounded-full bg-[var(--color-gold-400)]" />}</span>
+                        {n.body && <span className="text-muted mt-0.5 block truncate text-xs">{n.body}</span>}
+                        <span className="text-muted mt-0.5 block text-[11px]">{relativeTime(n.createdAt)}</span>
+                      </span>
+                    </button>
+                  );
+                })
               )}
             </div>
           <Link href="/notifications" onClick={() => setOpen(false)} className="border-t border-[var(--glass-border)] px-4 py-2.5 text-center text-xs font-medium text-[var(--color-gold-600)] hover:bg-[var(--glass-bg-soft)]">

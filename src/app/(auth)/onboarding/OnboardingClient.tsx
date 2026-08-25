@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Wallet, Receipt, PiggyBank, TrendingUp, User, Briefcase, AlertCircle, Check,
+  Wallet, Receipt, PiggyBank, TrendingUp, AlertCircle, Check,
   Bell, ShieldCheck, Lock, Fingerprint,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -39,10 +39,6 @@ const FOCUS = [
 ] as const;
 
 type AccountType = "personal" | "business";
-const ACCOUNT_TYPES = [
-  { value: "personal", label: "Personal", icon: User },
-  { value: "business", label: "Business", icon: Briefcase },
-] as const;
 
 const slide = {
   initial: { opacity: 0, x: 24 },
@@ -65,7 +61,9 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const [currency, setCurrency] = useState(detected.currency);
   const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
   const [focus, setFocus] = useState<string[]>([]);
-  const [accountType, setAccountType] = useState<AccountType>("personal");
+  // Both Personal and Business are always available (switch in the top bar) —
+  // we no longer ask at setup. Personal is just the initial active workspace.
+  const accountType: AccountType = "personal";
   const [avatar, setAvatar] = useState<string>(AVATARS[0]!.id);
   const [notify, setNotify] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
@@ -211,21 +209,9 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
         {step === 2 && (
           <motion.div key="s2" {...slide}>
-            <h1 className="text-strong text-xl font-medium">How will you use Renew?</h1>
-            <p className="text-muted mt-1 text-sm">You can change this anytime in Settings.</p>
-            <div className="mt-5 grid grid-cols-3 gap-2">
-              {ACCOUNT_TYPES.map(({ value, label, icon: Icon }) => {
-                const active = accountType === value;
-                return (
-                  <button key={value} type="button" onClick={() => setAccountType(value)} aria-pressed={active}
-                    className={cn("flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-sm transition-all", active ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-body)] hover:border-[var(--focus-ring)]/50")}>
-                    <Icon className="size-5 text-[var(--color-gold-500)]" />{label}
-                  </button>
-                );
-              })}
-            </div>
-            <p className="text-muted mb-3 mt-6 text-sm">What matters most? <span className="opacity-70">Optional</span></p>
-            <div className="grid grid-cols-2 gap-3">
+            <h1 className="text-strong text-xl font-medium">What matters most to you?</h1>
+            <p className="text-muted mt-1 text-sm">Pick what you care about — Renew puts these front and centre for you. You get both Personal and Business, switchable anytime. Change this whenever you like.</p>
+            <div className="mt-6 grid grid-cols-2 gap-3">
               {FOCUS.map(({ id, label, icon: Icon }) => {
                 const active = focus.includes(id);
                 return (

@@ -75,7 +75,7 @@ export function SocialAuth({ title, subtitle }: { title: string; subtitle: strin
 
           {passkeySupported && (
             <StaggerItem>
-              <AuthTile onClick={passkey} disabled={busy} loading={pending === "passkey"} icon={<Fingerprint className="size-5 text-[var(--color-gold-500)]" />} label="Continue with a passkey" hint="Face ID / Touch ID" />
+              <AuthTile onClick={passkey} disabled={busy} loading={pending === "passkey"} icon={<Fingerprint className="size-5 text-[var(--color-gold-500)]" />} label="Continue with a passkey" />
             </StaggerItem>
           )}
 

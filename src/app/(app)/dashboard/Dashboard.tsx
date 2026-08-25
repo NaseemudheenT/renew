@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { orderBy, where, limit } from "firebase/firestore";
 import {
-  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, ShieldCheck, Mic,
+  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, ShieldCheck,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -13,7 +13,6 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedButton, AnimatedModal, StaggerContainer, StaggerItem } from "@/components/motion";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
-import { VoiceAdd } from "@/components/finance/VoiceAdd";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
 import { AskRenew } from "@/components/finance/AskRenew";
 import { toast } from "@/components/ui/toast-store";
@@ -77,7 +76,6 @@ export function Dashboard({ name }: { name: string }) {
   const subscriptions = useScopedUserCollection<Subscription>("subscriptions");
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [voiceOpen, setVoiceOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const loading = txAll.loading || savings.loading || investments.loading || bills.loading || accounts.loading || transfers.loading;
@@ -150,7 +148,6 @@ export function Dashboard({ name }: { name: string }) {
               <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {name}.</h1>
             </div>
             <div className="flex items-center gap-2">
-              <AnimatedButton variant="glass" onClick={() => setVoiceOpen(true)} aria-label="Add by voice"><Mic className="size-4" /></AnimatedButton>
               <AnimatedButton onClick={() => setModalOpen(true)}><Plus className="size-4" />Add</AnimatedButton>
             </div>
           </div>
@@ -326,7 +323,6 @@ export function Dashboard({ name }: { name: string }) {
         <TransactionForm defaultCurrency={currency} submitting={submitting} onSubmit={async (i) => { if (await addTransaction(i)) setModalOpen(false); }} onCancel={() => setModalOpen(false)} />
       </AnimatedModal>
 
-      <VoiceAdd open={voiceOpen} onClose={() => setVoiceOpen(false)} currency={currency} submitting={submitting} onSubmit={async (i) => { if (await addTransaction(i)) setVoiceOpen(false); }} />
     </div>
   );
 }
