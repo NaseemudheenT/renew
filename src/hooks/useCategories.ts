@@ -6,6 +6,7 @@ import {
   categoriesFor,
   customCatMeta,
   resolveCatMeta,
+  subcategoriesFor,
   type CatMeta,
 } from "@/lib/finance";
 import type { TxType, CustomCategory } from "@/lib/types";
@@ -17,6 +18,8 @@ export interface CategoriesApi {
   forType: (type: TxType) => CatMeta[];
   /** Resolve any category id to its meta (built-in or custom). */
   resolve: (id: string) => CatMeta;
+  /** All subcategories for a category — built-in plus the user's own. */
+  subsFor: (categoryId: string) => string[];
 }
 
 /**
@@ -30,6 +33,10 @@ export function useCategories(): CategoriesApi {
     () => profile?.customCategories ?? [],
     [profile?.customCategories],
   );
+  const customSubs = useMemo(
+    () => profile?.customSubcategories ?? {},
+    [profile?.customSubcategories],
+  );
 
   return useMemo(
     () => ({
@@ -39,7 +46,12 @@ export function useCategories(): CategoriesApi {
         ...custom.filter((c) => c.type === type).map(customCatMeta),
       ],
       resolve: (id: string) => resolveCatMeta(id, custom),
+      subsFor: (categoryId: string) => {
+        // Built-in subs first, then the user's own — de-duplicated, order kept.
+        const merged = [...subcategoriesFor(categoryId), ...(customSubs[categoryId] ?? [])];
+        return Array.from(new Set(merged));
+      },
     }),
-    [custom],
+    [custom, customSubs],
   );
 }

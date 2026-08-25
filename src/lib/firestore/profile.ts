@@ -88,6 +88,21 @@ export async function addCustomCategory(
   });
 }
 
+/** Add a user-defined subcategory under a category (built-in id or custom id).
+ *  Stored as a per-category list so people can grow their own taxonomy. */
+export async function addCustomSubcategory(
+  uid: string,
+  categoryId: string,
+  label: string,
+): Promise<void> {
+  const clean = label.trim();
+  if (!clean) return;
+  await updateDoc(profileRef(uid), {
+    [`customSubcategories.${categoryId}`]: arrayUnion(clean),
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function updateNotificationPrefs(
   uid: string,
   prefs: NotificationPrefs,

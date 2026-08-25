@@ -6,13 +6,13 @@ import { Plus, Check, X } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
-import { makeCustomCategoryId, subcategoriesFor } from "@/lib/finance";
+import { makeCustomCategoryId } from "@/lib/finance";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
-import { addCustomCategory } from "@/lib/firestore/profile";
+import { addCustomCategory, addCustomSubcategory } from "@/lib/firestore/profile";
 import { toast } from "@/components/ui/toast-store";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Transaction, TxType, Account } from "@/lib/types";
@@ -33,7 +33,7 @@ export function TransactionForm({
 }) {
   const { prefs } = useLocale();
   const { user } = useAuth();
-  const { forType } = useCategories();
+  const { forType, subsFor } = useCategories();
   const { data: accounts } = useScopedUserCollection<Account>("accounts");
   const activeAccounts = accounts.filter((a) => a.status === "active");
   const [type, setType] = useState<TxType>(initial?.type ?? "expense");
@@ -41,7 +41,7 @@ export function TransactionForm({
   const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
   const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? "expense")[0]!.id);
   const [subcategory, setSubcategory] = useState(initial?.subcategory ?? "");
-  const subs = subcategoriesFor(category);
+  const subs = subsFor(category);
   const [accountId, setAccountId] = useState(initial?.accountId ?? "");
   const selectedAccount = activeAccounts.find((a) => a.id === accountId);
   const [date, setDate] = useState(() => toDateInput(initial?.date ?? Date.now()));
@@ -49,18 +49,38 @@ export function TransactionForm({
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [newCat, setNewCat] = useState("");
+  const [addingSub, setAddingSub] = useState(false);
+  const [newSub, setNewSub] = useState("");
 
   const cats = forType(type);
 
+  function resetSubAdd() {
+    setAddingSub(false);
+    setNewSub("");
+  }
   function switchType(t: TxType) {
     setType(t);
     setCategory(forType(t)[0]!.id);
     setSubcategory("");
+    resetSubAdd();
   }
 
   function pickCategory(id: string) {
     setCategory(id);
     setSubcategory("");
+    resetSubAdd();
+  }
+
+  async function saveCustomSub() {
+    const label = newSub.trim();
+    if (!label || !user) return;
+    try {
+      await addCustomSubcategory(user.uid, category, label);
+      setSubcategory(label);
+      resetSubAdd();
+    } catch {
+      toast({ title: "Couldn't add subcategory", variant: "error" });
+    }
   }
 
   async function saveCustom() {
@@ -128,14 +148,31 @@ export function TransactionForm({
           </button>
         )}
       </div>
-      {subs.length > 0 && (
+      <div>
         <Select
           label="Subcategory (optional)"
           value={subcategory}
           onChange={(e) => setSubcategory(e.target.value)}
           options={[{ value: "", label: "None" }, ...subs.map((s) => ({ value: s, label: s }))]}
         />
-      )}
+        {addingSub ? (
+          <div className="mt-2 flex items-center gap-2">
+            <Input
+              placeholder="New subcategory name"
+              value={newSub}
+              autoFocus
+              onChange={(e) => setNewSub(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustomSub(); } }}
+            />
+            <AnimatedButton type="button" size="sm" onClick={saveCustomSub} disabled={!newSub.trim()} aria-label="Save subcategory"><Check className="size-4" /></AnimatedButton>
+            <AnimatedButton type="button" size="sm" variant="ghost" onClick={resetSubAdd} aria-label="Cancel"><X className="size-4" /></AnimatedButton>
+          </div>
+        ) : (
+          <button type="button" onClick={() => setAddingSub(true)} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-gold-600)] hover:underline">
+            <Plus className="size-3.5" /> New subcategory
+          </button>
+        )}
+      </div>
       {activeAccounts.length > 0 && (
         <Select
           label="Account (optional)"

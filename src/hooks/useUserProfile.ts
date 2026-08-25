@@ -50,6 +50,9 @@ export interface ProfileDoc {
   hour12?: boolean;
   /** User-defined income/expense categories. */
   customCategories?: CustomCategory[];
+  /** User-defined subcategories, keyed by category id (built-in or custom).
+   *  Lets a person build their own taxonomy under any category. */
+  customSubcategories?: Record<string, string[]>;
   /** App-lock passcode + biometric settings (see lib/security/passcode). */
   security?: PasscodeRecord;
   /** Chosen preset avatar id (see lib/avatars). */
