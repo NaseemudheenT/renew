@@ -1,5 +1,6 @@
-import { CalendarView } from "./CalendarView";
-export const dynamic = "force-dynamic";
+import { redirect } from "next/navigation";
+
+// Calendar now lives alongside Analysis on the Insights page (/analytics).
 export default function CalendarPage() {
-  return <CalendarView />;
+  redirect("/analytics");
 }

@@ -7,7 +7,6 @@ import {
   TrendingUp,
   ReceiptText,
   RefreshCw,
-  Calendar,
   BarChart3,
   Settings,
   ArrowDownLeft,
@@ -36,7 +35,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/investments", label: "Investments", msgKey: "nav.investments", icon: TrendingUp },
   { href: "/payments", label: "Bills", msgKey: "nav.payments", icon: ReceiptText },
   { href: "/subscriptions", label: "Subscriptions", msgKey: "nav.subscriptions", icon: RefreshCw },
-  { href: "/calendar", label: "Calendar", msgKey: "nav.calendar", icon: Calendar },
   { href: "/analytics", label: "Analytics", msgKey: "nav.analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", msgKey: "nav.settings", icon: Settings },
 ];
