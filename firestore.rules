@@ -35,6 +35,12 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // QR sign-in pairings — created, approved and consumed only by the server
+    // (Admin SDK). Clients must never read these (they can hold a custom token).
+    match /qrSessions/{sessionId} {
+      allow read, write: if false;
+    }
+
     // Passkey (WebAuthn) credentials — public keys + counters, written and read
     // only by the server (Admin SDK) during registration/authentication. A
     // client must never touch these.

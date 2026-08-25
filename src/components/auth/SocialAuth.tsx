@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type FormEvent, type SyntheticEvent } from "react";
-import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, User2 } from "lucide-react";
+import { AlertCircle, CheckCircle2, Fingerprint, Lock, Mail, Phone, User2, QrCode } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { GlassButton } from "@/components/ui/liquid-glass";
 import { Input } from "@/components/ui/Input";
@@ -23,6 +23,7 @@ import {
   AuthError,
 } from "@/lib/auth/client";
 import { signInWithPasskey, usePasskeySupport } from "@/lib/auth/passkey-client";
+import { QrSignIn } from "@/components/auth/QrSignIn";
 import { cn } from "@/lib/utils";
 
 type Mode = "sign-in" | "sign-up";
@@ -67,6 +68,7 @@ export function SocialAuth({
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, setPending] = useState<Pending>(null);
+  const [qrOpen, setQrOpen] = useState(false);
 
   const busy = pending !== null;
   const e164 = `${countryCode}${phone.replace(/\D/g, "")}`;
@@ -281,10 +283,14 @@ export function SocialAuth({
               <Fingerprint className="size-5" />{pending === "passkey" ? "Waiting for Face ID…" : "Passkey (Face ID)"}
             </GlassButton>
           )}
+          <GlassButton type="button" variant="neutral" fullWidth onClick={() => setQrOpen(true)} disabled={busy} className="h-12 gap-2.5 text-[0.95rem] font-medium">
+            <QrCode className="size-5" />Sign in with QR
+          </GlassButton>
         </div>
 
         <div id={RECAPTCHA_ID} />
       </GlassCard>
+      <QrSignIn open={qrOpen} onClose={() => setQrOpen(false)} />
     </FadeScale>
   );
 }
