@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { orderBy } from "firebase/firestore";
-import { Plus, Target, Pencil, Trash2 } from "lucide-react";
+import { Plus, Target, Pencil, Trash2, TrendingUp } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -15,7 +15,7 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createBudget, updateBudget, deleteBudget } from "@/lib/firestore/budgets";
-import { monthRange } from "@/lib/finance";
+import { monthRange, monthPaceProjection } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { CURRENCIES, cn } from "@/lib/utils";
@@ -62,6 +62,9 @@ export function BudgetView() {
               const spent = spentByCat.get(`${b.category}|${b.currency}`) ?? 0;
               const pct = b.amount > 0 ? Math.min(100, Math.round((spent / b.amount) * 100)) : 0;
               const over = spent > b.amount;
+              // Predictive: on this month's pace, will they blow the limit?
+              const projected = monthPaceProjection(spent);
+              const willExceed = !over && b.amount > 0 && projected > b.amount;
               return (
                 <motion.div key={b.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass p-4">
                   <div className="flex items-center gap-3">
@@ -76,6 +79,11 @@ export function BudgetView() {
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
                     <motion.div className={cn("h-full rounded-full", over ? "bg-gradient-to-r from-rose-400 to-rose-600" : "bg-gradient-to-r from-gold-300 to-gold-500")} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
                   </div>
+                  {willExceed && (
+                    <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-500">
+                      <TrendingUp className="size-3.5" />On this month&apos;s pace you&apos;ll spend ~{money(projected, b.currency)} — {money(projected - b.amount, b.currency)} over.
+                    </p>
+                  )}
                 </motion.div>
               );
             })}

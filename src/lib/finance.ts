@@ -82,6 +82,18 @@ export function subcategoriesFor(categoryId: string): string[] {
   return byId.get(categoryId)?.sub ?? [];
 }
 
+/**
+ * Project a month's total from what's been spent so far, at the current daily
+ * pace (Phase 4 — predictive). Deterministic: spent / day-of-month × days-in-month.
+ */
+export function monthPaceProjection(spentSoFar: number, now: number = Date.now()): number {
+  const d = new Date(now);
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  const dayOfMonth = d.getDate();
+  if (dayOfMonth <= 0) return spentSoFar;
+  return Math.round((spentSoFar / dayOfMonth) * daysInMonth * 100) / 100;
+}
+
 /** Meta for a user-defined category. */
 export function customCatMeta(cat: CustomCategory): CatMeta {
   return {

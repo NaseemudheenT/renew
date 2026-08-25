@@ -7,10 +7,23 @@ import {
   makeCustomCategoryId,
   investmentMeta,
   monthRange,
+  monthPaceProjection,
   INCOME_CATEGORIES,
   EXPENSE_CATEGORIES,
 } from "@/lib/finance";
 import type { CustomCategory } from "@/lib/types";
+
+describe("monthPaceProjection", () => {
+  it("projects the month total from the current daily pace", () => {
+    // 15 Aug (day 15 of 31): 1500 spent → 1500/15*31 = 3100
+    const now = new Date(2026, 7, 15).getTime();
+    expect(monthPaceProjection(1500, now)).toBe(3100);
+  });
+  it("equals the amount spent on the last day of the month", () => {
+    const now = new Date(2026, 7, 31).getTime(); // day 31 of 31
+    expect(monthPaceProjection(2000, now)).toBe(2000);
+  });
+});
 
 describe("categoriesFor", () => {
   it("returns income vs expense sets", () => {
