@@ -181,7 +181,7 @@ export function Dashboard({ name }: { name: string }) {
             </StaggerItem>
 
             <StaggerItem>
-              <AskRenew transactions={txAll.data} netWorth={netWorth} monthlySubs={recurring.monthly} activeSubs={recurring.count} currency={currency} />
+              <AskRenew transactions={txAll.data} netWorth={netWorth} monthlySubs={recurring.monthly} activeSubs={recurring.count} upcomingBillsTotal={comingTotal} currency={currency} />
             </StaggerItem>
 
             {insights.length > 0 && (

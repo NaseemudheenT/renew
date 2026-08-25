@@ -20,6 +20,8 @@ export interface AskContext {
   netWorth: number;
   monthlySubs: number;
   activeSubs: number;
+  /** Bills due this month that aren't paid yet (display currency). */
+  upcomingBillsTotal?: number;
   currency: string;
   now?: number;
 }
@@ -94,6 +96,24 @@ export function answerQuestion(question: string, ctx: AskContext): AskAnswer | n
   // Net worth / balance.
   if (/net worth|how much do i have|my balance|total money/.test(q)) {
     return { title: "Your net worth", value: ctx.netWorth, currency: ctx.currency };
+  }
+
+  // Predictive: projected month-end spending at the current pace (deterministic).
+  if (/on track|forecast|month.?end|end of the month|overspend|will i|run out|pace/.test(q)) {
+    const d = new Date(now);
+    const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+    const dayOfMonth = d.getDate();
+    const daysLeft = Math.max(0, daysInMonth - dayOfMonth);
+    const { start, end } = bounds("this_month", now);
+    const spentSoFar = sum(ctx.transactions, (t) => t.type === "expense" && t.date >= start && t.date < end);
+    const dailyRate = spentSoFar / Math.max(1, dayOfMonth);
+    const projected = Math.round((spentSoFar + dailyRate * daysLeft + (ctx.upcomingBillsTotal ?? 0)) * 100) / 100;
+    return {
+      title: "Projected spending this month",
+      value: projected,
+      currency: ctx.currency,
+      detail: `At your current pace, with ${daysLeft} day${daysLeft === 1 ? "" : "s"} left${ctx.upcomingBillsTotal ? " (incl. bills due)" : ""}.`,
+    };
   }
 
   // Subscriptions / recurring cost.

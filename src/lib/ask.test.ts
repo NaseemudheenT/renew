@@ -49,6 +49,13 @@ describe("answerQuestion", () => {
   it("answers net worth", () => {
     expect(answerQuestion("what's my net worth?", ctx)?.value).toBe(12345);
   });
+  it("projects month-end spending from the current pace", () => {
+    // 1500 spent by day 15 → ~100/day; ~16 days left → +~1600; deterministic.
+    const a = answerQuestion("am I on track this month?", ctx);
+    expect(a?.title).toBe("Projected spending this month");
+    expect(a?.value).toBeGreaterThan(1500); // more than spent-so-far
+  });
+
   it("returns null when it can't understand", () => {
     expect(answerQuestion("what is the meaning of life", ctx)).toBeNull();
   });
