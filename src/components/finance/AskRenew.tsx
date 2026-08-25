@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 const CHIPS = [
   "How much did I spend this month?",
+  "How much can I spend this month?",
   "Am I on track this month?",
   "More or less than last month?",
   "What's my biggest expense?",

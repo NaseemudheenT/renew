@@ -84,6 +84,25 @@ function sum(txs: Transaction[], pred: (t: Transaction) => boolean): number {
   return Math.round(s * 100) / 100;
 }
 
+/** Pull a money amount out of a question ("5,000", "₹5000", "2.5k"). */
+export function parseAmountInQuestion(q: string): number | null {
+  const m = q.match(/(\d[\d,]*(?:\.\d+)?)\s*(k|lakh|lakhs)?/);
+  if (!m) return null;
+  let n = Number(m[1]!.replace(/,/g, ""));
+  if (!Number.isFinite(n)) return null;
+  if (m[2] === "k") n *= 1_000;
+  else if (m[2]?.startsWith("lakh")) n *= 100_000;
+  return n > 0 ? n : null;
+}
+
+/** Money in − out for the current month (the person's own numbers, factual). */
+function leftoverThisMonth(ctx: AskContext, now: number): number {
+  const { start, end } = bounds("this_month", now);
+  const income = sum(ctx.transactions, (t) => t.type === "income" && t.date >= start && t.date < end);
+  const expense = sum(ctx.transactions, (t) => t.type === "expense" && t.date >= start && t.date < end);
+  return Math.round((income - expense) * 100) / 100;
+}
+
 /** Answer a free-text question, or null if it can't be understood. */
 export function answerQuestion(question: string, ctx: AskContext): AskAnswer | null {
   const q = question.toLowerCase().trim();
@@ -114,6 +133,31 @@ export function answerQuestion(question: string, ctx: AskContext): AskAnswer | n
       currency: ctx.currency,
       detail: `At your current pace, with ${daysLeft} day${daysLeft === 1 ? "" : "s"} left${ctx.upcomingBillsTotal ? " (incl. bills due)" : ""}.`,
     };
+  }
+
+  // Affordability — "can I afford 5000?" Factual: their own money in − out this
+  // month vs the cost. Not advice, just their numbers laid next to the price.
+  if (/afford|can i buy|enough for|enough to/.test(q)) {
+    const cost = parseAmountInQuestion(q);
+    const left = leftoverThisMonth(ctx, now);
+    const bills = ctx.upcomingBillsTotal ?? 0;
+    const safe = Math.round((left - bills) * 100) / 100;
+    if (cost === null) {
+      return { title: "Left to spend this month", value: safe, currency: ctx.currency, detail: bills > 0 ? "Money in − out, after bills still due." : "Money in − out so far this month." };
+    }
+    const after = Math.round((safe - cost) * 100) / 100;
+    return {
+      title: after >= 0 ? "Yes — that fits this month" : "That's more than you have left",
+      value: after,
+      currency: ctx.currency,
+      detail: after >= 0 ? `You'd have this left after${bills > 0 ? " bills and" : ""} spending it.` : `You'd be short by this${bills > 0 ? " (after bills due)" : ""}.`,
+    };
+  }
+
+  // How much is left / safe to spend this month.
+  if (/left to spend|how much left|left this month|safe to spend|can i spend|spare/.test(q)) {
+    const safe = Math.round((leftoverThisMonth(ctx, now) - (ctx.upcomingBillsTotal ?? 0)) * 100) / 100;
+    return { title: "Left to spend this month", value: safe, currency: ctx.currency, detail: (ctx.upcomingBillsTotal ?? 0) > 0 ? "Money in − out, after bills still due." : "Money in − out so far this month." };
   }
 
   // Subscriptions / recurring cost.
