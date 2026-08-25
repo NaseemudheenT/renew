@@ -59,7 +59,7 @@ export function MobileNav() {
                   <Link key={msgKey} href={href} onClick={() => setMoreOpen(false)}
                     className={cn("flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-xs font-medium transition-colors",
                       active ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-body)] hover:text-[var(--text-strong)]")}>
-                    <Icon className={cn("size-5", active ? "text-[var(--color-gold-500)]" : "text-[var(--text-muted)]")} />
+                    <Icon className={cn("size-5 transition-transform duration-300", active ? "-translate-y-0.5 scale-110 text-[var(--color-gold-500)]" : "text-[var(--text-muted)]")} />
                     {t(msgKey)}
                   </Link>
                 );
@@ -79,7 +79,7 @@ export function MobileNav() {
                 {active && (
                   <motion.span layoutId="mobile-active" className="absolute -inset-x-3 -inset-y-1.5 -z-10 rounded-full bg-[var(--glass-bg-strong)]" transition={{ type: "spring", stiffness: 380, damping: 34 }} />
                 )}
-                <Icon className={cn("size-5", active ? "text-[var(--color-gold-500)]" : "text-[var(--text-muted)]")} />
+                <Icon className={cn("size-5 transition-transform duration-300", active ? "-translate-y-0.5 scale-110 text-[var(--color-gold-500)]" : "text-[var(--text-muted)]")} />
               </span>
               <span className={cn(active ? "text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>{label}</span>
             </>
