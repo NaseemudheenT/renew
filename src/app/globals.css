@@ -180,6 +180,15 @@
 :root[data-reduce-motion="1"] .pressable:active {
   transform: none;
 }
+/* Bold text — heavier weight everywhere for legibility (Apple "Bold Text"). */
+:root[data-bold-text="1"] :where(p, span, div, li, a, button, label, input, textarea, select, h1, h2, h3, h4, h5, h6, strong, small) {
+  font-weight: 600 !important;
+}
+/* Underline links — a clearer link affordance (Apple accessibility). */
+:root[data-underline-links="1"] a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
 
 /* ---- Base --------------------------------------------------------------- */
 * {
