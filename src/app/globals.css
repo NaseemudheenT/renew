@@ -95,28 +95,28 @@
   /* A real daytime sky with depth — deep enough that the living fog and the
      frosted glass both read against it, never a washed-out white. This is the
      daylight twin of the midnight world: same material, same premium feel. */
-  --bg-base: #b3c5ea;
-  --bg-tint-1: #c9d7f2;
-  --bg-tint-2: #a1b8e4;
-  --bg-tint-3: #b8c9ee;
-  --bokeh-1: rgba(86, 130, 234, 0.6);
-  --bokeh-2: rgba(140, 178, 248, 0.66);
-  --bokeh-3: rgba(108, 152, 242, 0.56);
-  --grain-opacity: 0.045;
-  --vignette: rgba(28, 46, 104, 0.22);
+  --bg-base: #9fb2d4;
+  --bg-tint-1: #b3c5e8;
+  --bg-tint-2: #8aa4d0;
+  --bg-tint-3: #a1b6e0;
+  --bokeh-1: rgba(64, 106, 208, 0.4);
+  --bokeh-2: rgba(112, 152, 232, 0.42);
+  --bokeh-3: rgba(86, 130, 222, 0.36);
+  --grain-opacity: 0.05;
+  --vignette: rgba(20, 36, 88, 0.32);
 
-  --text-strong: #16203c;
-  --text-body: #313e64;
-  --text-muted: #566283;
+  --text-strong: #131c34;
+  --text-body: #2b3757;
+  --text-muted: #4a5675;
   --text-onGold: #0a1430;
 
   /* Genuine frosted glass — translucent, so the fog drifts through cards and
      buttons exactly like dark mode. Backdrop-blur + saturation keep everything
      on top crisp and legible; it is glassy, not see-through-to-uselessness. */
-  --glass-bg: rgba(244, 248, 255, 0.44);
-  --glass-bg-strong: rgba(247, 250, 255, 0.62);
-  --glass-bg-soft: rgba(242, 247, 255, 0.26);
-  --glass-border: rgba(255, 255, 255, 0.72);
+  --glass-bg: rgba(238, 243, 253, 0.56);
+  --glass-bg-strong: rgba(242, 246, 254, 0.72);
+  --glass-bg-soft: rgba(236, 242, 252, 0.34);
+  --glass-border: rgba(255, 255, 255, 0.66);
   --glass-edge: rgba(255, 255, 255, 0.92);
   --glass-inner-shadow: rgba(30, 50, 110, 0.1);
   --glass-highlight: rgba(255, 255, 255, 0.78);
@@ -126,8 +126,8 @@
   --glass-blur: 22px;
   --glass-saturate: 165%;
 
-  --field-bg: rgba(250, 252, 255, 0.52);
-  --field-border: rgba(64, 84, 146, 0.3);
+  --field-bg: rgba(246, 250, 255, 0.62);
+  --field-border: rgba(52, 72, 132, 0.34);
   --focus-ring: rgba(74, 118, 240, 0.62);
 
   /* Light theme: the logo is a rich MIDNIGHT-BLUE, and the mark and the RENEW
