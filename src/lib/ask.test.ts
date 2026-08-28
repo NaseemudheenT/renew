@@ -38,6 +38,31 @@ describe("answerQuestion", () => {
   it("answers income", () => {
     expect(answerQuestion("what did I earn this month?", ctx)?.value).toBe(5000);
   });
+  it("answers savings rate", () => {
+    const a = answerQuestion("what's my savings rate this month?", ctx);
+    expect(a?.value).toBe(3500); // 5000 income − 1500 spent
+    expect(a?.detail).toContain("70%");
+  });
+  it("splits needs vs wants", () => {
+    // food + rent are both essential in this ctx → all needs.
+    expect(answerQuestion("needs vs wants", ctx)?.value).toBe(1500);
+  });
+  it("finds the biggest single purchase", () => {
+    expect(answerQuestion("what was my biggest purchase this month?", ctx)?.value).toBe(1000); // rent
+  });
+  it("answers a merchant question from notes", () => {
+    const mctx: AskContext = {
+      ...ctx,
+      transactions: [
+        { id: "m1", type: "expense", amount: 250, currency: "INR", category: "food", note: "Swiggy dinner", date: thisMonth, createdAt: thisMonth, updatedAt: thisMonth },
+        { id: "m2", type: "expense", amount: 150, currency: "INR", category: "food", note: "Swiggy lunch", date: thisMonth, createdAt: thisMonth, updatedAt: thisMonth },
+        { id: "m3", type: "expense", amount: 999, currency: "INR", category: "shopping", note: "Amazon", date: thisMonth, createdAt: thisMonth, updatedAt: thisMonth },
+      ],
+    };
+    const a = answerQuestion("how much did I spend at swiggy this month?", mctx);
+    expect(a?.value).toBe(400); // 250 + 150
+    expect(a?.title.toLowerCase()).toContain("swiggy");
+  });
   it("finds the biggest expense", () => {
     const a = answerQuestion("what's my biggest expense?", ctx);
     expect(a?.value).toBe(1000);

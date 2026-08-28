@@ -1,5 +1,6 @@
 import type { Transaction } from "@/lib/types";
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from "@/lib/finance";
+import { essentialSplit } from "@/lib/intelligence";
 
 /**
  * "Ask Renew" — Phase 3 (Money Assistant), the honest, no-cost first version.
@@ -76,6 +77,18 @@ function detectCategory(q: string): { id: string; label: string } | null {
     }
   }
   return null;
+}
+
+/** A merchant/keyword named after "on/at/for" that isn't a known category,
+ *  e.g. "how much at swiggy" → "swiggy". Used to search transaction notes. */
+function detectMerchant(q: string): string | null {
+  const m = q.match(/\b(?:on|at|for|from|to)\s+([a-z0-9][a-z0-9&.'\s-]{1,24}?)(?:\s+(?:this|last|in|during|so|over|per)\b|[?.!]|$)/);
+  if (!m) return null;
+  const term = m[1]!.trim().replace(/\s+/g, " ");
+  if (term.length < 3) return null;
+  const stop = /^(the|my|a|an|it|that|this|month|week|year|day|today|time|times|now|food|drink|transport|bills|shopping|groceries|health|travel|rent|fuel|phone|internet|subscriptions?|entertainment|clothing|education|insurance|fitness|savings?|income|salary)\b/;
+  if (stop.test(term)) return null;
+  return term;
 }
 
 function sum(txs: Transaction[], pred: (t: Transaction) => boolean): number {
@@ -165,6 +178,32 @@ export function answerQuestion(question: string, ctx: AskContext): AskAnswer | n
     return { title: "Subscriptions", value: ctx.monthlySubs, currency: ctx.currency, detail: `${ctx.activeSubs} active · about this per month` };
   }
 
+  // Savings rate — how much (and what share of income) is kept.
+  if (/saving rate|savings rate|how much.*sav|am i saving|save this|did i save/.test(q)) {
+    const income = sum(ctx.transactions, (t) => t.type === "income" && inRange(t));
+    const expense = sum(ctx.transactions, (t) => t.type === "expense" && inRange(t));
+    const saved = Math.round((income - expense) * 100) / 100;
+    const rate = income > 0 ? Math.round((saved / income) * 100) : null;
+    return { title: `Saved ${TF_LABEL[tf]}`, value: saved, currency: ctx.currency, detail: rate !== null ? `${rate}% of your income ${TF_LABEL[tf]}.` : "Add income to see your savings rate." };
+  }
+
+  // Needs vs wants (essential vs discretionary) this month.
+  if (/needs? vs wants?|wants? vs needs?|essential|discretionary|needs and wants|wants and needs/.test(q)) {
+    const { essential, discretionary } = essentialSplit(ctx.transactions, now);
+    const total = essential + discretionary;
+    const pct = total > 0 ? Math.round((essential / total) * 100) : 0;
+    return { title: "Needs vs wants this month", value: Math.round(essential * 100) / 100, currency: ctx.currency, detail: total > 0 ? `on needs (${pct}%). The rest, ${Math.round(discretionary * 100) / 100}, went on wants.` : "Add spending to see the split." };
+  }
+
+  // Biggest single transaction (as opposed to biggest category).
+  if (/biggest|largest|most expensive|top/.test(q) && /purchase|transaction|expense|buy|bought|single|item|one thing|payment/.test(q)) {
+    let top: Transaction | null = null;
+    for (const t of ctx.transactions) if (t.type === "expense" && inRange(t) && (!top || t.amount > top.amount)) top = t;
+    if (!top) return { title: `No spending ${TF_LABEL[tf]}`, detail: "Add a transaction to see this." };
+    const label = [...EXPENSE_CATEGORIES].find((c) => c.id === top!.category)?.label ?? top.category;
+    return { title: `Biggest single expense ${TF_LABEL[tf]}`, value: Math.round(top.amount * 100) / 100, currency: ctx.currency, detail: top.note ? `${top.note} · ${label}` : label };
+  }
+
   // Biggest expense category in the timeframe.
   if (/biggest|most|top|largest|highest/.test(q)) {
     const byCat = new Map<string, number>();
@@ -206,11 +245,18 @@ export function answerQuestion(question: string, ctx: AskContext): AskAnswer | n
     return { title: cat ? `${cat.label} income ${TF_LABEL[tf]}` : `Income ${TF_LABEL[tf]}`, value: v, currency: ctx.currency };
   }
 
-  // Spending — the default when a category and/or "spend" is present.
+  // Spending — by category, by merchant (note search), or overall.
   const cat = detectCategory(q);
-  if (/spen|spent|cost|paid|expense|much on|much for/.test(q) || cat) {
-    const v = sum(ctx.transactions, (t) => t.type === "expense" && inRange(t) && (!cat || t.category === cat.id));
-    return { title: cat ? `${cat.label} ${TF_LABEL[tf]}` : `Spending ${TF_LABEL[tf]}`, value: v, currency: ctx.currency };
+  const merchant = cat ? null : detectMerchant(q);
+  if (/spen|spent|cost|paid|expense|much on|much for/.test(q) || cat || merchant) {
+    const v = sum(ctx.transactions, (t) =>
+      t.type === "expense" && inRange(t)
+      && (cat ? t.category === cat.id : true)
+      && (merchant ? (t.note ?? "").toLowerCase().includes(merchant) : true),
+    );
+    const pretty = merchant ? merchant.replace(/\b\w/g, (c) => c.toUpperCase()) : "";
+    const title = cat ? `${cat.label} ${TF_LABEL[tf]}` : merchant ? `Spent on ${pretty} ${TF_LABEL[tf]}` : `Spending ${TF_LABEL[tf]}`;
+    return { title, value: v, currency: ctx.currency };
   }
 
   return null;
