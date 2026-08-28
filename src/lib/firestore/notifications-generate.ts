@@ -113,7 +113,9 @@ export function computeDesired(
     for (const p of input.payments) {
       if (p.status === "paid") continue;
       const d = daysUntil(p.dueAt);
-      if (d <= 3) {
+      // Honour the per-bill reminder lead time (default 3 days); overdue always fires.
+      const lead = typeof p.remindDaysBefore === "number" ? p.remindDaysBefore : 3;
+      if (d <= lead) {
         out.push({
           id: `payment_${p.id}_${dayKey(p.dueAt)}`,
           type: "payment",
