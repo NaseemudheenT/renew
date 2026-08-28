@@ -48,8 +48,10 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const [step, setStep] = useState(0);
   const [name, setName] = useState(defaultName);
   const [language, setLanguage] = useState(detected.language);
-  const [region, setRegion] = useState(detected.region);
-  const [currency, setCurrency] = useState(detected.currency);
+  // Country is a DELIBERATE choice — never silently auto-detected. It drives the
+  // currency and all number/date formatting, so the person picks it themselves.
+  const [region, setRegion] = useState("");
+  const [currency, setCurrency] = useState("");
   const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
   const [focus, setFocus] = useState<string[]>([]);
   // Both Personal and Business are always available (switch in the top bar) —
@@ -169,8 +171,8 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
         {step === 1 && (
           <motion.div key="s1" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Set your region</h1>
-            <p className="text-muted mt-1 text-sm">Auto-detected — change anything. You can update it later in Settings.</p>
+            <h1 className="text-strong text-xl font-medium">Choose your country</h1>
+            <p className="text-muted mt-1 text-sm">This sets your currency and how amounts and dates are shown across Renew. You can change it later in Settings.</p>
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <LanguageSelect label="Language" value={language} onChange={setLanguage} locale={language} />
               <CountrySelect label="Country / region" value={region} onChange={onRegionChange} locale={language} />

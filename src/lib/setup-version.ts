@@ -10,6 +10,8 @@
  * History:
  *   1 — original onboarding
  *   2 — fully-upgraded setup (premium passwordless, app-lock/passcode, legal
- *       consent, region/currency, avatar) — the current required flow.
+ *       consent, region/currency, avatar).
+ *   3 — country is now a DELIBERATE choice (no silent auto-detect); everyone
+ *       re-confirms it so currency/formatting are correct.
  */
-export const CURRENT_SETUP_VERSION = 2;
+export const CURRENT_SETUP_VERSION = 3;
