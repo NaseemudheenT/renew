@@ -101,6 +101,9 @@ export interface DocItem {
 
 export type PaymentStatus = "upcoming" | "paid" | "overdue";
 
+/** How a bill/payment is settled — a tracking label, Renew never moves money. */
+export type PaymentMethod = "cash" | "bank" | "card" | "upi" | "autopay" | "other";
+
 export interface Payment {
   id: string;
   name: string;
@@ -112,6 +115,10 @@ export interface Payment {
   category: Category;
   repeat: RepeatRule;
   notes?: string;
+  /** How it's paid (tracking only). */
+  method?: PaymentMethod;
+  /** Remind this many days before it's due (0 = on the day). */
+  remindDaysBefore?: number;
   paidAt?: number | null;
   createdAt: number;
   updatedAt: number;

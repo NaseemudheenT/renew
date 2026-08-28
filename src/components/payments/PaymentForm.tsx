@@ -10,8 +10,23 @@ import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { CURRENCIES } from "@/lib/utils";
-import type { Payment, Category, RepeatRule } from "@/lib/types";
+import type { Payment, Category, RepeatRule, PaymentMethod } from "@/lib/types";
 import type { PaymentInput } from "@/lib/firestore/payments";
+
+const METHODS: { value: PaymentMethod; label: string }[] = [
+  { value: "bank", label: "Bank transfer" },
+  { value: "upi", label: "UPI" },
+  { value: "card", label: "Card" },
+  { value: "cash", label: "Cash" },
+  { value: "autopay", label: "Auto-pay" },
+  { value: "other", label: "Other" },
+];
+const REMIND: { value: string; label: string }[] = [
+  { value: "0", label: "On the day" },
+  { value: "1", label: "1 day before" },
+  { value: "3", label: "3 days before" },
+  { value: "7", label: "1 week before" },
+];
 
 export function PaymentForm({
   initial,
@@ -33,6 +48,8 @@ export function PaymentForm({
   const [date, setDate] = useState(() => toDateInput(initial?.dueAt ?? Date.now()));
   const [repeat, setRepeat] = useState<RepeatRule>(initial?.repeat ?? "monthly");
   const [category, setCategory] = useState<Category>(initial?.category ?? "bills");
+  const [method, setMethod] = useState<PaymentMethod>(initial?.method ?? "bank");
+  const [remind, setRemind] = useState(String(initial?.remindDaysBefore ?? 3));
   const [notes, setNotes] = useState(initial?.notes ?? "");
   const [errors, setErrors] = useState<{ name?: string; amount?: string }>({});
 
@@ -44,7 +61,7 @@ export function PaymentForm({
     if (!amount || Number.isNaN(amt) || amt < 0) next.amount = "Enter a valid amount.";
     setErrors(next);
     if (Object.keys(next).length) return;
-    onSubmit({ name: name.trim(), amount: parseAmount(amount), currency, dueAt: fromDateTimeInputs(date), repeat, category, notes: notes.trim() || undefined });
+    onSubmit({ name: name.trim(), amount: parseAmount(amount), currency, dueAt: fromDateTimeInputs(date), repeat, category, method, remindDaysBefore: Number(remind), notes: notes.trim() || undefined });
   }
 
   return (
@@ -59,6 +76,10 @@ export function PaymentForm({
         <Select label="Repeat" value={repeat} onChange={(e) => setRepeat(e.target.value as RepeatRule)} options={REPEAT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))} />
       </div>
       <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value as Category)} options={CATEGORIES.map((c) => ({ value: c.id, label: c.label }))} />
+      <div className="grid grid-cols-2 gap-3">
+        <Select label="Payment method" value={method} onChange={(e) => setMethod(e.target.value as PaymentMethod)} options={METHODS} />
+        <Select label="Remind me" value={remind} onChange={(e) => setRemind(e.target.value)} options={REMIND} />
+      </div>
       <Textarea label="Notes (optional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
       <div className="mt-1 flex items-center justify-end gap-3">
         <AnimatedButton type="button" variant="ghost" onClick={onCancel} disabled={submitting}>Cancel</AnimatedButton>

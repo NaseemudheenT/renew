@@ -9,7 +9,7 @@ import {
 import { userCollection, userDoc } from "@/lib/firestore/db";
 import { getActiveWorkspace } from "@/lib/workspace";
 import { nextOccurrence } from "@/lib/dates";
-import type { Payment, Category, RepeatRule } from "@/lib/types";
+import type { Payment, Category, RepeatRule, PaymentMethod } from "@/lib/types";
 
 export interface PaymentInput {
   name: string;
@@ -19,6 +19,8 @@ export interface PaymentInput {
   category: Category;
   repeat: RepeatRule;
   notes?: string;
+  method?: PaymentMethod;
+  remindDaysBefore?: number;
 }
 
 export async function createPayment(
