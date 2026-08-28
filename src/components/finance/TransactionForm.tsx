@@ -10,6 +10,7 @@ import { makeCustomCategoryId } from "@/lib/finance";
 import { guessCategory } from "@/lib/import";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { useCategories } from "@/hooks/useCategories";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
@@ -38,8 +39,10 @@ export function TransactionForm({
   const { data: accounts } = useScopedUserCollection<Account>("accounts");
   const activeAccounts = accounts.filter((a) => a.status === "active");
   const [type, setType] = useState<TxType>(initial?.type ?? "expense");
-  const [amount, setAmount] = useState(initial ? String(initial.amount) : "");
   const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
+  const [amount, setAmount] = useState(() =>
+    initial ? displayFromValue(initial.amount, groupingLocale(prefs.region, initial.currency)) : "",
+  );
   const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? "expense")[0]!.id);
   const [subcategory, setSubcategory] = useState(initial?.subcategory ?? "");
   const subs = subsFor(category);
@@ -118,7 +121,7 @@ export function TransactionForm({
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
-    const amt = Number(amount);
+    const amt = parseAmount(amount);
     if (!amount || Number.isNaN(amt) || amt <= 0) {
       setError("Enter a valid amount.");
       return;
@@ -143,7 +146,7 @@ export function TransactionForm({
       </div>
 
       <div className="grid grid-cols-[1fr_7rem] gap-3">
-        <Input label="Amount" type="number" inputMode="decimal" min="0" step="0.01" placeholder="0.00" value={amount} autoFocus onChange={(e) => setAmount(e.target.value)} error={error ?? undefined} />
+        <Input label="Amount" type="text" inputMode="decimal" placeholder="0" value={amount} autoFocus onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(prefs.region, selectedAccount ? selectedAccount.currency : currency)).display)} error={error ?? undefined} />
         <Select label="Currency" value={selectedAccount ? selectedAccount.currency : currency} onChange={(e) => setCurrency(e.target.value)} disabled={!!selectedAccount} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
       </div>
 

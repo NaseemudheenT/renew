@@ -27,7 +27,7 @@ export default function Home() {
     if (entering) return;
     setEntering(true);
     if (reduced) {
-      router.push("/start");
+      router.push("/sign-up");
       return;
     }
     void shake.start({
@@ -35,7 +35,7 @@ export default function Home() {
       scale: [1, 1.1, 0.95, 1.06, 0.99, 1.02, 1],
       transition: { duration: 0.62, ease: [0.36, 0.07, 0.19, 0.97] },
     });
-    window.setTimeout(() => router.push("/start"), 560);
+    window.setTimeout(() => router.push("/sign-up"), 560);
   }
 
   return (
