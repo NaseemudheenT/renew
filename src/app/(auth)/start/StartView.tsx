@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, ShieldCheck, X, Trash2, ArrowRight } from "lucide-react";
@@ -36,7 +36,10 @@ function useGuestTxns(): GuestTxn[] {
  * entries are kept on the device and moved into the account after sign-in.
  */
 export function StartView() {
-  const currency = useMemo(() => detectGuestCurrency(), []);
+  // Detect after mount so server and first client render match (no hydration
+  // mismatch); the phone's currency fills in immediately on the client.
+  const [currency, setCurrency] = useState("USD");
+  useEffect(() => setCurrency(detectGuestCurrency()), []);
   const txns = useGuestTxns();
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(EXPENSE_CATS[0]!.id);
