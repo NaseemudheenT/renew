@@ -5,14 +5,15 @@ import { AlertCircle, Fingerprint, QrCode, ChevronRight, ShieldCheck } from "luc
 import { GlassCard } from "@/components/ui/GlassCard";
 import { FadeScale, StaggerContainer, StaggerItem } from "@/components/motion";
 import { GoogleIcon } from "@/components/brand/GoogleIcon";
+import { AppleIcon } from "@/components/brand/AppleIcon";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { signInWithGoogle, AuthError } from "@/lib/auth/client";
+import { signInWithGoogle, signInWithApple, AuthError } from "@/lib/auth/client";
 import { signInWithPasskey, usePasskeySupport } from "@/lib/auth/passkey-client";
 import { QrSignIn } from "@/components/auth/QrSignIn";
 import { useIsBrowser } from "@/lib/pwa/display-mode";
 import { cn } from "@/lib/utils";
 
-type Pending = null | "google" | "passkey";
+type Pending = null | "google" | "apple" | "passkey";
 
 /**
  * Renew's sign-in — deliberately modern and minimal: continue with Google, a
@@ -55,6 +56,11 @@ export function SocialAuth({
     setPending("google");
     try { await signInWithGoogle(); goInside(); } catch (err) { fail(err); }
   }
+  async function apple() {
+    setError(null);
+    setPending("apple");
+    try { await signInWithApple(); goInside(); } catch (err) { fail(err); }
+  }
   async function passkey() {
     setError(null);
     setPending("passkey");
@@ -82,6 +88,10 @@ export function SocialAuth({
         <StaggerContainer className="flex flex-col gap-3" stagger={0.08}>
           <StaggerItem>
             <AuthTile onClick={google} disabled={busy} loading={pending === "google"} icon={<GoogleIcon className="size-5" />} label="Continue with Google" primary />
+          </StaggerItem>
+
+          <StaggerItem>
+            <AuthTile onClick={apple} disabled={busy} loading={pending === "apple"} icon={<AppleIcon className="size-5 text-[var(--text-strong)]" />} label="Continue with Apple" />
           </StaggerItem>
 
           {passkeySupported && showPasskey && (
