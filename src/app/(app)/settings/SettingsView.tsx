@@ -1,9 +1,9 @@
 "use client";
 
-import { useReducer, useState, useSyncExternalStore } from "react";
+import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, Accessibility } from "lucide-react";
+import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -39,12 +39,53 @@ export function SettingsView() {
   const { t } = useLocale();
   const { profile, uid } = useUserProfile();
   const shellUser = { uid: user?.uid ?? "", email: user?.email ?? null, displayName: user?.displayName ?? null, photoURL: user?.photoURL ?? null };
+  const [active, setActive] = useState<string | null>(null);
+
+  // Each category is a row you tap into (Apple-style), never everything at once.
+  const categories = [
+    { id: "account", icon: Briefcase, title: "How you use Renew", sub: "Personal or business", render: () => (uid ? <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} /> : null) },
+    { id: "appearance", icon: Palette, title: "Appearance", sub: "Light or dark theme", render: () => <AppearanceControl /> },
+    { id: "region", icon: Globe, title: t("settings.region.title"), sub: "Language, region & currency", render: () => (uid ? <RegionLanguageControl uid={uid} /> : null) },
+    { id: "notifications", icon: Bell, title: "Notifications", sub: "Reminders and nudges", render: () => <>{uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}<BrowserNotifyControl /></> },
+    { id: "billing", icon: CreditCard, title: "Billing", sub: "Your plan & payment method", render: () => <BillingControl /> },
+    { id: "data", icon: Database, title: "Data", sub: "Import, export & delete", render: () => <DataControl /> },
+    { id: "accessibility", icon: Accessibility, title: "Accessibility", sub: "Text, contrast, motion & more", render: () => <AccessibilityControl /> },
+    { id: "security", icon: ShieldCheck, title: "Security", sub: "Sign out & delete account", render: () => <SecurityControl /> },
+  ] as const;
+
+  // Deep links like /settings#billing open that category directly.
+  useEffect(() => {
+    const h = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (h && categories.some((c) => c.id === h)) setActive(h);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const current = categories.find((c) => c.id === active);
+
+  if (current) {
+    const Icon = current.icon;
+    return (
+      <div className="mx-auto flex max-w-2xl flex-col gap-4">
+        <button type="button" onClick={() => setActive(null)} className="text-muted -ms-1 flex w-fit items-center gap-1 text-sm font-medium transition-colors hover:text-[var(--text-strong)]">
+          <ChevronLeft className="size-4" />{t("settings.title")}
+        </button>
+        <div className="flex items-center gap-2.5 px-1">
+          <Icon className="size-5 text-[var(--color-gold-500)]" />
+          <h1 className="text-strong text-xl font-medium">{current.title}</h1>
+        </div>
+        <GlassCard padded>
+          <div className="flex flex-col gap-4">{current.render()}</div>
+        </GlassCard>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
       <PageHeader title={t("settings.title")} subtitle={t("settings.subtitle")} />
 
-      {/* Profile + avatar live on their own Account page (kept out of this list). */}
+      {/* Profile + avatar live on their own Account page. */}
       <Link href="/account" className="glass flex items-center gap-4 p-4 transition-colors hover:bg-[var(--glass-bg-soft)]">
         <Avatar user={shellUser} size={52} />
         <div className="min-w-0 flex-1">
@@ -54,38 +95,22 @@ export function SettingsView() {
         <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
       </Link>
 
-      <Section icon={Briefcase} title="How you use Renew">
-        {uid && <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} />}
-      </Section>
-
-      <Section id="appearance" icon={Palette} title="Appearance">
-        <AppearanceControl />
-      </Section>
-
-      <Section id="region" icon={Globe} title={t("settings.region.title")}>
-        {uid && <RegionLanguageControl uid={uid} />}
-      </Section>
-
-      <Section id="notifications" icon={Bell} title="Notifications">
-        {uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}
-        <BrowserNotifyControl />
-      </Section>
-
-      <Section id="billing" icon={CreditCard} title="Billing">
-        <BillingControl />
-      </Section>
-
-      <Section id="data" icon={Database} title="Data">
-        <DataControl />
-      </Section>
-
-      <Section id="accessibility" icon={Accessibility} title="Accessibility">
-        <AccessibilityControl />
-      </Section>
-
-      <Section icon={ShieldCheck} title="Security">
-        <SecurityControl />
-      </Section>
+      {/* Tap a category to go inside — one clear thing per screen. */}
+      <div className="glass flex flex-col divide-y divide-[var(--glass-border)] overflow-hidden !p-0">
+        {categories.map((c) => {
+          const Icon = c.icon;
+          return (
+            <button key={c.id} type="button" onClick={() => setActive(c.id)} className="flex items-center gap-4 p-4 text-left transition-colors hover:bg-[var(--glass-bg-soft)]">
+              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-soft)]"><Icon className="size-4.5 text-[var(--color-gold-500)]" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="text-strong block text-sm font-medium">{c.title}</span>
+                <span className="text-muted block truncate text-xs">{c.sub}</span>
+              </span>
+              <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
+            </button>
+          );
+        })}
+      </div>
 
       <footer className="flex items-center justify-center gap-4 pt-2 text-xs text-[var(--text-muted)]">
         <Link href="/privacy" className="hover:text-[var(--text-strong)]">Privacy</Link>
@@ -93,16 +118,6 @@ export function SettingsView() {
         <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
       </footer>
     </div>
-  );
-}
-
-function Section({ id, icon: Icon, title, children }: { id?: string; icon: typeof UserIcon; title: string; children: React.ReactNode }) {
-  return (
-    // scroll-mt keeps the section clear of the sticky top bar when deep-linked.
-    <GlassCard padded id={id} className="scroll-mt-24">
-      <div className="mb-4 flex items-center gap-2.5"><Icon className="size-5 text-[var(--color-gold-500)]" /><h2 className="text-strong text-base font-medium">{title}</h2></div>
-      <div className="flex flex-col gap-4">{children}</div>
-    </GlassCard>
   );
 }
 

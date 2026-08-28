@@ -44,17 +44,17 @@ export function TopBar({ user }: { user: ShellUser }) {
         </Link>
         <h1 className="text-strong hidden text-lg font-medium lg:block">{title}</h1>
         <WorkspaceSwitch />
-      </div>
-      <div className="flex items-center gap-2 sm:gap-3">
         <button
           type="button"
           onClick={toggle}
           aria-label={hidden ? "Show amounts" : "Hide amounts"}
           title={hidden ? "Show amounts" : "Hide amounts"}
-          className="grid size-10 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
+          className="grid size-10 shrink-0 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
         >
           {hidden ? <Eye className="size-5" /> : <EyeOff className="size-5" />}
         </button>
+      </div>
+      <div className="flex items-center gap-2 sm:gap-3">
         <InstallRenew />
         <GlobalSearch />
         <NotificationBell />
