@@ -12,6 +12,7 @@ import { Select } from "@/components/ui/Select";
 import { Textarea } from "@/components/ui/Textarea";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
+import { SwipeRow } from "@/components/ui/SwipeRow";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
@@ -183,14 +184,21 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
     ? [{ label: "Restore", icon: ArchiveRestore, onClick: onRestore! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }]
     : [{ label: "Edit", icon: Pencil, onClick: onEdit! }, { label: "Archive", icon: Archive, onClick: onArchive! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }];
   return (
-    <motion.div layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass flex items-center gap-3 p-3.5">
-      <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
-      <div className="min-w-0 flex-1">
-        <p className="text-strong truncate text-sm font-medium">{account.name}</p>
-        <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
-      </div>
-      <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{hidden ? mask : money(balance, account.currency)}</span>
-      <RowMenu items={items} />
+    <motion.div layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}>
+      <SwipeRow
+        swipeRight={!archived && onEdit ? { label: "Edit", icon: Pencil, bg: "bg-[var(--color-gold-600)]", onTrigger: onEdit } : archived && onRestore ? { label: "Restore", icon: ArchiveRestore, bg: "bg-emerald-500", onTrigger: onRestore } : undefined}
+        swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: onDelete }}
+      >
+        <div className="glass flex items-center gap-3 p-3.5">
+          <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
+          <div className="min-w-0 flex-1">
+            <p className="text-strong truncate text-sm font-medium">{account.name}</p>
+            <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
+          </div>
+          <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{hidden ? mask : money(balance, account.currency)}</span>
+          <RowMenu items={items} />
+        </div>
+      </SwipeRow>
     </motion.div>
   );
 }

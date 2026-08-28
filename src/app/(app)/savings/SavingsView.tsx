@@ -18,6 +18,7 @@ import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { savingsProjection, monthsSince } from "@/lib/intelligence";
+import { SwipeRow } from "@/components/ui/SwipeRow";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
 
@@ -45,7 +46,12 @@ export function SavingsView() {
               const done = g.current >= g.target;
               const proj = savingsProjection(g.current, g.target, monthsSince(g.createdAt));
               return (
-                <motion.div key={g.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} className="glass p-4">
+                <motion.div key={g.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}>
+                <SwipeRow
+                  swipeRight={done ? undefined : { label: "Add", icon: Coins, bg: "bg-emerald-500", onTrigger: () => setAddTo(g) }}
+                  swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => uid && deleteSavings(uid, g.id) }}
+                >
+                <div className="glass p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <p className="text-strong truncate text-sm font-medium">{g.name}</p>
@@ -70,6 +76,8 @@ export function SavingsView() {
                       At {money(proj.perMonth, g.currency)}/mo, about {proj.monthsToGo} month{proj.monthsToGo === 1 ? "" : "s"} to go.
                     </p>
                   )}
+                </div>
+                </SwipeRow>
                 </motion.div>
               );
             })}

@@ -20,6 +20,7 @@ import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { categoryAverages } from "@/lib/intelligence";
+import { SwipeRow } from "@/components/ui/SwipeRow";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
@@ -68,7 +69,12 @@ export function BudgetView() {
               const projected = monthPaceProjection(spent);
               const willExceed = !over && b.amount > 0 && projected > b.amount;
               return (
-                <motion.div key={b.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }} className="glass p-4">
+                <motion.div key={b.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}>
+                <SwipeRow
+                  swipeRight={{ label: "Edit", icon: Pencil, bg: "bg-[var(--color-gold-600)]", onTrigger: () => { setEditing(b); setModalOpen(true); } }}
+                  swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => uid && deleteBudget(uid, b.id) }}
+                >
+                <div className="glass p-4">
                   <div className="flex items-center gap-3">
                     <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
                     <div className="min-w-0 flex-1">
@@ -86,6 +92,8 @@ export function BudgetView() {
                       <TrendingUp className="size-3.5" />On this month&apos;s pace you&apos;ll spend ~{money(projected, b.currency)} — {money(projected - b.amount, b.currency)} over.
                     </p>
                   )}
+                </div>
+                </SwipeRow>
                 </motion.div>
               );
             })}
