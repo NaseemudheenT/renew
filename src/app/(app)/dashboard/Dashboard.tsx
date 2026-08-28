@@ -14,6 +14,7 @@ import { AnimatedButton, AnimatedModal, StaggerContainer, StaggerItem } from "@/
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
+import { FinancialIntelligence } from "@/components/finance/FinancialIntelligence";
 import { AskRenew } from "@/components/finance/AskRenew";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
@@ -212,6 +213,10 @@ export function Dashboard({ name }: { name: string }) {
                 <Insights insights={insights} currency={currency} />
               </StaggerItem>
             )}
+
+            <StaggerItem>
+              <FinancialIntelligence transactions={txAll.data} currency={currency} hideTrend max={3} />
+            </StaggerItem>
 
             <StaggerItem>
               <SpendingBreakdown transactions={txAll.data} currency={currency} />

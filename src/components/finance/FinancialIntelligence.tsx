@@ -15,10 +15,26 @@ import { cn } from "@/lib/utils";
  * signals from lib/intelligence into a few honest sentences: how this month
  * compares, which categories are unusually high, and the needs-vs-wants split.
  */
-export function FinancialIntelligence({ transactions, currency }: { transactions: Transaction[]; currency: string }) {
+export function FinancialIntelligence({
+  transactions,
+  currency,
+  hideTrend = false,
+  max,
+}: {
+  transactions: Transaction[];
+  currency: string;
+  /** Skip the month trend (e.g. the dashboard already shows it elsewhere). */
+  hideTrend?: boolean;
+  /** Cap the number of lines shown (compact placements like the dashboard). */
+  max?: number;
+}) {
   const { money } = useLocale();
   const { resolve } = useCategories();
-  const insights = useMemo(() => smartInsights(transactions), [transactions]);
+  const insights = useMemo(() => {
+    let list = smartInsights(transactions);
+    if (hideTrend) list = list.filter((i) => i.kind !== "trend");
+    return typeof max === "number" ? list.slice(0, max) : list;
+  }, [transactions, hideTrend, max]);
 
   if (insights.length === 0) return null;
 
