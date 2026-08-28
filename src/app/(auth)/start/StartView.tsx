@@ -19,10 +19,14 @@ function useGuestTxns(): GuestTxn[] {
   return useSyncExternalStore(
     (cb) => {
       window.addEventListener("renew-guest-change", cb);
-      return () => window.removeEventListener("renew-guest-change", cb);
+      window.addEventListener("storage", cb);
+      return () => {
+        window.removeEventListener("renew-guest-change", cb);
+        window.removeEventListener("storage", cb);
+      };
     },
     getGuestTxns,
-    () => [],
+    getGuestTxns,
   );
 }
 

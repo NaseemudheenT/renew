@@ -21,6 +21,12 @@ export interface GuestTxn {
 }
 
 const KEY = "renew-guest-txns";
+const EMPTY: GuestTxn[] = [];
+
+// Cached snapshot so getGuestTxns() returns a STABLE reference when nothing has
+// changed — required by useSyncExternalStore (a fresh array each call would loop).
+let cacheRaw: string | null = null;
+let cache: GuestTxn[] = EMPTY;
 
 /** Currency auto-detected from the phone/browser — no question asked. */
 export function detectGuestCurrency(): string {
@@ -32,14 +38,20 @@ export function detectGuestCurrency(): string {
 }
 
 export function getGuestTxns(): GuestTxn[] {
-  if (typeof window === "undefined") return [];
+  if (typeof window === "undefined") return EMPTY;
   try {
     const raw = localStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? (parsed as GuestTxn[]) : [];
+    if (raw === cacheRaw) return cache; // unchanged → same reference
+    cacheRaw = raw;
+    if (!raw) {
+      cache = EMPTY;
+    } else {
+      const parsed = JSON.parse(raw) as unknown;
+      cache = Array.isArray(parsed) ? (parsed as GuestTxn[]) : EMPTY;
+    }
+    return cache;
   } catch {
-    return [];
+    return cache;
   }
 }
 
