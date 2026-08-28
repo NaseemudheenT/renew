@@ -5,7 +5,6 @@ import {
   Target,
   PiggyBank,
   ReceiptText,
-  RefreshCw,
   BarChart3,
   Settings,
   ArrowDownLeft,
@@ -32,7 +31,6 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/budget", label: "Budget", msgKey: "nav.budget", icon: Target, primary: true },
   { href: "/savings", label: "Savings", msgKey: "nav.savings", icon: PiggyBank },
   { href: "/payments", label: "Bills", msgKey: "nav.payments", icon: ReceiptText },
-  { href: "/subscriptions", label: "Subscriptions", msgKey: "nav.subscriptions", icon: RefreshCw },
   { href: "/analytics", label: "Analytics", msgKey: "nav.analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", msgKey: "nav.settings", icon: Settings },
 ];
