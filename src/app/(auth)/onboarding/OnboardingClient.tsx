@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Wallet, Receipt, PiggyBank, TrendingUp, AlertCircle, Check,
+  Wallet, Receipt, PiggyBank, AlertCircle, Check,
   Bell, ShieldCheck, Lock, Fingerprint,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -35,7 +35,6 @@ const FOCUS = [
   { id: "spending", label: "Spending & budgets", icon: Wallet },
   { id: "bills", label: "Bills & subscriptions", icon: Receipt },
   { id: "savings", label: "Savings goals", icon: PiggyBank },
-  { id: "investments", label: "Investments", icon: TrendingUp },
 ] as const;
 
 type AccountType = "personal" | "business";

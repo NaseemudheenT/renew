@@ -7,7 +7,6 @@ import { Search, CornerDownLeft, type LucideIcon } from "lucide-react";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
-import { investmentMeta } from "@/lib/finance";
 import { accountTypeMeta, subscriptionIcon } from "@/lib/accounts";
 import { categoryMeta } from "@/lib/categories";
 import type { MessageKey } from "@/lib/i18n/messages";
@@ -15,7 +14,6 @@ import type {
   Transaction,
   Budget,
   SavingsGoal,
-  Investment,
   Payment,
   Account,
   Subscription,
@@ -80,7 +78,6 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
   const transactions = useUserCollection<Transaction>("transactions");
   const budgets = useUserCollection<Budget>("budgets");
   const savings = useUserCollection<SavingsGoal>("savings");
-  const investments = useUserCollection<Investment>("investments");
   const payments = useUserCollection<Payment>("payments");
   const accounts = useUserCollection<Account>("accounts");
   const subscriptions = useUserCollection<Subscription>("subscriptions");
@@ -137,18 +134,6 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
         blob: `${g.name}`.toLowerCase(),
       });
     }
-    for (const inv of investments.data) {
-      const meta = investmentMeta(inv.itype);
-      out.push({
-        id: `inv-${inv.id}`,
-        groupKey: "nav.investments",
-        icon: meta.icon,
-        label: inv.name,
-        sub: `${meta.label} · ${money(inv.quantity * inv.currentPrice, inv.currency)}`,
-        href: "/investments",
-        blob: `${inv.name} ${meta.label}`.toLowerCase(),
-      });
-    }
     for (const b of budgets.data) {
       const meta = resolve(b.category);
       out.push({
@@ -185,7 +170,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
       });
     }
     return out;
-  }, [transactions.data, payments.data, savings.data, investments.data, budgets.data, accounts.data, subscriptions.data, money, resolve]);
+  }, [transactions.data, payments.data, savings.data, budgets.data, accounts.data, subscriptions.data, money, resolve]);
 
   const results = useMemo(() => {
     const query = q.trim().toLowerCase();

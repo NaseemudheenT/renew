@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { orderBy, where, limit } from "firebase/firestore";
 import {
-  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, TrendingUp, ReceiptText, Plus, ChevronRight, Wallet, ShieldCheck,
+  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, ReceiptText, Plus, ChevronRight, Wallet, ShieldCheck,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -29,7 +29,7 @@ import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccountType } from "@/hooks/useAccountType";
 import { cn } from "@/lib/utils";
-import type { Transaction, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
+import type { Transaction, SavingsGoal, Payment, Account, Transfer, Subscription } from "@/lib/types";
 
 /** A warm, time-of-day greeting — computed from the person's own clock. */
 function timeGreeting(): string {
@@ -48,7 +48,6 @@ const FOCUS_SHORTCUTS: Record<string, { label: string; href: string; icon: typeo
   spending: { label: "Spending & budgets", href: "/budget", icon: Wallet },
   bills: { label: "Bills & subscriptions", href: "/payments", icon: ReceiptText },
   savings: { label: "Savings goals", href: "/savings", icon: PiggyBank },
-  investments: { label: "Investments", href: "/investments", icon: TrendingUp },
 };
 
 export function Dashboard({ name }: { name: string }) {
@@ -69,7 +68,6 @@ export function Dashboard({ name }: { name: string }) {
   const txAll = useScopedUserCollection<Transaction>("transactions", txC);
   const recent = useScopedUserCollection<Transaction>("transactions", recentC);
   const savings = useScopedUserCollection<SavingsGoal>("savings");
-  const investments = useScopedUserCollection<Investment>("investments");
   const bills = useScopedUserCollection<Payment>("payments", upcomingC);
   const accounts = useScopedUserCollection<Account>("accounts");
   const transfers = useScopedUserCollection<Transfer>("transfers");
@@ -78,7 +76,7 @@ export function Dashboard({ name }: { name: string }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const loading = txAll.loading || savings.loading || investments.loading || bills.loading || accounts.loading || transfers.loading;
+  const loading = txAll.loading || savings.loading || bills.loading || accounts.loading || transfers.loading;
   const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
 
   const totals = useMemo(() => {
@@ -92,10 +90,7 @@ export function Dashboard({ name }: { name: string }) {
   }, [txAll.data]);
 
   const savingsTotal = useMemo(() => savings.data.reduce((s, g) => s + g.current, 0), [savings.data]);
-  const invValue = useMemo(() => investments.data.reduce((s, i) => s + i.quantity * i.currentPrice, 0), [investments.data]);
-  const invCost = useMemo(() => investments.data.reduce((s, i) => s + i.quantity * i.buyPrice, 0), [investments.data]);
-  const invGain = invValue - invCost;
-  const netWorth = totals.balance + savingsTotal + invValue;
+  const netWorth = totals.balance + savingsTotal;
   const upcomingBills = useMemo(() => [...bills.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 4), [bills.data]);
   const comingTotal = useMemo(() => bills.data.reduce((s, b) => s + b.amount, 0), [bills.data]);
   const recurring = useMemo(() => {
@@ -121,7 +116,7 @@ export function Dashboard({ name }: { name: string }) {
     return m;
   }, [activeAccounts, txAll.data, transfers.data]);
 
-  const brandNew = !loading && txAll.data.length === 0 && savings.data.length === 0 && investments.data.length === 0 && bills.data.length === 0 && accounts.data.length === 0;
+  const brandNew = !loading && txAll.data.length === 0 && savings.data.length === 0 && bills.data.length === 0 && accounts.data.length === 0;
 
   async function addTransaction(input: TransactionInput): Promise<boolean> {
     if (!txAll.uid) return false;
@@ -295,22 +290,6 @@ export function Dashboard({ name }: { name: string }) {
                         );
                       })}
                     </ul>
-                  )}
-                </GlassCard>
-              </StaggerItem>
-
-              {/* Investments */}
-              <StaggerItem className="lg:col-span-2">
-                <GlassCard padded>
-                  <Heading title="Investments" href="/investments" />
-                  {investments.data.length === 0 ? (
-                    <EmptyState compact icon={TrendingUp} title="No investments tracked" />
-                  ) : (
-                    <div className="mt-3 flex flex-wrap items-center gap-x-8 gap-y-3">
-                      <div><p className="text-muted text-xs">Value</p><p className="text-strong text-xl font-medium tabular-nums">{money(invValue, currency)}</p></div>
-                      <div><p className="text-muted text-xs">Invested</p><p className="text-body text-xl font-medium tabular-nums">{money(invCost, currency)}</p></div>
-                      <div><p className="text-muted text-xs">Gain / loss</p><p className={cn("text-xl font-medium tabular-nums", invGain >= 0 ? "text-emerald-500" : "text-rose-500")}>{invGain >= 0 ? "+" : "−"}{money(Math.abs(invGain), currency)}</p></div>
-                    </div>
                   )}
                 </GlassCard>
               </StaggerItem>
