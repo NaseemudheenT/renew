@@ -5,7 +5,6 @@ import { Sidebar } from "./Sidebar";
 import { MobileNav } from "./MobileNav";
 import { TopBar } from "./TopBar";
 import { NotificationSync } from "./NotificationSync";
-import { AppLock } from "@/components/security/AppLock";
 import { ReauthProvider } from "@/components/security/ReauthProvider";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
 import { WorkspaceProvider } from "@/components/providers/WorkspaceProvider";
@@ -23,7 +22,6 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
         Skip to content
       </a>
       <NotificationSync />
-      <AppLock />
       <WorkspaceProvider>
         <ReauthProvider>
           <PrivacyProvider>

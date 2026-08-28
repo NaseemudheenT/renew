@@ -3,7 +3,7 @@
 import { useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, Lock, Accessibility, MonitorSmartphone } from "lucide-react";
+import { User as UserIcon, Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, Accessibility } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -25,9 +25,7 @@ import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Tr
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateNotificationPrefs, updateLocalePrefs } from "@/lib/firestore/profile";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
-import { AppLockControl } from "@/components/settings/AppLockControl";
 import { AccessibilityControl } from "@/components/settings/AccessibilityControl";
-import { DeviceLinkControl } from "@/components/settings/DeviceLinkControl";
 import { useReauth } from "@/components/security/ReauthProvider";
 import { REGION_CURRENCY, weekStartFor, hour12For, type WeekStart } from "@/lib/i18n/config";
 import { signOutUser } from "@/lib/auth/client";
@@ -83,14 +81,6 @@ export function SettingsView() {
 
       <Section id="accessibility" icon={Accessibility} title="Accessibility">
         <AccessibilityControl />
-      </Section>
-
-      <Section id="devices" icon={MonitorSmartphone} title="Linked devices">
-        <DeviceLinkControl />
-      </Section>
-
-      <Section id="applock" icon={Lock} title="App lock">
-        <AppLockControl />
       </Section>
 
       <Section icon={ShieldCheck} title="Security">

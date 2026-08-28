@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Wallet, Receipt, PiggyBank, AlertCircle, Check,
-  Bell, ShieldCheck, Lock, Fingerprint,
+  Bell, ShieldCheck, ArrowRight,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { RenewMark } from "@/components/brand/RenewMark";
@@ -16,12 +16,6 @@ import { CountrySelect } from "@/components/ui/CountrySelect";
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { AnimatedButton } from "@/components/motion";
-import { useAuth } from "@/components/providers/AuthProvider";
-import { usePasskeySupport, registerPasskey } from "@/lib/auth/passkey-client";
-import { makePasscodeRecord, isValidPasscode, type PasscodeKind } from "@/lib/security/passcode";
-import { setSecurity } from "@/lib/firestore/profile";
-import { markUnlocked } from "@/components/security/AppLock";
-import { PatternPad } from "@/components/security/PatternPad";
 import { requestBrowserNotify } from "@/lib/notify";
 import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
@@ -46,12 +40,10 @@ const slide = {
   transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-const STEPS = 6;
+const STEPS = 5;
 
 export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const detected = useMemo(() => detectPrefs(), []);
-  const { user } = useAuth();
-  const passkeySupported = usePasskeySupport();
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState(defaultName);
@@ -67,10 +59,6 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const [notify, setNotify] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
   // Security
-  const [pcKind, setPcKind] = useState<PasscodeKind>("pin");
-  const [code, setCode] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [biometric, setBiometric] = useState(true);
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -106,7 +94,6 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   function next() {
     if (step === 0 && !name.trim()) return setError("Please tell us your name.");
     if (step === 1 && !stepValid(1)) return setError("Please choose your language, region and currency.");
-    if (step === 4 && !acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
     if (!stepValid(step)) return;
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS - 1));
@@ -114,22 +101,9 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
   async function finish() {
     setError(null);
-    // App Lock is mandatory — a passcode must be set before entering Renew.
-    if (!code.trim()) return setError(pcKind === "pin" ? "Please set a PIN to protect Renew." : "Please set a passphrase to protect Renew.");
-    if (!isValidPasscode(code, pcKind)) return setError(pcKind === "pin" ? "PIN must be 4–8 digits." : "Passphrase must be at least 4 characters.");
-    if (code !== confirm) return setError("The two entries don't match.");
+    if (!acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
     setSubmitting(true);
     try {
-      // Save the App Lock first (client-side), so it's ready on next open.
-      if (code.trim() && user?.uid) {
-        let bio = false;
-        if (biometric && passkeySupported) {
-          try { await registerPasskey(); bio = true; } catch { bio = false; }
-        }
-        const record = await makePasscodeRecord(code, pcKind, bio);
-        await setSecurity(user.uid, record);
-        markUnlocked(user.uid);
-      }
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -266,42 +240,6 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
           </motion.div>
         )}
 
-        {step === 5 && (
-          <motion.div key="s5" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Lock Renew</h1>
-            <p className="text-muted mt-1 text-sm">Set a passcode and Face ID so only you can open Renew. This is required — it keeps your money private on this device.</p>
-            <div className="mt-5 inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
-              {(["pin", "text", "pattern"] as PasscodeKind[]).map((k) => (
-                <button key={k} type="button" onClick={() => { setPcKind(k); setCode(""); setConfirm(""); setError(null); }} className={cn("rounded-full px-4 py-1.5 transition-colors", pcKind === k ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>{k === "pin" ? "PIN" : k === "text" ? "Passphrase" : "Pattern"}</button>
-              ))}
-            </div>
-            <div className="mt-4 grid gap-3">
-              {pcKind === "pattern" ? (
-                <div className="flex flex-col items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] py-4">
-                  <span className="text-muted text-xs">{!code ? "Draw your pattern" : code !== confirm ? "Draw it again to confirm" : "Pattern confirmed ✓"}</span>
-                  <PatternPad
-                    key={!code ? "draw" : "confirm"}
-                    onComplete={(c) => { if (!code) { setCode(c); } else { setConfirm(c); } setError(null); }}
-                  />
-                  {code && (
-                    <button type="button" onClick={() => { setCode(""); setConfirm(""); }} className="text-xs font-medium text-[var(--color-gold-600)] hover:underline">Start over</button>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <Input label={pcKind === "pin" ? "Passcode (4–8 digits)" : "Passphrase"} type="password" inputMode={pcKind === "pin" ? "numeric" : "text"} value={code} onChange={(e) => { setCode(e.target.value); setError(null); }} placeholder={pcKind === "pin" ? "••••" : "At least 4 characters"} />
-                  <Input label="Confirm" type="password" inputMode={pcKind === "pin" ? "numeric" : "text"} value={confirm} onChange={(e) => { setConfirm(e.target.value); setError(null); }} placeholder="Re-enter" />
-                </>
-              )}
-              {passkeySupported && (
-                <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
-                  <span className="text-body flex items-center gap-2.5 text-sm"><Fingerprint className="size-4.5 text-[var(--color-gold-500)]" />Also unlock with Face ID</span>
-                  <Switch checked={biometric} onChange={setBiometric} label="Unlock with Face ID" />
-                </div>
-              )}
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
       {error && (
@@ -315,8 +253,8 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         {step < STEPS - 1 ? (
           <AnimatedButton size="lg" fullWidth onClick={next} disabled={!stepValid(step)}>Continue</AnimatedButton>
         ) : (
-          <AnimatedButton size="lg" fullWidth loading={submitting} onClick={finish} disabled={!code.trim() || code !== confirm}>
-            <Lock className="size-4" />Turn on & enter
+          <AnimatedButton size="lg" fullWidth loading={submitting} onClick={finish} disabled={!acceptedLegal}>
+            Enter Renew<ArrowRight className="size-4" />
           </AnimatedButton>
         )}
       </div>

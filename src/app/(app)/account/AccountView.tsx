@@ -4,9 +4,9 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  RefreshCw, ReceiptText, Sparkles, ShieldCheck, Fingerprint, Lock,
-  MonitorSmartphone, Globe, Palette, Bell, Accessibility, Upload, Database,
-  ChevronRight, LogOut, BadgeCheck, KeyRound,
+  RefreshCw, ReceiptText, Sparkles, Fingerprint,
+  Globe, Palette, Bell, Accessibility, Upload, Database,
+  ChevronRight, LogOut, BadgeCheck,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/shell/Avatar";
@@ -78,9 +78,6 @@ export function AccountView() {
     return upcoming[0] ?? null;
   }, [active]);
 
-  const security = profile?.security;
-  const appLockOn = Boolean(security);
-  const biometricOn = Boolean(security?.biometricEnabled);
   const memberSince = profile?.createdAt
     ? new Date(profile.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })
     : null;
@@ -117,10 +114,6 @@ export function AccountView() {
         <div className="mt-4 flex flex-wrap gap-2">
           <Chip icon={Sparkles} tone="gold">Free plan</Chip>
           <Chip icon={BadgeCheck} tone="calm">Passwordless</Chip>
-          <Chip icon={appLockOn ? ShieldCheck : Lock} tone={appLockOn ? "calm" : "muted"}>
-            App Lock {appLockOn ? "on" : "off"}
-          </Chip>
-          {biometricOn && <Chip icon={Fingerprint} tone="calm">Face ID</Chip>}
         </div>
       </GlassCard>
 
@@ -172,15 +165,11 @@ export function AccountView() {
       </Group>
 
       {/* Security & sign-in */}
-      <Group title="Security & sign-in">
-        <Row icon={Lock} title="App Lock" desc={appLockOn ? `On · ${lockKindLabel(security?.kind)}` : "Set a passcode to lock Renew"} href="/settings#applock" />
-        {passkeySupported && !biometricOn ? (
-          <RowButton icon={Fingerprint} title="Set up Face ID" desc="Unlock with your passkey — no passwords" onClick={onAddPasskey} loading={addingPasskey} />
-        ) : (
-          <Row icon={KeyRound} title="Passkeys & Face ID" desc={biometricOn ? "On for this account" : "Add a passkey to sign in"} href="/settings#applock" />
-        )}
-        <Row icon={MonitorSmartphone} title="Linked devices" desc="Sign in on another device with QR" href="/settings#devices" />
-      </Group>
+      {passkeySupported && (
+        <Group title="Security & sign-in">
+          <RowButton icon={Fingerprint} title="Add a passkey" desc="Sign in with Face ID / Touch ID — no passwords" onClick={onAddPasskey} loading={addingPasskey} />
+        </Group>
+      )}
 
       {/* Preferences */}
       <Group title="Preferences">
@@ -277,14 +266,6 @@ function RowButton({ icon: Icon, title, desc, onClick, loading }: { icon: typeof
   );
 }
 
-function lockKindLabel(kind: string | undefined): string {
-  switch (kind) {
-    case "pin": return "PIN";
-    case "text": return "passphrase";
-    case "pattern": return "pattern";
-    default: return "passcode";
-  }
-}
 
 function relativeDays(at: number): string {
   const days = Math.round((at - Date.now()) / 86_400_000);
