@@ -20,7 +20,18 @@ type Pending = null | "google" | "passkey";
  * No passwords, no OTP. QR is offered only in a browser tab; the installed app
  * signs in with the passkey. One tap, premium, fast.
  */
-export function SocialAuth({ title, subtitle }: { title: string; subtitle: string }) {
+export function SocialAuth({
+  title,
+  subtitle,
+  showPasskey = true,
+}: {
+  title: string;
+  subtitle: string;
+  /** Passkey sign-in only makes sense once a passkey exists (returning users).
+   *  On the create-account screen it's hidden — Google/QR create the account and
+   *  the passkey is saved during setup. */
+  showPasskey?: boolean;
+}) {
   const { configured } = useAuth();
   const passkeySupported = usePasskeySupport();
   const isBrowser = useIsBrowser();
@@ -73,7 +84,7 @@ export function SocialAuth({ title, subtitle }: { title: string; subtitle: strin
             <AuthTile onClick={google} disabled={busy} loading={pending === "google"} icon={<GoogleIcon className="size-5" />} label="Continue with Google" primary />
           </StaggerItem>
 
-          {passkeySupported && (
+          {passkeySupported && showPasskey && (
             <StaggerItem>
               <AuthTile onClick={passkey} disabled={busy} loading={pending === "passkey"} icon={<Fingerprint className="size-5 text-[var(--color-gold-500)]" />} label="Continue with a passkey" />
             </StaggerItem>
