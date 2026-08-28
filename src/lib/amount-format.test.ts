@@ -29,6 +29,13 @@ describe("amount-format", () => {
     expect(parseAmount("")).toBe(0);
   });
 
+  it("preserves a leading minus (e.g. overdraft opening balance)", () => {
+    expect(formatAmountTyping("-5000", "en-US").display).toBe("-5,000");
+    expect(formatAmountTyping("-5000", "en-US").value).toBe(-5000);
+    expect(parseAmount("-1,00,000")).toBe(-100000);
+    expect(displayFromValue(-5000, "en-US")).toBe("-5,000");
+  });
+
   it("picks the grouping locale from region/currency", () => {
     expect(groupingLocale("IN")).toBe("en-IN");
     expect(groupingLocale(undefined, "INR")).toBe("en-IN");

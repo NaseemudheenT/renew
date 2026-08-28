@@ -16,26 +16,30 @@ export function groupingLocale(region?: string, currency?: string): string {
  * Accepts messy input (letters, extra dots) and never throws.
  */
 export function formatAmountTyping(raw: string, locale: string): { display: string; value: number } {
+  const neg = /^\s*-/.test(raw ?? "");
   const cleaned = (raw ?? "").replace(/[^\d.]/g, "");
-  if (cleaned === "") return { display: "", value: 0 };
+  if (cleaned === "") return { display: neg ? "-" : "", value: 0 };
 
   const firstDot = cleaned.indexOf(".");
   const hasDot = firstDot !== -1;
-  let intDigits = (hasDot ? cleaned.slice(0, firstDot) : cleaned).replace(/^0+(?=\d)/, "");
+  const intDigits = (hasDot ? cleaned.slice(0, firstDot) : cleaned).replace(/^0+(?=\d)/, "");
   const decDigits = hasDot ? cleaned.slice(firstDot + 1).replace(/\./g, "").slice(0, 2) : null;
 
   const groupedInt =
     intDigits === "" ? (hasDot ? "0" : "") : new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(Number(intDigits));
 
-  const display = decDigits === null ? groupedInt : `${groupedInt}.${decDigits}`;
-  const value = Number(`${intDigits === "" ? "0" : intDigits}.${decDigits ?? "0"}`);
-  return { display, value: Number.isFinite(value) ? value : 0 };
+  const sign = neg ? "-" : "";
+  const display = sign + (decDigits === null ? groupedInt : `${groupedInt}.${decDigits}`);
+  const magnitude = Number(`${intDigits === "" ? "0" : intDigits}.${decDigits ?? "0"}`);
+  const value = (neg ? -1 : 1) * (Number.isFinite(magnitude) ? magnitude : 0);
+  return { display, value };
 }
 
-/** Turn a grouped display string back into a number (strips separators). */
+/** Turn a grouped display string back into a number (strips separators, keeps sign). */
 export function parseAmount(display: string): number {
+  const neg = /^\s*-/.test(display ?? "");
   const n = Number((display ?? "").replace(/[^\d.]/g, ""));
-  return Number.isFinite(n) ? n : 0;
+  return Number.isFinite(n) ? (neg ? -n : n) : 0;
 }
 
 /** Seed the field from a stored number, grouped for the given locale. */

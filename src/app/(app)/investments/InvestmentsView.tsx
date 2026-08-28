@@ -17,6 +17,7 @@ import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createInvestment, updateInvestment, deleteInvestment } from "@/lib/firestore/investments";
 import { INVESTMENT_TYPES, investmentMeta } from "@/lib/finance";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Investment, InvestmentType } from "@/lib/types";
 
@@ -92,13 +93,13 @@ function HoldingModal({ open, onClose, uid, editing }: { open: boolean; onClose:
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
-  if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setItype(editing.itype); setQuantity(String(editing.quantity)); setBuyPrice(String(editing.buyPrice)); setCurrentPrice(String(editing.currentPrice)); setCurrency(editing.currency); }
+  if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setItype(editing.itype); setQuantity(String(editing.quantity)); setBuyPrice(displayFromValue(editing.buyPrice, groupingLocale(prefs.region, editing.currency))); setCurrentPrice(displayFromValue(editing.currentPrice, groupingLocale(prefs.region, editing.currency))); setCurrency(editing.currency); }
   if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setItype("stock"); setQuantity(""); setBuyPrice(""); setCurrentPrice(""); setCurrency(prefs.currency); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!uid || !name.trim()) return;
-    const q = Number(quantity), bp = Number(buyPrice), cp = Number(currentPrice);
+    const q = Number(quantity), bp = parseAmount(buyPrice), cp = parseAmount(currentPrice);
     if (q <= 0 || bp < 0 || cp < 0) return;
     setSubmitting(true);
     try {
@@ -124,8 +125,8 @@ function HoldingModal({ open, onClose, uid, editing }: { open: boolean; onClose:
           <Input label="Quantity" type="number" min="0" step="any" placeholder="0" value={quantity} onChange={(e) => setQuantity(e.target.value)} />
         </div>
         <div className="grid grid-cols-[1fr_1fr_6rem] gap-3">
-          <Input label="Buy price" type="number" min="0" step="any" placeholder="0.00" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} />
-          <Input label="Current price" type="number" min="0" step="any" placeholder="0.00" value={currentPrice} onChange={(e) => setCurrentPrice(e.target.value)} />
+          <Input label="Buy price" type="text" inputMode="decimal" placeholder="0" value={buyPrice} onChange={(e) => setBuyPrice(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} />
+          <Input label="Current price" type="text" inputMode="decimal" placeholder="0" value={currentPrice} onChange={(e) => setCurrentPrice(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} />
           <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
         </div>
         <div className="mt-1 flex items-center justify-end gap-3">

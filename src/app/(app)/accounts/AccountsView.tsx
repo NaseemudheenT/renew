@@ -16,6 +16,7 @@ import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { createAccount, updateAccount, setAccountStatus, deleteAccount, type AccountInput } from "@/lib/firestore/accounts";
 import { createTransfer, deleteTransfer, type TransferInput } from "@/lib/firestore/transfers";
 import { ACCOUNT_TYPES, accountTypeMeta, computeAccountBalance } from "@/lib/accounts";
@@ -195,7 +196,7 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
 }
 
 function AccountModal({ open, onClose, uid, editing, defaultCurrency }: { open: boolean; onClose: () => void; uid: string | null; editing: Account | null; defaultCurrency: string }) {
-  const { t } = useLocale();
+  const { t, prefs } = useLocale();
   const [name, setName] = useState("");
   const [atype, setAtype] = useState<AccountType>("bank");
   const [institution, setInstitution] = useState("");
@@ -205,13 +206,13 @@ function AccountModal({ open, onClose, uid, editing, defaultCurrency }: { open: 
   const [initId, setInitId] = useState<string | null>(null);
 
   if (!open && initId !== null) setInitId(null);
-  if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setAtype(editing.atype); setInstitution(editing.institution ?? ""); setCurrency(editing.currency); setOpening(String(editing.openingBalance)); }
+  if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setAtype(editing.atype); setInstitution(editing.institution ?? ""); setCurrency(editing.currency); setOpening(displayFromValue(editing.openingBalance, groupingLocale(prefs.region, editing.currency))); }
   if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setAtype("bank"); setInstitution(""); setCurrency(defaultCurrency); setOpening("0"); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!uid || !name.trim()) return;
-    const opened = Number(opening);
+    const opened = parseAmount(opening);
     if (!Number.isFinite(opened)) return;
     setSubmitting(true);
     try {
@@ -237,7 +238,7 @@ function AccountModal({ open, onClose, uid, editing, defaultCurrency }: { open: 
           <Select label={t("settings.region.currency")} value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
         </div>
         <Input label={t("accounts.institution")} value={institution} onChange={(e) => setInstitution(e.target.value)} placeholder="Optional" />
-        <Input label={t("accounts.opening")} type="number" inputMode="decimal" step="0.01" value={opening} onChange={(e) => setOpening(e.target.value)} />
+        <Input label={t("accounts.opening")} type="text" inputMode="decimal" value={opening} onChange={(e) => setOpening(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} />
         <div className="mt-1 flex items-center justify-end gap-3">
           <AnimatedButton type="button" variant="ghost" onClick={onClose} disabled={submitting}>{t("common.cancel")}</AnimatedButton>
           <AnimatedButton type="submit" loading={submitting}>{editing ? t("common.save") : t("accounts.new")}</AnimatedButton>
@@ -248,7 +249,7 @@ function AccountModal({ open, onClose, uid, editing, defaultCurrency }: { open: 
 }
 
 function TransferModal({ open, onClose, uid, accounts }: { open: boolean; onClose: () => void; uid: string | null; accounts: Account[] }) {
-  const { t } = useLocale();
+  const { t, prefs } = useLocale();
   const [fromId, setFromId] = useState("");
   const [toId, setToId] = useState("");
   const [amount, setAmount] = useState("");
@@ -268,7 +269,7 @@ function TransferModal({ open, onClose, uid, accounts }: { open: boolean; onClos
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!uid || !fromAccount) return;
-    const amt = Number(amount);
+    const amt = parseAmount(amount);
     setError(null);
     setSubmitting(true);
     try {
@@ -289,7 +290,7 @@ function TransferModal({ open, onClose, uid, accounts }: { open: boolean; onClos
         <Select label={t("accounts.transfer.from")} value={fromId} onChange={(e) => { setFromId(e.target.value); setToId(""); }} options={accounts.map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }))} />
         <Select label={t("accounts.transfer.to")} value={toId} onChange={(e) => setToId(e.target.value)} options={[{ value: "", label: "—" }, ...toOptions.map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }))]} />
         <div className="grid grid-cols-2 gap-3">
-          <Input label={t("accounts.transfer.amount")} type="number" inputMode="decimal" step="0.01" min="0" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" error={error ?? undefined} />
+          <Input label={t("accounts.transfer.amount")} type="text" inputMode="decimal" value={amount} onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(prefs.region, fromAccount?.currency)).display)} placeholder="0" error={error ?? undefined} />
           <Input label={t("common.date")} type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </div>
         <Textarea label={t("accounts.note")} value={note} onChange={(e) => setNote(e.target.value)} rows={2} placeholder="Optional" />

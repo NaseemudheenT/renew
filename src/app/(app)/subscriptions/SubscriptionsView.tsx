@@ -18,6 +18,7 @@ import { RecurringSuggestions } from "@/components/finance/RecurringSuggestions"
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import {
   createSubscription, updateSubscription, setSubscriptionStatus, deleteSubscription, type SubscriptionInput,
 } from "@/lib/firestore/subscriptions";
@@ -196,7 +197,7 @@ function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onPay, onEdit, on
 }
 
 function SubModal({ open, onClose, uid, editing, accounts, defaultCurrency }: { open: boolean; onClose: () => void; uid: string | null; editing: Subscription | null; accounts: Account[]; defaultCurrency: string }) {
-  const { t } = useLocale();
+  const { t, prefs } = useLocale();
   const [todayStr] = useState(() => toDateInput(Date.now()));
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
@@ -210,13 +211,13 @@ function SubModal({ open, onClose, uid, editing, accounts, defaultCurrency }: { 
   const [initId, setInitId] = useState<string | null>(null);
 
   if (!open && initId !== null) setInitId(null);
-  if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setPrice(String(editing.price)); setCurrency(editing.currency); setCycle(editing.cycle); setNextAt(toDateInput(editing.nextBillingAt)); setCategory(editing.category as Category); setAccountId(editing.accountId ?? ""); setNotes(editing.notes ?? ""); }
+  if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setPrice(displayFromValue(editing.price, groupingLocale(prefs.region, editing.currency))); setCurrency(editing.currency); setCycle(editing.cycle); setNextAt(toDateInput(editing.nextBillingAt)); setCategory(editing.category as Category); setAccountId(editing.accountId ?? ""); setNotes(editing.notes ?? ""); }
   if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setPrice(""); setCurrency(defaultCurrency); setCycle("monthly"); setNextAt(todayStr); setCategory("subscriptions"); setAccountId(""); setNotes(""); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!uid || !name.trim()) return;
-    const p = Number(price);
+    const p = parseAmount(price);
     if (!Number.isFinite(p) || p < 0) return;
     setSubmitting(true);
     try {
@@ -238,7 +239,7 @@ function SubModal({ open, onClose, uid, editing, accounts, defaultCurrency }: { 
       <form onSubmit={save} className="flex flex-col gap-4">
         <Input label={t("subs.name")} value={name} autoFocus onChange={(e) => setName(e.target.value)} placeholder="e.g. Netflix" />
         <div className="grid grid-cols-2 gap-3">
-          <Input label={t("subs.price")} type="number" inputMode="decimal" step="0.01" min="0" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="0.00" />
+          <Input label={t("subs.price")} type="text" inputMode="decimal" value={price} onChange={(e) => setPrice(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} placeholder="0" />
           <Select label={t("settings.region.currency")} value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
         </div>
         <div className="grid grid-cols-2 gap-3">

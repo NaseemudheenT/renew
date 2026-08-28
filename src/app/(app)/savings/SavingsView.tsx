@@ -16,6 +16,7 @@ import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createSavings, updateSavings, deleteSavings, addToSavings } from "@/lib/firestore/savings";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
 
@@ -84,15 +85,15 @@ function GoalModal({ open, onClose, uid, editing }: { open: boolean; onClose: ()
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
-  if (open && editing && initId !== editing.id) { setInitId(editing.id); setName(editing.name); setTarget(String(editing.target)); setCurrent(String(editing.current)); setCurrency(editing.currency); setHasDate(editing.targetDate != null); setDate(toDateInput(editing.targetDate ?? editing.createdAt)); }
+  if (open && editing && initId !== editing.id) { const gl = groupingLocale(prefs.region, editing.currency); setInitId(editing.id); setName(editing.name); setTarget(displayFromValue(editing.target, gl)); setCurrent(displayFromValue(editing.current, gl)); setCurrency(editing.currency); setHasDate(editing.targetDate != null); setDate(toDateInput(editing.targetDate ?? editing.createdAt)); }
   if (open && !editing && initId !== "new") { setInitId("new"); setName(""); setTarget(""); setCurrent("0"); setCurrency(prefs.currency); setHasDate(false); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!uid || !name.trim() || Number(target) <= 0) return;
+    if (!uid || !name.trim() || parseAmount(target) <= 0) return;
     setSubmitting(true);
     try {
-      const payload = { name: name.trim(), target: Number(target), current: Number(current) || 0, currency, targetDate: hasDate ? fromDateTimeInputs(date) : null };
+      const payload = { name: name.trim(), target: parseAmount(target), current: parseAmount(current) || 0, currency, targetDate: hasDate ? fromDateTimeInputs(date) : null };
       if (editing) await updateSavings(uid, editing.id, payload);
       else await createSavings(uid, payload);
       toast({ title: editing ? "Goal updated" : "Goal created", variant: "success" });
@@ -110,10 +111,10 @@ function GoalModal({ open, onClose, uid, editing }: { open: boolean; onClose: ()
       <form onSubmit={save} className="flex flex-col gap-4">
         <Input label="Goal name" placeholder="e.g. Emergency fund" value={name} autoFocus onChange={(e) => setName(e.target.value)} />
         <div className="grid grid-cols-[1fr_7rem] gap-3">
-          <Input label="Target amount" type="number" min="0" step="0.01" placeholder="0.00" value={target} onChange={(e) => setTarget(e.target.value)} />
+          <Input label="Target amount" type="text" inputMode="decimal" placeholder="0" value={target} onChange={(e) => setTarget(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} />
           <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
         </div>
-        <Input label="Already saved" type="number" min="0" step="0.01" placeholder="0.00" value={current} onChange={(e) => setCurrent(e.target.value)} />
+        <Input label="Already saved" type="text" inputMode="decimal" placeholder="0" value={current} onChange={(e) => setCurrent(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} />
         <div>
           <label className="mb-2 block text-sm font-medium text-[var(--text-body)]">Target date</label>
           {hasDate ? <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} /> : <button type="button" onClick={() => setHasDate(true)} className="h-12 w-full rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] text-sm text-[var(--text-muted)] hover:text-[var(--text-strong)]">Add a target date</button>}
@@ -132,10 +133,10 @@ function AddMoneyModal({ goal, uid, onClose }: { goal: SavingsGoal | null; uid: 
   const [submitting, setSubmitting] = useState(false);
   async function save(e: React.FormEvent) {
     e.preventDefault();
-    if (!uid || !goal || Number(amount) <= 0) return;
+    if (!uid || !goal || parseAmount(amount) <= 0) return;
     setSubmitting(true);
     try {
-      await addToSavings(uid, goal.id, Number(amount));
+      await addToSavings(uid, goal.id, parseAmount(amount));
       toast({ title: "Added to savings", variant: "success" });
       setAmount("");
       onClose();
@@ -148,7 +149,7 @@ function AddMoneyModal({ goal, uid, onClose }: { goal: SavingsGoal | null; uid: 
   return (
     <AnimatedModal open={Boolean(goal)} onClose={() => { setAmount(""); onClose(); }} title={goal ? `Add to ${goal.name}` : ""}>
       <form onSubmit={save} className="flex flex-col gap-4">
-        <Input label="Amount to add" type="number" min="0" step="0.01" placeholder="0.00" value={amount} autoFocus onChange={(e) => setAmount(e.target.value)} />
+        <Input label="Amount to add" type="text" inputMode="decimal" placeholder="0" value={amount} autoFocus onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(undefined, goal?.currency)).display)} />
         <div className="flex items-center justify-end gap-3">
           <AnimatedButton type="button" variant="ghost" onClick={() => { setAmount(""); onClose(); }} disabled={submitting}>Cancel</AnimatedButton>
           <AnimatedButton type="submit" loading={submitting}><Coins className="size-4" />Add</AnimatedButton>

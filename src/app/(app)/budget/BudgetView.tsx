@@ -18,6 +18,7 @@ import { createBudget, updateBudget, deleteBudget } from "@/lib/firestore/budget
 import { monthRange, monthPaceProjection } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
@@ -104,13 +105,13 @@ function BudgetModal({ open, onClose, uid, editing }: { open: boolean; onClose: 
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
 
-  if (open && editing && initId !== editing.id) { setInitId(editing.id); setCategory(editing.category); setAmount(String(editing.amount)); setCurrency(editing.currency); }
+  if (open && editing && initId !== editing.id) { setInitId(editing.id); setCategory(editing.category); setAmount(displayFromValue(editing.amount, groupingLocale(prefs.region, editing.currency))); setCurrency(editing.currency); }
   if (open && !editing && initId !== "new") { setInitId("new"); setCategory("food"); setAmount(""); setCurrency(prefs.currency); }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
     if (!uid) return;
-    const amt = Number(amount);
+    const amt = parseAmount(amount);
     if (!amount || Number.isNaN(amt) || amt <= 0) return;
     setSubmitting(true);
     try {
@@ -131,7 +132,7 @@ function BudgetModal({ open, onClose, uid, editing }: { open: boolean; onClose: 
       <form onSubmit={save} className="flex flex-col gap-4">
         <Select label="Category" value={category} onChange={(e) => setCategory(e.target.value)} options={forType("expense").map((c) => ({ value: c.id, label: c.label }))} />
         <div className="grid grid-cols-[1fr_7rem] gap-3">
-          <Input label="Monthly limit" type="number" min="0" step="0.01" placeholder="0.00" value={amount} autoFocus onChange={(e) => setAmount(e.target.value)} />
+          <Input label="Monthly limit" type="text" inputMode="decimal" placeholder="0" value={amount} autoFocus onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} />
           <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
         </div>
         <div className="mt-1 flex items-center justify-end gap-3">
