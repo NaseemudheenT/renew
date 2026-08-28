@@ -100,3 +100,9 @@ export function fromDateTimeInputs(date: string, time?: string): number {
 }
 
 export { isToday };
+
+/** Current epoch millis, read in a plain module function so components can use
+ *  it in event handlers without tripping the render-purity rule. */
+export function nowMs(): number {
+  return Date.now();
+}

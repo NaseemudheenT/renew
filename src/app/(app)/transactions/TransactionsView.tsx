@@ -19,7 +19,7 @@ import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import {
   createTransaction, updateTransaction, deleteTransaction, restoreTransaction, type TransactionInput,
 } from "@/lib/firestore/transactions";
-import { dayStart } from "@/lib/dates";
+import { dayStart, nowMs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import type { Transaction, TxType } from "@/lib/types";
@@ -91,6 +91,15 @@ export function TransactionsView() {
       toast({ title: "Couldn't delete", variant: "error" });
     }
   }
+  async function duplicate(t: Transaction) {
+    if (!uid) return;
+    try {
+      await createTransaction(uid, { type: t.type, amount: t.amount, currency: t.currency, category: t.category, subcategory: t.subcategory, note: t.note, date: nowMs(), accountId: t.accountId });
+      toast({ title: "Added again", variant: "success" });
+    } catch {
+      toast({ title: "Something went wrong", variant: "error" });
+    }
+  }
   function openCreate() { setEditing(null); setModalOpen(true); }
   function openEdit(t: Transaction) { setEditing(t); setModalOpen(true); }
 
@@ -130,7 +139,7 @@ export function TransactionsView() {
               <h2 className="text-muted mb-2 px-1 text-xs font-semibold uppercase tracking-wider">{groupHeaderFmt.format(day)}</h2>
               <div className="flex flex-col gap-2">
                 <AnimatePresence initial={false}>
-                  {items.map((t) => <TransactionRow key={t.id} tx={t} onEdit={() => openEdit(t)} onDelete={() => onDelete(t)} />)}
+                  {items.map((t) => <TransactionRow key={t.id} tx={t} onEdit={() => openEdit(t)} onDelete={() => onDelete(t)} onDuplicate={() => duplicate(t)} />)}
                 </AnimatePresence>
               </div>
             </div>
