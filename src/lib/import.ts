@@ -16,35 +16,42 @@ import type { Transaction, TxType } from "@/lib/types";
 // come before broader ones (e.g. "gas station" → fuel before "gas bill" → bills).
 const CATEGORY_HINTS: { id: string; words: string[] }[] = [
   { id: "salary", words: ["salary", "payroll", "wages"] },
-  { id: "fuel", words: ["petrol", "diesel", "fuel", "gas station", "indianoil", "indian oil", "shell", "hp petrol", "bharat petroleum"] },
-  { id: "transport", words: ["uber", "ola", "rapido", "metro", "irctc", "railway", "cab", "taxi", "toll", "parking", "bus fare"] },
-  { id: "groceries", words: ["grocery", "groceries", "supermarket", "bigbasket", "dmart", "d-mart", "reliance fresh", "blinkit", "zepto"] },
-  { id: "food", words: ["restaurant", "cafe", "coffee", "swiggy", "zomato", "pizza", "bakery", "dominos", "mcdonald", "kfc", "starbucks", "dining"] },
-  { id: "phone", words: ["mobile", "recharge", "broadband", "internet", "wifi", "airtel", "jio", "dth", "vodafone", "bsnl", "postpaid", "prepaid"] },
-  { id: "bills", words: ["electricity", "power bill", "water bill", "gas bill", "utility", "bescom", "eb bill"] },
-  { id: "travel", words: ["flight", "hotel", "airbnb", "makemytrip", "goibibo", "booking.com", "oyo", "airlines", "indigo", "vistara", "trip"] },
-  { id: "fitness", words: ["gym", "fitness", "cult.fit", "cultfit", "protein", "supplement", "workout"] },
-  { id: "entertainment", words: ["netflix", "spotify", "prime video", "hotstar", "movie", "bookmyshow", "youtube", "disney", "gaming"] },
-  { id: "clothing", words: ["zara", "h&m", "apparel", "clothing", "shoes", "fashion", "nike", "adidas", "footwear"] },
-  { id: "shopping", words: ["amazon", "flipkart", "myntra", "ajio", "shopping", "mall", "electronics", "gadget"] },
-  { id: "health", words: ["pharmacy", "hospital", "clinic", "medical", "apollo", "doctor", "medicine", "1mg", "pharmeasy", "dental"] },
-  { id: "education", words: ["school", "college", "tuition", "course", "udemy", "coursera", "byju", "fees", "book store"] },
-  { id: "insurance", words: ["insurance", "premium", "policy", "lic "] },
-  { id: "personal_care", words: ["salon", "spa", "haircut", "barber", "cosmetics", "beauty", "nykaa"] },
-  { id: "pets", words: ["pet ", "vet ", "petshop", "pet food", "grooming"] },
-  { id: "giving", words: ["donation", "charity", "temple", "gofundme", "gift"] },
-  { id: "taxes", words: ["income tax", "gst payment", "advance tax", "tax payment"] },
-  { id: "rent", words: ["rent", "landlord", "maintenance", "society"] },
-  { id: "subscriptions", words: ["subscription", "membership"] },
+  { id: "fuel", words: ["petrol", "diesel", "fuel", "gas station", "indianoil", "indian oil", "shell", "hp petrol", "bharat petroleum", "bpcl", "hpcl", "nayara", "essar", "ev charging", "charging station"] },
+  { id: "transport", words: ["uber", "ola", "rapido", "metro", "irctc", "railway", "cab", "taxi", "toll", "fastag", "parking", "bus fare", "namma yatri", "blusmart", "redbus", "auto rickshaw"] },
+  { id: "groceries", words: ["grocery", "groceries", "supermarket", "bigbasket", "big basket", "dmart", "d-mart", "reliance fresh", "blinkit", "zepto", "jiomart", "jio mart", "instamart", "star bazaar", "spencer", "more supermarket", "kirana"] },
+  { id: "food", words: ["restaurant", "cafe", "coffee", "swiggy", "zomato", "pizza", "bakery", "dominos", "mcdonald", "kfc", "starbucks", "dining", "eatsure", "faasos", "behrouz", "box8", "chaayos", "barbeque", "biryani", "burger", "cafe coffee day", "ccd"] },
+  { id: "phone", words: ["mobile", "recharge", "broadband", "internet", "wifi", "airtel", "jio", "dth", "vodafone", "vi ", "bsnl", "postpaid", "prepaid", "act fibernet", "hathway", "tata play", "excitel"] },
+  { id: "bills", words: ["electricity", "power bill", "water bill", "gas bill", "utility", "bescom", "eb bill", "tneb", "adani electricity", "torrent power", "indraprastha gas", "mahanagar gas"] },
+  { id: "travel", words: ["flight", "hotel", "airbnb", "makemytrip", "make my trip", "goibibo", "booking.com", "oyo", "airlines", "indigo", "vistara", "air india", "spicejet", "akasa", "trip", "cleartrip", "ixigo", "yatra"] },
+  { id: "fitness", words: ["gym", "fitness", "cult.fit", "cultfit", "cure.fit", "protein", "supplement", "workout", "decathlon", "healthify"] },
+  { id: "entertainment", words: ["netflix", "spotify", "prime video", "hotstar", "movie", "bookmyshow", "youtube", "disney", "gaming", "sonyliv", "sony liv", "zee5", "jiocinema", "jio cinema", "gaana", "wynk", "pvr", "inox", "steam", "playstation", "xbox"] },
+  { id: "clothing", words: ["zara", "h&m", "apparel", "clothing", "shoes", "fashion", "nike", "adidas", "footwear", "uniqlo", "levis", "puma", "bata", "westside", "max fashion", "pantaloons"] },
+  { id: "shopping", words: ["amazon", "flipkart", "myntra", "ajio", "shopping", "mall", "electronics", "gadget", "meesho", "tata cliq", "tatacliq", "croma", "reliance digital", "vijay sales", "snapdeal", "lifestyle"] },
+  { id: "health", words: ["pharmacy", "hospital", "clinic", "medical", "apollo", "doctor", "medicine", "1mg", "tata 1mg", "pharmeasy", "dental", "netmeds", "practo", "medplus", "fortis", "manipal", "diagnostic", "lab test"] },
+  { id: "education", words: ["school", "college", "tuition", "course", "udemy", "coursera", "byju", "fees", "book store", "unacademy", "vedantu", "upgrad", "skillshare", "physics wallah"] },
+  { id: "insurance", words: ["insurance", "premium", "policy", "lic ", "hdfc life", "icici lombard", "star health", "policybazaar", "acko", "digit"] },
+  { id: "personal_care", words: ["salon", "spa", "haircut", "barber", "cosmetics", "beauty", "nykaa", "urban company", "urbanclap", "mamaearth", "purplle"] },
+  { id: "pets", words: ["pet ", "vet ", "petshop", "pet food", "grooming", "supertails", "heads up for tails"] },
+  { id: "giving", words: ["donation", "charity", "temple", "gofundme", "gift", "milaap", "ketto"] },
+  { id: "taxes", words: ["income tax", "gst payment", "advance tax", "tax payment", "tds", "property tax"] },
+  { id: "rent", words: ["rent", "landlord", "maintenance", "society", "nobroker", "housing.com"] },
+  { id: "subscriptions", words: ["subscription", "membership", "prime membership", "google one", "icloud", "microsoft 365", "adobe", "chatgpt", "openai", "notion"] },
 ];
 
 /** Best-effort category from a description. Never invents amounts — labels only. */
 export function guessCategory(text: string, type: TxType): string {
   const s = (text || "").toLowerCase();
   if (type === "income") {
-    if (/salary|payroll/.test(s)) return "salary";
+    if (/salary|payroll|wages/.test(s)) return "salary";
+    if (/freelance|upwork|fiverr|contract/.test(s)) return "freelance";
+    if (/dividend/.test(s)) return "dividends";
+    if (/interest/.test(s)) return "interest";
+    if (/rent received|rental/.test(s)) return "rental";
+    if (/bonus|incentive/.test(s)) return "bonus";
+    if (/commission/.test(s)) return "commission";
+    if (/pension/.test(s)) return "pension";
+    if (/cashback|cash back|reward/.test(s)) return "cashback";
     if (/refund|reversal/.test(s)) return "refund";
-    if (/interest/.test(s)) return "investment";
     return "other_income";
   }
   for (const h of CATEGORY_HINTS) {
