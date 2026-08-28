@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Plus, PiggyBank, Pencil, Trash2, Coins } from "lucide-react";
+import { Plus, PiggyBank, Pencil, Trash2, Coins, Sparkles } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -17,6 +17,7 @@ import { createSavings, updateSavings, deleteSavings, addToSavings } from "@/lib
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
+import { savingsProjection, monthsSince } from "@/lib/intelligence";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
 
@@ -42,6 +43,7 @@ export function SavingsView() {
             {data.map((g) => {
               const pct = g.target > 0 ? Math.min(100, Math.round((g.current / g.target) * 100)) : 0;
               const done = g.current >= g.target;
+              const proj = savingsProjection(g.current, g.target, monthsSince(g.createdAt));
               return (
                 <motion.div key={g.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }} className="glass p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -62,6 +64,12 @@ export function SavingsView() {
                     <span className={cn("text-xs font-medium", done ? "text-emerald-500" : "text-[var(--text-muted)]")}>{done ? "Goal reached 🎉" : `${pct}%`}</span>
                     <button type="button" onClick={() => setAddTo(g)} className="text-xs font-medium text-[var(--color-gold-600)] hover:underline">Add money</button>
                   </div>
+                  {!done && proj.monthsToGo !== null && proj.perMonth > 0 && (
+                    <p className="text-muted mt-2 flex items-center gap-1.5 border-t border-[var(--glass-border)] pt-2 text-xs">
+                      <Sparkles className="size-3.5 shrink-0 text-[var(--color-gold-500)]" />
+                      At {money(proj.perMonth, g.currency)}/mo, about {proj.monthsToGo} month{proj.monthsToGo === 1 ? "" : "s"} to go.
+                    </p>
+                  )}
                 </motion.div>
               );
             })}

@@ -130,6 +130,25 @@ export function essentialSplit(txns: Transaction[], now: number = Date.now()): {
   return { essential, discretionary };
 }
 
+/** Whole months since a timestamp (min 1). Reads the clock in a plain function
+ *  so callers don't call Date.now() directly in render. */
+export function monthsSince(ts: number, now: number = Date.now()): number {
+  return Math.max(1, Math.round((now - ts) / (30 * 86_400_000)));
+}
+
+/** Savings-goal pace: implied monthly contribution and months left to the target. */
+export function savingsProjection(
+  current: number,
+  target: number,
+  monthsElapsed: number,
+): { perMonth: number; monthsToGo: number | null; done: boolean } {
+  if (current >= target && target > 0) return { perMonth: 0, monthsToGo: 0, done: true };
+  const perMonth = monthsElapsed > 0 ? current / monthsElapsed : current;
+  const remaining = Math.max(0, target - current);
+  const monthsToGo = perMonth > 0 ? Math.ceil(remaining / perMonth) : null;
+  return { perMonth: Math.round(perMonth), monthsToGo, done: false };
+}
+
 /** Straight-line projection of this month's total spend from the pace so far. */
 export function monthEndForecast(thisMonthSpend: number, now: number = Date.now()): number {
   const d = new Date(now);

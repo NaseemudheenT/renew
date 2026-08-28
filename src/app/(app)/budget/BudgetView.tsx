@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { orderBy } from "firebase/firestore";
-import { Plus, Target, Pencil, Trash2, TrendingUp } from "lucide-react";
+import { Plus, Target, Pencil, Trash2, TrendingUp, Sparkles } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
@@ -19,6 +19,7 @@ import { monthRange, monthPaceProjection } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
+import { categoryAverages } from "@/lib/intelligence";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
@@ -91,19 +92,25 @@ export function BudgetView() {
           </AnimatePresence>
         </div>
       )}
-      <BudgetModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} uid={uid} editing={editing} />
+      <BudgetModal open={modalOpen} onClose={() => { setModalOpen(false); setEditing(null); }} uid={uid} editing={editing} txns={txs} />
     </div>
   );
 }
 
-function BudgetModal({ open, onClose, uid, editing }: { open: boolean; onClose: () => void; uid: string | null; editing: Budget | null }) {
-  const { prefs } = useLocale();
+function BudgetModal({ open, onClose, uid, editing, txns }: { open: boolean; onClose: () => void; uid: string | null; editing: Budget | null; txns: Transaction[] }) {
+  const { prefs, money } = useLocale();
   const { forType } = useCategories();
   const [category, setCategory] = useState("food");
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState(prefs.currency);
   const [submitting, setSubmitting] = useState(false);
   const [initId, setInitId] = useState<string | null>(null);
+
+  // Smart: what this category has actually averaged per month (last 3 months).
+  const suggestion = useMemo(() => {
+    const avg = categoryAverages(txns, 3).get(category) ?? 0;
+    return avg > 0 ? Math.round(avg) : null;
+  }, [txns, category]);
 
   if (open && editing && initId !== editing.id) { setInitId(editing.id); setCategory(editing.category); setAmount(displayFromValue(editing.amount, groupingLocale(prefs.region, editing.currency))); setCurrency(editing.currency); }
   if (open && !editing && initId !== "new") { setInitId("new"); setCategory("food"); setAmount(""); setCurrency(prefs.currency); }
@@ -135,6 +142,12 @@ function BudgetModal({ open, onClose, uid, editing }: { open: boolean; onClose: 
           <Input label="Monthly limit" type="text" inputMode="decimal" placeholder="0" value={amount} autoFocus onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(prefs.region, currency)).display)} />
           <Select label="Currency" value={currency} onChange={(e) => setCurrency(e.target.value)} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
         </div>
+        {suggestion !== null && (
+          <button type="button" onClick={() => setAmount(displayFromValue(suggestion, groupingLocale(prefs.region, currency)))} className="text-body -mt-1 flex w-fit items-center gap-1.5 rounded-full border border-[var(--field-border)] bg-[var(--glass-bg-soft)] px-3 py-1.5 text-xs transition-colors hover:text-[var(--text-strong)]">
+            <Sparkles className="size-3.5 text-[var(--color-gold-500)]" />
+            You spend about {money(suggestion, currency)}/mo here — use as limit
+          </button>
+        )}
         <div className="mt-1 flex items-center justify-end gap-3">
           <AnimatedButton type="button" variant="ghost" onClick={() => { setInitId(null); onClose(); }} disabled={submitting}>Cancel</AnimatedButton>
           <AnimatedButton type="submit" loading={submitting}>{editing ? "Save" : "Create"}</AnimatedButton>

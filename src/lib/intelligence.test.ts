@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { categoryAverages, anomalies, monthComparison, essentialSplit, isEssential, smartInsights, monthEndForecast } from "./intelligence";
+import { categoryAverages, anomalies, monthComparison, essentialSplit, isEssential, smartInsights, monthEndForecast, savingsProjection } from "./intelligence";
 import type { Transaction } from "@/lib/types";
 
 // Fixed "now" = 15 June 2024, so month math is deterministic.
@@ -53,6 +53,16 @@ describe("intelligence", () => {
     expect(isEssential("rent")).toBe(true);
     expect(isEssential("entertainment")).toBe(false);
     expect(isEssential("shopping")).toBe(false);
+  });
+
+  it("projects a savings goal's ETA from the pace", () => {
+    // Saved 2,000 over 2 months = 1,000/mo; 8,000 to go → 8 months.
+    const p = savingsProjection(2000, 10000, 2);
+    expect(p.perMonth).toBe(1000);
+    expect(p.monthsToGo).toBe(8);
+    expect(p.done).toBe(false);
+    // Reached target.
+    expect(savingsProjection(10000, 10000, 5).done).toBe(true);
   });
 
   it("projects month-end spend from the current pace", () => {
