@@ -13,7 +13,7 @@ import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
-import { createSavings, updateSavings, deleteSavings, addToSavings } from "@/lib/firestore/savings";
+import { createSavings, updateSavings, deleteSavings, restoreSavings, addToSavings } from "@/lib/firestore/savings";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
@@ -30,6 +30,13 @@ export function SavingsView() {
   const [addTo, setAddTo] = useState<SavingsGoal | null>(null);
 
   const isEmpty = !loading && data.length === 0;
+
+  function removeGoal(g: SavingsGoal) {
+    if (!uid) return;
+    deleteSavings(uid, g.id)
+      .then(() => toast({ title: "Goal deleted", action: { label: "Undo", onClick: () => restoreSavings(uid, g).catch(() => {}) } }))
+      .catch(() => toast({ title: "Couldn't delete", variant: "error" }));
+  }
 
   return (
     <div className="mx-auto max-w-3xl">
@@ -49,7 +56,7 @@ export function SavingsView() {
                 <motion.div key={g.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}>
                 <SwipeRow
                   swipeRight={done ? undefined : { label: "Add", icon: Coins, bg: "bg-emerald-500", onTrigger: () => setAddTo(g) }}
-                  swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => uid && deleteSavings(uid, g.id) }}
+                  swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => removeGoal(g) }}
                 >
                 <div className="glass p-4">
                   <div className="flex items-start justify-between gap-2">
@@ -57,7 +64,7 @@ export function SavingsView() {
                       <p className="text-strong truncate text-sm font-medium">{g.name}</p>
                       {g.targetDate ? <p className="text-muted text-xs">by {shortDate(g.targetDate)}</p> : null}
                     </div>
-                    <RowMenu items={[{ label: "Add money", icon: Coins, onClick: () => setAddTo(g) }, { label: "Edit", icon: Pencil, onClick: () => { setEditing(g); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => uid && deleteSavings(uid, g.id), danger: true }]} />
+                    <RowMenu items={[{ label: "Add money", icon: Coins, onClick: () => setAddTo(g) }, { label: "Edit", icon: Pencil, onClick: () => { setEditing(g); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => removeGoal(g), danger: true }]} />
                   </div>
                   <div className="mt-3 flex items-baseline gap-1">
                     <span className="text-strong text-xl font-medium tabular-nums">{money(g.current, g.currency)}</span>

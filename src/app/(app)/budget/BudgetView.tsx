@@ -14,7 +14,7 @@ import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
-import { createBudget, updateBudget, deleteBudget } from "@/lib/firestore/budgets";
+import { createBudget, updateBudget, deleteBudget, restoreBudget } from "@/lib/firestore/budgets";
 import { monthRange, monthPaceProjection } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -32,6 +32,13 @@ export function BudgetView() {
   const { data: txs } = useScopedUserCollection<Transaction>("transactions", txC);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
+
+  function removeBudget(b: Budget) {
+    if (!uid) return;
+    deleteBudget(uid, b.id)
+      .then(() => toast({ title: "Budget deleted", action: { label: "Undo", onClick: () => restoreBudget(uid, b).catch(() => {}) } }))
+      .catch(() => toast({ title: "Couldn't delete", variant: "error" }));
+  }
 
   // Spend is keyed by category AND currency so a budget only counts spend in
   // its own currency — mixed currencies are never summed as identical.
@@ -72,7 +79,7 @@ export function BudgetView() {
                 <motion.div key={b.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, x: -20 }}>
                 <SwipeRow
                   swipeRight={{ label: "Edit", icon: Pencil, bg: "bg-[var(--color-gold-600)]", onTrigger: () => { setEditing(b); setModalOpen(true); } }}
-                  swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => uid && deleteBudget(uid, b.id) }}
+                  swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => removeBudget(b) }}
                 >
                 <div className="glass p-4">
                   <div className="flex items-center gap-3">
@@ -82,7 +89,7 @@ export function BudgetView() {
                       <p className="text-muted text-xs tabular-nums">{money(spent, b.currency)} of {money(b.amount, b.currency)}</p>
                     </div>
                     <span className={cn("text-sm font-semibold tabular-nums", over ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(Math.max(0, b.amount - spent), b.currency)}<span className="text-muted ms-1 text-xs font-normal">left</span></span>
-                    <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: () => { setEditing(b); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => uid && deleteBudget(uid, b.id), danger: true }]} />
+                    <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: () => { setEditing(b); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => removeBudget(b), danger: true }]} />
                   </div>
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
                     <motion.div className={cn("h-full rounded-full", over ? "bg-gradient-to-r from-rose-400 to-rose-600" : "bg-gradient-to-r from-gold-300 to-gold-500")} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />

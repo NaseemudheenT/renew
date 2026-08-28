@@ -40,3 +40,9 @@ export async function setSubscriptionStatus(uid: string, id: string, status: Sub
 export async function deleteSubscription(uid: string, id: string): Promise<void> {
   await deleteDoc(userDoc(uid, "subscriptions", id));
 }
+
+/** Re-create a just-deleted subscription (Undo). */
+export async function restoreSubscription(uid: string, sub: import("@/lib/types").Subscription): Promise<void> {
+  const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = sub;
+  await addDoc(userCollection(uid, "subscriptions"), { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+}

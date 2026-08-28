@@ -42,3 +42,9 @@ export async function setAccountStatus(uid: string, id: string, status: AccountS
 export async function deleteAccount(uid: string, id: string): Promise<void> {
   await deleteDoc(userDoc(uid, "accounts", id));
 }
+
+/** Re-create a just-deleted account (Undo). */
+export async function restoreAccount(uid: string, account: import("@/lib/types").Account): Promise<void> {
+  const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = account;
+  await addDoc(userCollection(uid, "accounts"), { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+}

@@ -20,7 +20,7 @@ import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import {
-  createSubscription, updateSubscription, setSubscriptionStatus, deleteSubscription, type SubscriptionInput,
+  createSubscription, updateSubscription, setSubscriptionStatus, deleteSubscription, restoreSubscription, type SubscriptionInput,
 } from "@/lib/firestore/subscriptions";
 import { BILLING_CYCLES, subscriptionMonthly, subscriptionTotals, advanceBilling } from "@/lib/accounts";
 import { CATEGORIES, categoryMeta } from "@/lib/categories";
@@ -38,6 +38,13 @@ export function SubscriptionsView() {
 
   const active = subs.filter((s) => s.status === "active");
   const cancelled = subs.filter((s) => s.status === "cancelled");
+
+  function removeSub(s: Subscription) {
+    if (!uid) return;
+    deleteSubscription(uid, s.id)
+      .then(() => toast({ title: "Subscription deleted", action: { label: "Undo", onClick: () => restoreSubscription(uid, s).catch(() => {}) } }))
+      .catch(() => toast({ title: "Couldn't delete", variant: "error" }));
+  }
 
   // Keep active subscriptions' next-billing dates current: if one has passed,
   // roll it forward by whole cycles to the next future date (they auto-renew).
@@ -117,7 +124,7 @@ export function SubscriptionsView() {
                   onPay={() => onPay(s)}
                   onEdit={() => { setEditing(s); setModalOpen(true); }}
                   onCancel={() => uid && setSubscriptionStatus(uid, s.id, "cancelled")}
-                  onDelete={() => uid && deleteSubscription(uid, s.id)} />
+                  onDelete={() => removeSub(s)} />
               ))}
             </AnimatePresence>
           </div>
@@ -132,7 +139,7 @@ export function SubscriptionsView() {
                   {cancelled.map((s) => (
                     <SubRow key={s.id} sub={s} money={money} dueLabel={dueLabel} cycleLabel={t(cycleKey(s.cycle))} cancelled
                       onReactivate={() => uid && setSubscriptionStatus(uid, s.id, "active")}
-                      onDelete={() => uid && deleteSubscription(uid, s.id)} />
+                      onDelete={() => removeSub(s)} />
                   ))}
                 </div>
               )}

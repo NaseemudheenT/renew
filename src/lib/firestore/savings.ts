@@ -31,3 +31,9 @@ export async function addToSavings(uid: string, id: string, delta: number): Prom
 export async function deleteSavings(uid: string, id: string): Promise<void> {
   await deleteDoc(userDoc(uid, "savings", id));
 }
+
+/** Re-create a just-deleted goal (Undo). */
+export async function restoreSavings(uid: string, goal: import("@/lib/types").SavingsGoal): Promise<void> {
+  const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = goal;
+  await addDoc(userCollection(uid, "savings"), { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+}

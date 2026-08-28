@@ -25,3 +25,9 @@ export async function updateBudget(uid: string, id: string, patch: Partial<Budge
 export async function deleteBudget(uid: string, id: string): Promise<void> {
   await deleteDoc(userDoc(uid, "budgets", id));
 }
+
+/** Re-create a just-deleted budget (Undo). */
+export async function restoreBudget(uid: string, budget: import("@/lib/types").Budget): Promise<void> {
+  const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = budget;
+  await addDoc(userCollection(uid, "budgets"), { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+}
