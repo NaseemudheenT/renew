@@ -130,9 +130,18 @@ export function essentialSplit(txns: Transaction[], now: number = Date.now()): {
   return { essential, discretionary };
 }
 
+/** Straight-line projection of this month's total spend from the pace so far. */
+export function monthEndForecast(thisMonthSpend: number, now: number = Date.now()): number {
+  const d = new Date(now);
+  const day = d.getDate();
+  const daysInMonth = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+  if (day <= 0) return thisMonthSpend;
+  return Math.round(thisMonthSpend * (daysInMonth / day));
+}
+
 export interface SmartInsight {
   id: string;
-  kind: "trend" | "anomaly" | "average" | "split";
+  kind: "trend" | "anomaly" | "average" | "split" | "forecast";
   /** Category id when the insight is about one category. */
   category?: string;
   /** Signed percent, when relevant. */
@@ -153,6 +162,13 @@ export function smartInsights(txns: Transaction[], now: number = Date.now(), mon
 
   if (cmp.vsLastPct !== null && Math.abs(cmp.vsLastPct) >= 10) {
     out.push({ id: "trend", kind: "trend", pct: cmp.vsLastPct, amount: cmp.thisMonth });
+  }
+
+  // Predictive: where this month is heading at the current pace (mid-month only).
+  const day = new Date(now).getDate();
+  const daysInMonth = new Date(new Date(now).getFullYear(), new Date(now).getMonth() + 1, 0).getDate();
+  if (cmp.thisMonth > 0 && day >= 5 && day <= daysInMonth - 3) {
+    out.push({ id: "forecast", kind: "forecast", amount: monthEndForecast(cmp.thisMonth, now) });
   }
 
   for (const a of anomalies(txns, now, { months }).slice(0, 3)) {

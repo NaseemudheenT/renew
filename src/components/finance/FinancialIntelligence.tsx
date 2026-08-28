@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { TrendingUp, TrendingDown, AlertTriangle, Scale, Sparkles } from "lucide-react";
+import { TrendingUp, TrendingDown, AlertTriangle, Scale, Sparkles, LineChart } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { smartInsights } from "@/lib/intelligence";
@@ -55,6 +55,17 @@ export function FinancialIntelligence({ transactions, currency }: { transactions
                   text={
                     <><strong className="text-strong">{label}</strong> is <strong className="text-amber-500">{i.pct}% above</strong> your usual — {money(i.amount ?? 0, currency)} vs about {money(i.amount2 ?? 0, currency)}/mo.</>
                   }
+                />
+              </StaggerItem>
+            );
+          }
+          if (i.kind === "forecast") {
+            return (
+              <StaggerItem key={i.id}>
+                <Line
+                  icon={LineChart}
+                  tone="calm"
+                  text={<>At this pace, you&apos;re on track to spend about <strong className="text-strong">{money(i.amount ?? 0, currency)}</strong> by month end. <span className="text-muted">(estimate)</span></>}
                 />
               </StaggerItem>
             );

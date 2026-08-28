@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { categoryAverages, anomalies, monthComparison, essentialSplit, isEssential, smartInsights } from "./intelligence";
+import { categoryAverages, anomalies, monthComparison, essentialSplit, isEssential, smartInsights, monthEndForecast } from "./intelligence";
 import type { Transaction } from "@/lib/types";
 
 // Fixed "now" = 15 June 2024, so month math is deterministic.
@@ -53,6 +53,11 @@ describe("intelligence", () => {
     expect(isEssential("rent")).toBe(true);
     expect(isEssential("entertainment")).toBe(false);
     expect(isEssential("shopping")).toBe(false);
+  });
+
+  it("projects month-end spend from the current pace", () => {
+    // On day 15 of a 30-day month, ₹3,000 so far → ~₹6,000 projected.
+    expect(monthEndForecast(3000, NOW)).toBe(6000);
   });
 
   it("produces ranked structured insights (no strings)", () => {
