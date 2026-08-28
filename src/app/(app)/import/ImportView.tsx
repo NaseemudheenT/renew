@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Upload, FileText, ArrowRight, Info, Camera, ImageUp, ScanLine } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -35,6 +35,17 @@ export function ImportView() {
   const [parsing, setParsing] = useState(false);
   const [scanPct, setScanPct] = useState<number | null>(null);
   const [importing, setImporting] = useState(false);
+
+  // Deep link: /import?scan=1 jumps straight into the camera scan. This is what
+  // a Back Tap / Siri Shortcut opens — "Renew, scan a receipt". Best-effort: the
+  // camera opens where the OS allows it; otherwise the Scan button is right here.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (new URLSearchParams(window.location.search).get("scan") === "1") {
+      const id = window.setTimeout(() => cameraRef.current?.click(), 300);
+      return () => window.clearTimeout(id);
+    }
+  }, []);
 
   const included = useMemo(() => drafts.filter((d) => d.include), [drafts]);
   const dupCount = useMemo(() => drafts.filter((d) => d.duplicate).length, [drafts]);
