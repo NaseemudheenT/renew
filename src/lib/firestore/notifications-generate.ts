@@ -5,6 +5,7 @@ import { format } from "date-fns";
 import { userCollection } from "@/lib/firestore/db";
 import { todayEnd, daysUntil } from "@/lib/dates";
 import { resolveCatMeta, monthRange } from "@/lib/finance";
+import { anomalies } from "@/lib/intelligence";
 import { translate } from "@/lib/i18n/messages";
 import type {
   Reminder,
@@ -215,6 +216,22 @@ export function computeDesired(
           sourceId: g.id,
         });
       }
+    }
+  }
+
+  // Proactive spending anomalies (§22): a category unusually high vs its own
+  // recent average. One per category per month; needs real history to fire.
+  if (prefs.budgets && input.transactions?.length) {
+    for (const a of anomalies(input.transactions, undefined, { minPct: 25 }).slice(0, 2)) {
+      const label = resolveCatMeta(a.category, input.customCategories ?? []).label;
+      out.push({
+        id: `anomaly_${a.category}_${monthKey}`,
+        type: "budget",
+        title: `${label} is ${a.pct}% above your usual`,
+        body: `You're spending more on ${label.toLowerCase()} this month than your recent average.`,
+        href: "/analytics",
+        sourceId: a.category,
+      });
     }
   }
 
