@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { orderBy } from "firebase/firestore";
+import { FinancialIntelligence } from "@/components/finance/FinancialIntelligence";
 import { subMonths } from "date-fns";
 import { motion, useReducedMotion } from "framer-motion";
 import { BarChart3, ArrowDownLeft, ArrowUpRight, PiggyBank } from "lucide-react";
@@ -74,6 +75,10 @@ export function AnalyticsView() {
             <Stat icon={ArrowUpRight} label="Spent · month" amount={thisMonth.expense} currency={currency} tone="rose" />
             <Stat icon={PiggyBank} label="Savings rate" value={`${savingsRate}%`} />
           </div>
+        </StaggerItem>
+
+        <StaggerItem>
+          <FinancialIntelligence transactions={data} currency={currency} />
         </StaggerItem>
 
         <StaggerItem>
