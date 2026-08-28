@@ -3,11 +3,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { Search, CornerDownLeft, type LucideIcon } from "lucide-react";
+import { Search, CornerDownLeft, Sparkles, type LucideIcon } from "lucide-react";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
-import { accountTypeMeta, subscriptionIcon } from "@/lib/accounts";
+import { accountTypeMeta, subscriptionIcon, subscriptionMonthly } from "@/lib/accounts";
+import { answerQuestion } from "@/lib/ask";
 import { categoryMeta } from "@/lib/categories";
 import type { MessageKey } from "@/lib/i18n/messages";
 import type {
@@ -68,7 +69,7 @@ export function GlobalSearch() {
 function SearchPanel({ onClose }: { onClose: () => void }) {
   const router = useRouter();
   const reduced = useReducedMotion();
-  const { t, money } = useLocale();
+  const { t, money, prefs } = useLocale();
   const { resolve } = useCategories();
   const inputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -178,6 +179,24 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
     return hits.filter((h) => h.blob.includes(query)).slice(0, 24);
   }, [hits, q]);
 
+  // Ask Renew, inline: a plain-language question is answered from real data.
+  const askCtx = useMemo(() => {
+    let income = 0, expense = 0;
+    for (const tx of transactions.data) { if (tx.type === "income") income += tx.amount; else expense += tx.amount; }
+    const savingsTotal = savings.data.reduce((s, g) => s + g.current, 0);
+    const active = subscriptions.data.filter((s) => s.status === "active");
+    return {
+      transactions: transactions.data,
+      netWorth: income - expense + savingsTotal,
+      monthlySubs: active.reduce((s, sub) => s + subscriptionMonthly(sub), 0),
+      activeSubs: active.length,
+      upcomingBillsTotal: payments.data.filter((p) => p.status !== "paid").reduce((s, p) => s + p.amount, 0),
+      currency: prefs.currency,
+    };
+  }, [transactions.data, savings.data, subscriptions.data, payments.data, prefs.currency]);
+
+  const answer = useMemo(() => (q.trim().length < 3 ? null : answerQuestion(q, askCtx)), [q, askCtx]);
+
   function onQueryChange(next: string) {
     setQ(next);
     setActive(0);
@@ -262,9 +281,26 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
         <div className="max-h-[52vh] overflow-y-auto p-2">
           {q.trim() === "" ? (
             <p className="px-3 py-6 text-center text-sm text-[var(--text-muted)]">{t("search.hint")}</p>
-          ) : results.length === 0 ? (
-            <p className="px-3 py-6 text-center text-sm text-[var(--text-muted)]">{t("search.empty")}</p>
           ) : (
+          <>
+            {answer && (
+              <button
+                type="button"
+                onClick={() => { router.push("/analytics"); onClose(); }}
+                className="mb-1 flex w-full items-start gap-3 rounded-2xl border border-[var(--focus-ring)]/30 bg-[var(--glass-bg-strong)] px-3.5 py-3 text-left transition-colors hover:bg-[var(--glass-bg-soft)]"
+              >
+                <span className="glass grid size-9 shrink-0 place-items-center !rounded-xl"><Sparkles className="size-4.5 text-[var(--color-gold-500)]" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="text-strong block text-sm font-medium">{answer.title}</span>
+                  {answer.value !== undefined && <span className="text-strong mt-0.5 block text-lg font-semibold tabular-nums">{money(answer.value, answer.currency ?? prefs.currency)}</span>}
+                  {answer.detail && <span className="text-muted mt-0.5 block text-xs">{answer.detail}</span>}
+                </span>
+              </button>
+            )}
+            {results.length === 0 && !answer && (
+              <p className="px-3 py-6 text-center text-sm text-[var(--text-muted)]">{t("search.empty")}</p>
+            )}
+            {results.length > 0 && (
             <ul className="flex flex-col gap-0.5">
               {results.map((hit, i) => {
                 const Icon = hit.icon;
@@ -294,6 +330,8 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
                 );
               })}
             </ul>
+            )}
+          </>
           )}
         </div>
       </motion.div>
