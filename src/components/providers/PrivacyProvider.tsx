@@ -27,12 +27,12 @@ export function usePrivacy(): PrivacyCtx {
 }
 
 function read(): boolean {
-  if (typeof window === "undefined") return true; // default hidden
+  if (typeof window === "undefined") return false; // default visible (clean/professional)
   try {
     const v = localStorage.getItem(KEY);
-    return v === null ? true : v === "1";
+    return v === null ? false : v === "1";
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -49,7 +49,7 @@ export function PrivacyProvider({ children }: { children: ReactNode }) {
       };
     },
     read,
-    () => true,
+    () => false,
   );
 
   const toggle = useCallback(async () => {
