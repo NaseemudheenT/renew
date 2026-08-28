@@ -158,6 +158,59 @@ export function monthEndForecast(thisMonthSpend: number, now: number = Date.now(
   return Math.round(thisMonthSpend * (daysInMonth / day));
 }
 
+export interface CashFlow {
+  current: number;
+  /** Income likely still to arrive this month (vs the recent monthly average). */
+  expectedIncome: number;
+  /** Spending likely still to happen this month + bills still due. */
+  expectedExpense: number;
+  projectedBalance: number;
+}
+
+/**
+ * Month-end available-balance forecast (Constitution §19): current balance, plus
+ * income likely still to arrive, minus spending likely still to happen and bills
+ * still due. All from the person's own averages — clearly an estimate, never a
+ * guarantee.
+ */
+export function cashFlowForecast(input: {
+  transactions: Transaction[];
+  currentBalance: number;
+  upcomingBillsTotal: number;
+  now?: number;
+  months?: number;
+}): CashFlow {
+  const now = input.now ?? Date.now();
+  const months = input.months ?? 3;
+  const curIdx = ymIndex(now);
+  const startIdx = curIdx - months;
+
+  let incomeAvgTotal = 0;
+  let incomeThisMonth = 0;
+  let spentThisMonth = 0;
+  for (const t of input.transactions) {
+    const idx = ymIndex(t.date);
+    if (t.type === "income") {
+      if (idx === curIdx) incomeThisMonth += t.amount;
+      else if (idx >= startIdx && idx < curIdx) incomeAvgTotal += t.amount;
+    } else if (t.type === "expense" && idx === curIdx) {
+      spentThisMonth += t.amount;
+    }
+  }
+  const monthlyIncomeAvg = incomeAvgTotal / months;
+  const expectedIncome = Math.max(0, Math.round(monthlyIncomeAvg - incomeThisMonth));
+
+  const projectedSpend = monthEndForecast(spentThisMonth, now);
+  const expectedExpense = Math.max(0, Math.round(projectedSpend - spentThisMonth)) + Math.max(0, Math.round(input.upcomingBillsTotal));
+
+  return {
+    current: Math.round(input.currentBalance),
+    expectedIncome,
+    expectedExpense,
+    projectedBalance: Math.round(input.currentBalance + expectedIncome - expectedExpense),
+  };
+}
+
 export interface SmartInsight {
   id: string;
   kind: "trend" | "anomaly" | "average" | "split" | "forecast";

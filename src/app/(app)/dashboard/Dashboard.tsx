@@ -15,6 +15,7 @@ import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
 import { FinancialIntelligence } from "@/components/finance/FinancialIntelligence";
+import { CashFlowForecast } from "@/components/finance/CashFlowForecast";
 import { AskRenew } from "@/components/finance/AskRenew";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
@@ -183,6 +184,10 @@ export function Dashboard({ name }: { name: string }) {
                   <Mini label="Saved" icon={PiggyBank} value={savingsTotal} currency={currency} />
                 </div>
               </GlassCard>
+            </StaggerItem>
+
+            <StaggerItem>
+              <CashFlowForecast transactions={txAll.data} currentBalance={netWorth} upcomingBillsTotal={comingTotal} currency={currency} />
             </StaggerItem>
 
             {focus.length > 0 && (

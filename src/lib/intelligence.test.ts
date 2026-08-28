@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { categoryAverages, anomalies, monthComparison, essentialSplit, isEssential, smartInsights, monthEndForecast, savingsProjection } from "./intelligence";
+import { categoryAverages, anomalies, monthComparison, essentialSplit, isEssential, smartInsights, monthEndForecast, savingsProjection, cashFlowForecast } from "./intelligence";
 import type { Transaction } from "@/lib/types";
 
 // Fixed "now" = 15 June 2024, so month math is deterministic.
@@ -68,6 +68,20 @@ describe("intelligence", () => {
   it("projects month-end spend from the current pace", () => {
     // On day 15 of a 30-day month, ₹3,000 so far → ~₹6,000 projected.
     expect(monthEndForecast(3000, NOW)).toBe(6000);
+  });
+
+  it("forecasts month-end available balance", () => {
+    // 3 prior months income 6000 each → avg 6000; this month income 2000 already.
+    // this month spent 3000 on day 15 of 30 → projected 6000, so ~3000 more to come.
+    const txns = [
+      tx("salary", 6000, 1, "income"), tx("salary", 6000, 2, "income"), tx("salary", 6000, 3, "income"),
+      tx("salary", 2000, 0, "income"),
+      tx("food", 3000, 0),
+    ];
+    const f = cashFlowForecast({ transactions: txns, currentBalance: 10000, upcomingBillsTotal: 1000, now: NOW });
+    expect(f.expectedIncome).toBe(4000); // 6000 avg − 2000 already
+    expect(f.expectedExpense).toBe(4000); // ~3000 more spend + 1000 bills
+    expect(f.projectedBalance).toBe(10000); // 10000 + 4000 − 4000
   });
 
   it("produces ranked structured insights (no strings)", () => {
