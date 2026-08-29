@@ -5,19 +5,22 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { MoreHorizontal, X } from "lucide-react";
-import { NAV_ITEMS } from "@/lib/nav";
+import { navItemsFor } from "@/lib/nav";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import type { MessageKey } from "@/lib/i18n/messages";
 import { cn } from "@/lib/utils";
 
 export function MobileNav() {
   const pathname = usePathname();
   const { t } = useLocale();
+  const { mode } = useWorkspace();
   const [moreOpen, setMoreOpen] = useState(false);
-  const primary = NAV_ITEMS.filter((i) => i.primary);
+  const items = navItemsFor(mode);
+  const primary = items.filter((i) => i.primary);
   // Everything not on the bottom bar — reachable from the More sheet, so the
   // phone has full parity with the desktop sidebar (no page is URL-only).
-  const secondary = NAV_ITEMS.filter((i) => !i.primary);
+  const secondary = items.filter((i) => !i.primary);
   const moreActive = secondary.some((i) => pathname === i.href || pathname.startsWith(i.href + "/"));
 
   const tabs = [

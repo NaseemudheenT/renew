@@ -11,6 +11,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { MessageKey } from "@/lib/i18n/messages";
+import type { WorkspaceMode } from "@/lib/types";
 
 export interface NavItem {
   href: string;
@@ -21,6 +22,13 @@ export interface NavItem {
   icon: LucideIcon;
   /** Show in the mobile bottom tab bar (space is limited to ~5). */
   primary?: boolean;
+  /** Workspaces this item shows in. Omit = both Personal and Business. */
+  modes?: WorkspaceMode[];
+}
+
+/** Nav items visible in the given workspace (Personal/Business vary). */
+export function navItemsFor(mode: WorkspaceMode): NavItem[] {
+  return NAV_ITEMS.filter((i) => !i.modes || i.modes.includes(mode));
 }
 
 export const NAV_ITEMS: NavItem[] = [
@@ -29,7 +37,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/income", label: "Income", msgKey: "nav.income", icon: ArrowDownLeft },
   { href: "/transactions", label: "Transactions", msgKey: "nav.transactions", icon: ArrowLeftRight, primary: true },
   { href: "/budget", label: "Budget", msgKey: "nav.budget", icon: Target, primary: true },
-  { href: "/savings", label: "Savings", msgKey: "nav.savings", icon: PiggyBank },
+  { href: "/savings", label: "Savings", msgKey: "nav.savings", icon: PiggyBank, modes: ["personal"] },
   { href: "/payments", label: "Bills", msgKey: "nav.payments", icon: ReceiptText },
   { href: "/analytics", label: "Analytics", msgKey: "nav.analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", msgKey: "nav.settings", icon: Settings },

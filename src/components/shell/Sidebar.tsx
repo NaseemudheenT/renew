@@ -7,13 +7,16 @@ import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { AccountMenu } from "./AccountMenu";
 import type { ShellUser } from "./shell-types";
-import { NAV_ITEMS } from "@/lib/nav";
+import { navItemsFor } from "@/lib/nav";
+import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const { t } = useLocale();
+  const { mode } = useWorkspace();
+  const items = navItemsFor(mode);
   return (
     <aside className="glass fixed inset-y-0 start-0 z-30 hidden w-64 flex-col !rounded-none !rounded-e-glass-lg p-4 lg:flex">
       <Link href="/dashboard" className="mb-6 flex items-center gap-3 px-2 py-2" aria-label="Renew home">
@@ -21,7 +24,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
         <Wordmark sizeClassName="text-lg" />
       </Link>
       <nav className="flex flex-1 flex-col gap-0.5" aria-label="Primary">
-        {NAV_ITEMS.map(({ href, msgKey, icon: Icon }) => {
+        {items.map(({ href, msgKey, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (
             <Link
