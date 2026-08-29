@@ -101,7 +101,7 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
               className="text-body flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)] disabled:opacity-55"
             >
               <Fingerprint className="size-4.5" />
-              {addingPasskey ? "Setting up…" : "Set up Face ID"}
+              {addingPasskey ? "Adding…" : "Add a passkey"}
             </button>
           )}
           <button
