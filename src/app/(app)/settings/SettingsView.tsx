@@ -3,7 +3,8 @@
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility } from "lucide-react";
+import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown } from "lucide-react";
+import { isOwnerEmail } from "@/lib/auth/owner";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -94,6 +95,18 @@ export function SettingsView() {
         </div>
         <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
       </Link>
+
+      {/* Owner console — only ever rendered for the single owner account. */}
+      {isOwnerEmail(user?.email) && (
+        <Link href="/owner" className="glass flex items-center gap-4 border border-[var(--color-gold-500)]/25 p-4 transition-colors hover:bg-[var(--glass-bg-soft)]">
+          <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--color-gold-500)]/15"><Crown className="size-4.5 text-[var(--color-gold-500)]" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="text-strong block text-sm font-medium">Owner console</span>
+            <span className="text-muted block truncate text-xs">Users, sign-ins &amp; security — just for you</span>
+          </span>
+          <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
+        </Link>
+      )}
 
       {/* Tap a category to go inside — one clear thing per screen. */}
       <div className="glass flex flex-col divide-y divide-[var(--glass-border)] overflow-hidden !p-0">

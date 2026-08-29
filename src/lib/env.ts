@@ -37,6 +37,9 @@ export const publicEnv = {
   appName: clean(process.env.NEXT_PUBLIC_APP_NAME) || "Renew",
   appUrl: clean(process.env.NEXT_PUBLIC_APP_URL) || "http://localhost:3000",
   parentCompany: clean(process.env.NEXT_PUBLIC_PARENT_COMPANY) || "Renew",
+  /** The single owner/host email — the only account that can open the owner
+   *  console. Set NEXT_PUBLIC_OWNER_EMAIL in Vercel to your Renew sign-in email. */
+  ownerEmail: clean(process.env.NEXT_PUBLIC_OWNER_EMAIL).toLowerCase(),
   firebase: {
     apiKey: clean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
     authDomain: clean(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
