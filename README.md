@@ -6,7 +6,7 @@ subscriptions in one private place. By Zap.
 
 ### ▶ View the live app
 
-**→ https://renew-clientflownn.vercel.app**
+**→ https://getrenew.in**
 
 The working product runs on Vercel (a Next.js server app — real login, sessions
 and APIs, which is why it can't run on static GitHub Pages). Every push to

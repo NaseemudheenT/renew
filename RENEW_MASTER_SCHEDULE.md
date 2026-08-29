@@ -77,7 +77,7 @@ Source of truth = the original Renew build brief. Kept updated as work proceeds.
 ## Phase 12 — Deployment & monitoring
 - ✅ GitHub `main` sync — all app code merged to `main`, reconciled with your `.firebaserc`
 - ✅ **Firestore rules DEPLOYED** to `the-zap-e7583` (compiled + released) — new collections enforced live
-- ✅ **Vercel — LIVE & PUBLIC** at `https://renew-clientflownn.vercel.app` (`clientflownn/renew`, production READY)
+- ✅ **Vercel — LIVE & PUBLIC** at `https://getrenew.in` (`clientflownn/renew`, production READY)
   - Fixed deploy blocker: `.vercelignore` (excluded untracked `node_modules 2/` + `src 2/` macOS artifacts that broke the build)
   - Set prod env vars: `FIREBASE_SERVICE_ACCOUNT_KEY`, `AUTH_SECRET`, `RESEND_FROM_EMAIL`, `NEXT_PUBLIC_APP_URL` (never printed)
 - ✅ **Login fixed** — two config blockers resolved: added the Vercel domain to **Firebase Authorized Domains** (was missing → Google popup would fail), and **disabled Vercel Deployment Protection** (was gating the whole app behind SSO). `/sign-in` now serves the Google/Apple buttons publicly; `/dashboard` correctly 307s unauthenticated users.
