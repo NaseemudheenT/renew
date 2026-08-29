@@ -23,12 +23,15 @@ import type { TransactionInput } from "@/lib/firestore/transactions";
 export function TransactionForm({
   initial,
   defaultCurrency,
+  defaultType = "expense",
   submitting,
   onSubmit,
   onCancel,
 }: {
   initial?: Transaction;
   defaultCurrency?: string;
+  /** Type to start on for a new entry (e.g. "income" on the Income page). */
+  defaultType?: TxType;
   submitting: boolean;
   onSubmit: (input: TransactionInput) => void;
   onCancel: () => void;
@@ -38,12 +41,12 @@ export function TransactionForm({
   const { forType, subsFor } = useCategories();
   const { data: accounts } = useScopedUserCollection<Account>("accounts");
   const activeAccounts = accounts.filter((a) => a.status === "active");
-  const [type, setType] = useState<TxType>(initial?.type ?? "expense");
+  const [type, setType] = useState<TxType>(initial?.type ?? defaultType);
   const [currency, setCurrency] = useState(initial?.currency ?? defaultCurrency ?? prefs.currency);
   const [amount, setAmount] = useState(() =>
     initial ? displayFromValue(initial.amount, groupingLocale(prefs.region, initial.currency)) : "",
   );
-  const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? "expense")[0]!.id);
+  const [category, setCategory] = useState(initial?.category ?? forType(initial?.type ?? defaultType)[0]!.id);
   const [subcategory, setSubcategory] = useState(initial?.subcategory ?? "");
   const subs = subsFor(category);
   const [accountId, setAccountId] = useState(initial?.accountId ?? "");

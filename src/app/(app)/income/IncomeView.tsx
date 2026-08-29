@@ -1,25 +1,52 @@
 "use client";
 
-import { useMemo } from "react";
-import { ArrowDownLeft, TrendingUp, TrendingDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
+import { ArrowDownLeft, TrendingUp, TrendingDown, Plus, Mic, ScanLine, ImageUp, Upload, Pencil } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { ListSkeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
+import { AddMenu } from "@/components/finance/AddMenu";
+import { VoiceAdd } from "@/components/finance/VoiceAdd";
+import { TransactionForm } from "@/components/finance/TransactionForm";
+import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { useCategories } from "@/hooks/useCategories";
+import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange } from "@/lib/finance";
 import type { Transaction } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export function IncomeView() {
-  const { money, date } = useLocale();
+  const router = useRouter();
+  const { money, date, prefs } = useLocale();
   const { hidden, mask } = usePrivacy();
   const { resolve } = useCategories();
-  const { data, loading } = useScopedUserCollection<Transaction>("transactions");
+  const { data, loading, uid } = useScopedUserCollection<Transaction>("transactions");
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [voiceOpen, setVoiceOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function onSubmit(input: TransactionInput) {
+    if (!uid) return;
+    setSubmitting(true);
+    try {
+      await createTransaction(uid, input);
+      toast({ title: "Income added", variant: "success" });
+      setModalOpen(false);
+      setVoiceOpen(false);
+    } catch {
+      toast({ title: "Something went wrong", variant: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   const income = useMemo(() => data.filter((t) => t.type === "income").sort((a, b) => b.date - a.date), [data]);
   const currency = income[0]?.currency ?? data[0]?.currency;
@@ -67,7 +94,7 @@ export function IncomeView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title="Income" subtitle="Where your money comes from — by source, month by month." />
+      <PageHeader title="Income" subtitle="Where your money comes from — by source, month by month." action={<AnimatedButton onClick={() => setAddMenuOpen(true)}><Plus className="size-4" />Add</AnimatedButton>} />
 
       {loading ? (
         <ListSkeleton />
@@ -155,6 +182,25 @@ export function IncomeView() {
           </GlassCard>
         </div>
       )}
+
+      <AddMenu
+        open={addMenuOpen}
+        onClose={() => setAddMenuOpen(false)}
+        title="Add income"
+        options={[
+          { icon: Pencil, title: "Enter manually", sub: "Amount + source, in seconds", onClick: () => setModalOpen(true) },
+          { icon: Mic, title: "Speak it", sub: "Say the amount and where it's from", onClick: () => setVoiceOpen(true) },
+          { icon: ScanLine, title: "Scan a document", sub: "Camera reads amount, date & source", onClick: () => router.push("/import?scan=1") },
+          { icon: ImageUp, title: "Photo or PDF", sub: "Upload a payslip or statement", onClick: () => router.push("/import") },
+          { icon: Upload, title: "Import CSV / bank statement", sub: "Bring in many at once", onClick: () => router.push("/import") },
+        ]}
+      />
+
+      <VoiceAdd open={voiceOpen} onClose={() => setVoiceOpen(false)} currency={prefs.currency} submitting={submitting} onSubmit={onSubmit} />
+
+      <AnimatedModal open={modalOpen} onClose={() => setModalOpen(false)} title="Add income">
+        <TransactionForm defaultType="income" defaultCurrency={prefs.currency} submitting={submitting} onSubmit={onSubmit} onCancel={() => setModalOpen(false)} />
+      </AnimatedModal>
     </div>
   );
 }
