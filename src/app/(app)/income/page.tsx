@@ -1,5 +1,5 @@
-import { IncomeView } from "./IncomeView";
-
+import { MoneyView } from "./IncomeView";
+export const dynamic = "force-dynamic";
 export default function IncomePage() {
-  return <IncomeView />;
+  return <MoneyView />;
 }
