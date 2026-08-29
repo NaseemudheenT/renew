@@ -3,8 +3,7 @@
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, EyeOff } from "lucide-react";
-import { usePrivacy } from "@/components/providers/PrivacyProvider";
+import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Input } from "@/components/ui/Input";
@@ -50,7 +49,6 @@ export function SettingsView() {
     { id: "notifications", icon: Bell, title: "Notifications", sub: "Reminders and nudges", render: () => <>{uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}<BrowserNotifyControl /></> },
     { id: "billing", icon: CreditCard, title: "Billing", sub: "Your plan & payment method", render: () => <BillingControl /> },
     { id: "data", icon: Database, title: "Data", sub: "Import, export & delete", render: () => <DataControl /> },
-    { id: "privacy", icon: EyeOff, title: "Privacy", sub: "Hide amounts on screen", render: () => <PrivacyControl /> },
     { id: "accessibility", icon: Accessibility, title: "Accessibility", sub: "Text, contrast, motion & more", render: () => <AccessibilityControl /> },
     { id: "security", icon: ShieldCheck, title: "Security", sub: "Sign out & delete account", render: () => <SecurityControl /> },
   ] as const;
@@ -119,19 +117,6 @@ export function SettingsView() {
         <span aria-hidden="true">·</span>
         <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
       </footer>
-    </div>
-  );
-}
-
-function PrivacyControl() {
-  const { hidden, toggle } = usePrivacy();
-  return (
-    <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
-      <span className="min-w-0">
-        <span className="text-body block text-sm font-medium">Hide amounts</span>
-        <span className="text-muted block text-xs">Mask balances and amounts on screen with ••••.</span>
-      </span>
-      <Switch checked={hidden} onChange={() => { void toggle(); }} label="Hide amounts" />
     </div>
   );
 }

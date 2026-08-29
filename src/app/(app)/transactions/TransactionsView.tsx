@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { orderBy } from "firebase/firestore";
 import { useRouter } from "next/navigation";
-import { Plus, ArrowLeftRight, Search, Upload, Mic } from "lucide-react";
+import { Plus, ArrowLeftRight, Search, Upload, Mic, ScanLine, ImageUp, Pencil } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -14,6 +14,7 @@ import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { TransactionRow } from "@/components/finance/TransactionRow";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { VoiceAdd } from "@/components/finance/VoiceAdd";
+import { AddMenu } from "@/components/finance/AddMenu";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import {
@@ -42,6 +43,7 @@ export function TransactionsView() {
   const [q, setQ] = useState("");
   const [modalOpen, setModalOpen] = useState(false);
   const [voiceOpen, setVoiceOpen] = useState(false);
+  const [addMenuOpen, setAddMenuOpen] = useState(false);
   const [editing, setEditing] = useState<Transaction | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -107,7 +109,7 @@ export function TransactionsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={<div className="flex items-center gap-2"><AnimatedButton variant="glass" onClick={() => router.push("/import")}><Upload className="size-4" />Import</AnimatedButton><AnimatedButton variant="glass" onClick={() => { setEditing(null); setVoiceOpen(true); }} aria-label="Add by voice"><Mic className="size-4" /></AnimatedButton><AnimatedButton onClick={openCreate}><Plus className="size-4" />Add</AnimatedButton></div>} />
+      <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={<AnimatedButton onClick={() => setAddMenuOpen(true)}><Plus className="size-4" />Add</AnimatedButton>} />
 
       {!isEmpty && (
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
@@ -146,6 +148,19 @@ export function TransactionsView() {
           ))}
         </div>
       )}
+
+      <AddMenu
+        open={addMenuOpen}
+        onClose={() => setAddMenuOpen(false)}
+        title="Add a transaction"
+        options={[
+          { icon: Pencil, title: "Enter manually", sub: "Amount + category, in seconds", onClick: openCreate },
+          { icon: Mic, title: "Speak it", sub: "Say the amount and what it was", onClick: () => { setEditing(null); setVoiceOpen(true); } },
+          { icon: ScanLine, title: "Scan a receipt", sub: "Camera reads amount, date & merchant", onClick: () => router.push("/import?scan=1") },
+          { icon: ImageUp, title: "Photo or PDF", sub: "Upload a receipt or statement", onClick: () => router.push("/import") },
+          { icon: Upload, title: "Import CSV / bank statement", sub: "Bring in many at once", onClick: () => router.push("/import") },
+        ]}
+      />
 
       <VoiceAdd open={voiceOpen} onClose={() => setVoiceOpen(false)} currency={prefs.currency} submitting={submitting} onSubmit={async (i) => { await onSubmit(i); setVoiceOpen(false); }} />
 
