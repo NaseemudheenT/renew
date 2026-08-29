@@ -1,11 +1,9 @@
 import {
   forwardRef,
   useId,
-  useState,
   type InputHTMLAttributes,
   type ReactNode,
 } from "react";
-import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export interface InputProps extends Omit<InputHTMLAttributes<HTMLInputElement>, "size"> {
@@ -22,9 +20,6 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
 ) {
   const autoId = useId();
   const inputId = id ?? autoId;
-  const [show, setShow] = useState(false);
-  const isPassword = type === "password";
-  const resolvedType = isPassword ? (show ? "text" : "password") : type;
 
   return (
     <div className="w-full">
@@ -42,7 +37,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
         <input
           ref={ref}
           id={inputId}
-          type={resolvedType}
+          type={type}
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           className={cn(
@@ -53,22 +48,11 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
             "focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25",
             "focus:shadow-[0_8px_28px_-12px_var(--focus-ring)]",
             icon && "ps-11",
-            isPassword && "pe-11",
             error && "border-rose-400/70 focus:ring-rose-400/20",
             className,
           )}
           {...props}
         />
-        {isPassword && (
-          <button
-            type="button"
-            onClick={() => setShow((v) => !v)}
-            className="absolute end-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[var(--text-muted)] hover:text-[var(--text-strong)]"
-            aria-label={show ? "Hide password" : "Show password"}
-          >
-            {show ? <EyeOff className="size-4.5" /> : <Eye className="size-4.5" />}
-          </button>
-        )}
       </div>
       {error ? (
         <p id={`${inputId}-error`} className="mt-1.5 text-sm text-rose-500" role="alert">
