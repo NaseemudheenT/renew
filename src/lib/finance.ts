@@ -6,7 +6,7 @@ import {
   Fuel, Smartphone, Shirt, Dumbbell, Plane, Shield, Sparkles, Baby, PawPrint, Heart, Banknote, Zap,
   type LucideIcon,
 } from "lucide-react";
-import type { TxType, InvestmentType, CustomCategory } from "@/lib/types";
+import type { TxType, InvestmentType, CustomCategory, WorkspaceMode } from "@/lib/types";
 
 export interface CatMeta {
   id: string;
@@ -68,10 +68,39 @@ export const EXPENSE_CATEGORIES: CatMeta[] = [
   { id: "other_expense", label: "Other", icon: Coins, tone: EX },
 ];
 
-const ALL = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES];
+/** Business workspace categories — the language a business uses (revenue,
+ *  payroll, supplies…). Ids are biz_-prefixed so they never collide with the
+ *  personal set and always resolve, whatever workspace you're viewing. */
+export const BUSINESS_INCOME_CATEGORIES: CatMeta[] = [
+  { id: "biz_sales", label: "Sales", icon: ShoppingBag, tone: IN, sub: ["Products", "Online", "In-store"] },
+  { id: "biz_services", label: "Services", icon: Handshake, tone: IN, sub: ["Consulting", "Projects", "Retainer"] },
+  { id: "biz_interest", label: "Interest", icon: Percent, tone: IN },
+  { id: "biz_grants", label: "Grants & funding", icon: Award, tone: IN },
+  { id: "biz_refund_in", label: "Refunds", icon: RotateCcw, tone: IN },
+  { id: "biz_other_income", label: "Other", icon: Coins, tone: IN },
+];
+export const BUSINESS_EXPENSE_CATEGORIES: CatMeta[] = [
+  { id: "biz_payroll", label: "Payroll & wages", icon: HandCoins, tone: EX, sub: ["Salaries", "Contractors", "Benefits"] },
+  { id: "biz_supplies", label: "Supplies", icon: ShoppingCart, tone: EX },
+  { id: "biz_inventory", label: "Inventory & stock", icon: ShoppingBag, tone: EX },
+  { id: "biz_software", label: "Software & tools", icon: Laptop, tone: EX, sub: ["SaaS", "Hosting", "Licenses"] },
+  { id: "biz_rent", label: "Rent & premises", icon: Building2, tone: EX },
+  { id: "biz_utilities", label: "Utilities", icon: Zap, tone: EX },
+  { id: "biz_marketing", label: "Marketing & ads", icon: BadgePercent, tone: EX },
+  { id: "biz_travel", label: "Travel", icon: Plane, tone: EX },
+  { id: "biz_prof_fees", label: "Professional fees", icon: Briefcase, tone: EX, sub: ["Legal", "Accounting", "Consulting"] },
+  { id: "biz_shipping", label: "Shipping & logistics", icon: Car, tone: EX },
+  { id: "biz_insurance", label: "Insurance", icon: Shield, tone: EX },
+  { id: "biz_taxes", label: "Taxes", icon: Landmark, tone: EX },
+  { id: "biz_bank_fees", label: "Bank & fees", icon: Banknote, tone: EX },
+  { id: "biz_other_expense", label: "Other", icon: Coins, tone: EX },
+];
+
+const ALL = [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES, ...BUSINESS_INCOME_CATEGORIES, ...BUSINESS_EXPENSE_CATEGORIES];
 const byId = new Map(ALL.map((c) => [c.id, c]));
 
-export function categoriesFor(type: TxType): CatMeta[] {
+export function categoriesFor(type: TxType, mode: WorkspaceMode = "personal"): CatMeta[] {
+  if (mode === "business") return type === "income" ? BUSINESS_INCOME_CATEGORIES : BUSINESS_EXPENSE_CATEGORIES;
   return type === "income" ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 }
 export function catMeta(id: string): CatMeta {

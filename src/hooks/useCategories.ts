@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { useUserProfile } from "@/hooks/useUserProfile";
+import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import {
   categoriesFor,
   customCatMeta,
@@ -29,6 +30,7 @@ export interface CategoriesApi {
  */
 export function useCategories(): CategoriesApi {
   const { profile } = useUserProfile();
+  const { mode } = useWorkspace();
   const custom = useMemo(
     () => profile?.customCategories ?? [],
     [profile?.customCategories],
@@ -42,7 +44,7 @@ export function useCategories(): CategoriesApi {
     () => ({
       custom,
       forType: (type: TxType) => [
-        ...categoriesFor(type),
+        ...categoriesFor(type, mode),
         ...custom.filter((c) => c.type === type).map(customCatMeta),
       ],
       resolve: (id: string) => resolveCatMeta(id, custom),
@@ -52,6 +54,6 @@ export function useCategories(): CategoriesApi {
         return Array.from(new Set(merged));
       },
     }),
-    [custom, customSubs],
+    [custom, customSubs, mode],
   );
 }
