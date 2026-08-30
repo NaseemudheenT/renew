@@ -23,8 +23,6 @@ import { useUserProfile } from "@/hooks/useUserProfile";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange } from "@/lib/finance";
 import { computeAccountBalance, accountTypeMeta, subscriptionMonthly } from "@/lib/accounts";
-import { computeInsights } from "@/lib/insights";
-import { Insights } from "@/components/finance/Insights";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -99,18 +97,6 @@ export function Dashboard({ name }: { name: string }) {
     const active = subscriptions.data.filter((s) => s.status === "active");
     return { monthly: active.reduce((sum, s) => sum + subscriptionMonthly(s), 0), count: active.length };
   }, [subscriptions.data]);
-  const insights = useMemo(() => {
-    const { end } = monthRange();
-    const billsDueThisMonth = bills.data
-      .filter((b) => b.status !== "paid" && b.dueAt < end)
-      .reduce((s, b) => s + b.amount, 0);
-    return computeInsights({
-      transactions: txAll.data,
-      recurringMonthly: recurring.monthly,
-      activeSubs: recurring.count,
-      upcomingBillsTotal: billsDueThisMonth,
-    });
-  }, [txAll.data, bills.data, recurring]);
   const activeAccounts = useMemo(() => accounts.data.filter((a) => a.status === "active"), [accounts.data]);
   const accountBalances = useMemo(() => {
     const m = new Map<string, number>();
@@ -212,12 +198,6 @@ export function Dashboard({ name }: { name: string }) {
             <StaggerItem>
               <AskRenew transactions={txAll.data} netWorth={netWorth} monthlySubs={recurring.monthly} activeSubs={recurring.count} upcomingBillsTotal={comingTotal} currency={currency} />
             </StaggerItem>
-
-            {insights.length > 0 && (
-              <StaggerItem>
-                <Insights insights={insights} currency={currency} />
-              </StaggerItem>
-            )}
 
             <StaggerItem>
               <FinancialIntelligence transactions={txAll.data} currency={currency} hideTrend max={3} />
