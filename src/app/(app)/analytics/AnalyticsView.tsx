@@ -54,6 +54,14 @@ export function AnalyticsView() {
     return Array.from(m.entries()).map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
   }, [data]);
   const catMax = Math.max(1, ...byCategory.map((c) => c.amount));
+
+  const bySource = useMemo(() => {
+    const { start, end } = monthRange();
+    const m = new Map<string, number>();
+    for (const t of data) if (t.type === "income" && t.date >= start && t.date < end) m.set(t.category, (m.get(t.category) ?? 0) + t.amount);
+    return Array.from(m.entries()).map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
+  }, [data]);
+  const srcMax = Math.max(1, ...bySource.map((c) => c.amount));
   const maxMonth = Math.max(1, ...months.map((m) => Math.max(m.income, m.expense)));
 
   if (!loading && data.length === 0) {
@@ -102,6 +110,29 @@ export function AnalyticsView() {
             </div>
           </GlassCard>
         </StaggerItem>
+
+        {bySource.length > 0 && (
+          <StaggerItem>
+            <GlassCard padded>
+              <h2 className="text-strong mb-4 text-sm font-medium">Income by source · this month</h2>
+              <div className="flex flex-col gap-3">
+                {bySource.map((d, i) => {
+                  const meta = resolve(d.category);
+                  const Icon = meta.icon;
+                  return (
+                    <div key={d.category} className="flex items-center gap-3">
+                      <span className="text-muted flex w-32 shrink-0 items-center gap-1.5 text-xs"><Icon className="size-3.5" />{meta.label}</span>
+                      <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
+                        <motion.div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500" initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / srcMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
+                      </div>
+                      <span className="text-body w-20 text-end text-xs tabular-nums">{money(d.amount, currency)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </GlassCard>
+          </StaggerItem>
+        )}
 
         <StaggerItem>
           <GlassCard padded>

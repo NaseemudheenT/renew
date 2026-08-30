@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ReceiptText, RefreshCw } from "lucide-react";
 import { PaymentsView } from "./PaymentsView";
 import { SubscriptionsView } from "../subscriptions/SubscriptionsView";
@@ -20,6 +20,13 @@ const TABS: { id: Tab; label: string; icon: typeof ReceiptText }[] = [
  */
 export function BillsView() {
   const [tab, setTab] = useState<Tab>("bills");
+
+  // Deep link: /payments#subscriptions opens the Subscriptions tab directly.
+  useEffect(() => {
+    const h = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (h === "subscriptions") setTab("subscriptions");
+  }, []);
 
   return (
     <div>

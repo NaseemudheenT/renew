@@ -160,7 +160,7 @@ export function AccountView() {
       {/* Membership */}
       <Group title="Membership">
         <Row icon={Sparkles} title="Plan & billing" desc="You're on the free plan" href="/settings#billing" />
-        <Row icon={RefreshCw} title="Subscriptions" desc={`${active.length} active · manage & track renewals`} href="/subscriptions" />
+        <Row icon={RefreshCw} title="Subscriptions" desc={`${active.length} active · manage & track renewals`} href="/payments#subscriptions" />
         <Row icon={ReceiptText} title="Bills" desc="Upcoming and paid bills" href="/payments" />
       </Group>
 

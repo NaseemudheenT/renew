@@ -7,7 +7,6 @@ import {
   ReceiptText,
   BarChart3,
   Settings,
-  ArrowDownLeft,
   type LucideIcon,
 } from "lucide-react";
 import type { MessageKey } from "@/lib/i18n/messages";
@@ -34,7 +33,6 @@ export function navItemsFor(mode: WorkspaceMode): NavItem[] {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/dashboard", label: "Overview", msgKey: "nav.dashboard", icon: LayoutDashboard, primary: true },
   { href: "/accounts", label: "Accounts", msgKey: "nav.accounts", icon: Wallet, primary: true },
-  { href: "/income", label: "Income", msgKey: "nav.income", icon: ArrowDownLeft },
   { href: "/transactions", label: "Transactions", msgKey: "nav.transactions", icon: ArrowLeftRight, primary: true },
   { href: "/budget", label: "Budget", msgKey: "nav.budget", icon: Target, primary: true },
   { href: "/savings", label: "Savings", msgKey: "nav.savings", icon: PiggyBank, modes: ["personal"] },

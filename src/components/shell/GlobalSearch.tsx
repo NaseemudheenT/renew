@@ -166,7 +166,7 @@ function SearchPanel({ onClose }: { onClose: () => void }) {
         icon: subscriptionIcon,
         label: s.name,
         sub: money(s.price, s.currency),
-        href: "/subscriptions",
+        href: "/payments#subscriptions",
         blob: `${s.name} subscription`.toLowerCase(),
       });
     }

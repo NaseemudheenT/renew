@@ -52,7 +52,7 @@ export function CalendarView() {
   const items: CalItem[] = useMemo(() => {
     const out: CalItem[] = [];
     payments.data.forEach((p) => out.push({ id: p.id, kind: "payment", title: p.name, at: p.dueAt, href: "/payments" }));
-    subscriptions.data.forEach((s) => { if (s.status === "active") out.push({ id: s.id, kind: "subscription", title: s.name, at: s.nextBillingAt, href: "/subscriptions" }); });
+    subscriptions.data.forEach((s) => { if (s.status === "active") out.push({ id: s.id, kind: "subscription", title: s.name, at: s.nextBillingAt, href: "/payments#subscriptions" }); });
     return out;
   }, [payments.data, subscriptions.data]);
 
