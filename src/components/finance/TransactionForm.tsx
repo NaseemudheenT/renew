@@ -133,7 +133,9 @@ export function TransactionForm({
     // A transaction attributed to an account MUST use that account's currency,
     // otherwise it silently drops out of the account's balance.
     const effectiveCurrency = selectedAccount ? selectedAccount.currency : currency;
-    onSubmit({ type, amount: amt, currency: effectiveCurrency, category, subcategory: subcategory || undefined, note: note.trim() || undefined, date: fromDateTimeInputs(date), accountId: accountId || undefined });
+    // Send "" (not undefined) for cleared optionals so an edit that empties a
+    // field actually persists the clear (createTransaction stores "" too).
+    onSubmit({ type, amount: amt, currency: effectiveCurrency, category, subcategory: subcategory.trim(), note: note.trim(), date: fromDateTimeInputs(date), accountId });
   }
 
   return (

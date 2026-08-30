@@ -74,6 +74,11 @@ export function getDb(): Firestore {
   try {
     dbInstance = initializeFirestore(getFirebaseApp(), {
       experimentalAutoDetectLongPolling: true,
+      // Optional fields (note, accountId, subcategory, …) arrive as `undefined`
+      // when empty. Firestore rejects `undefined` by default, which made every
+      // edit of a record with an empty optional field fail with a generic error.
+      // Ignoring undefined makes writes drop those fields instead of throwing.
+      ignoreUndefinedProperties: true,
     });
   } catch {
     // Already initialized elsewhere — fall back to the existing instance.
