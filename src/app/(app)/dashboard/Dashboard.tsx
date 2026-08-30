@@ -14,7 +14,7 @@ import { AnimatedButton, AnimatedModal, StaggerContainer, StaggerItem } from "@/
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
-import { FinancialIntelligence } from "@/components/finance/FinancialIntelligence";
+import { Advisor } from "@/components/finance/Advisor";
 import { CashFlowForecast } from "@/components/finance/CashFlowForecast";
 import { AskRenew } from "@/components/finance/AskRenew";
 import { toast } from "@/components/ui/toast-store";
@@ -29,7 +29,7 @@ import { useLocale } from "@/components/providers/LocaleProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { useAccountType } from "@/hooks/useAccountType";
 import { cn } from "@/lib/utils";
-import type { Transaction, SavingsGoal, Payment, Account, Transfer, Subscription } from "@/lib/types";
+import type { Transaction, SavingsGoal, Payment, Account, Transfer, Subscription, Budget } from "@/lib/types";
 
 /** A warm, time-of-day greeting — computed from the person's own clock. */
 function timeGreeting(): string {
@@ -72,6 +72,7 @@ export function Dashboard({ name }: { name: string }) {
   const accounts = useScopedUserCollection<Account>("accounts");
   const transfers = useScopedUserCollection<Transfer>("transfers");
   const subscriptions = useScopedUserCollection<Subscription>("subscriptions");
+  const budgets = useScopedUserCollection<Budget>("budgets");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -173,6 +174,18 @@ export function Dashboard({ name }: { name: string }) {
             </StaggerItem>
 
             <StaggerItem>
+              <Advisor
+                transactions={txAll.data}
+                subscriptions={subscriptions.data}
+                bills={bills.data}
+                budgets={budgets.data}
+                goals={savings.data}
+                currency={currency}
+                max={5}
+              />
+            </StaggerItem>
+
+            <StaggerItem>
               <CashFlowForecast transactions={txAll.data} currentBalance={netWorth} upcomingBillsTotal={comingTotal} currency={currency} />
             </StaggerItem>
 
@@ -197,10 +210,6 @@ export function Dashboard({ name }: { name: string }) {
 
             <StaggerItem>
               <AskRenew transactions={txAll.data} netWorth={netWorth} monthlySubs={recurring.monthly} activeSubs={recurring.count} upcomingBillsTotal={comingTotal} currency={currency} />
-            </StaggerItem>
-
-            <StaggerItem>
-              <FinancialIntelligence transactions={txAll.data} currency={currency} hideTrend max={3} />
             </StaggerItem>
 
             <StaggerItem>
