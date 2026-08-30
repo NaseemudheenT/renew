@@ -23,7 +23,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
         <RenewMark size={34} />
         <Wordmark sizeClassName="text-lg" />
       </Link>
-      <nav className="flex flex-1 flex-col gap-0.5" aria-label="Primary">
+      <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain" aria-label="Primary">
         {items.map(({ href, msgKey, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (

@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import {
   Users, UserPlus, Activity, ShieldCheck, ShieldAlert, Ban,
   RefreshCw, KeyRound, Fingerprint, Mail, Smartphone, Apple, Globe, Circle,
+  Search, TrendingUp, TrendingDown, LineChart,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -34,6 +35,8 @@ interface OwnerOverview {
   unverifiedUsers: number;
   providerBreakdown: Record<string, number>;
   recentUsers: OwnerUserRow[];
+  signupsByDay: { day: number; count: number }[];
+  weekOverWeekPct: number | null;
   truncated: boolean;
   generatedAt: number;
 }
@@ -61,6 +64,7 @@ export function OwnerConsole() {
   const [data, setData] = useState<OwnerOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -86,6 +90,18 @@ export function OwnerConsole() {
     ? Object.entries(data.providerBreakdown).sort((a, b) => b[1] - a[1])
     : [];
   const providerMax = providerRows.reduce((m, [, n]) => Math.max(m, n), 0) || 1;
+
+  const q = query.trim().toLowerCase();
+  const filteredUsers = useMemo(() => {
+    const rows = data?.recentUsers ?? [];
+    if (!q) return rows;
+    return rows.filter((u) =>
+      (u.email ?? "").toLowerCase().includes(q) ||
+      (u.displayName ?? "").toLowerCase().includes(q) ||
+      u.uid.toLowerCase().includes(q),
+    );
+  }, [data?.recentUsers, q]);
+  const signupMax = data ? Math.max(1, ...data.signupsByDay.map((d) => d.count)) : 1;
 
   return (
     <div className="mx-auto max-w-5xl">
@@ -160,24 +176,65 @@ export function OwnerConsole() {
             )}
           </GlassCard>
 
-          {/* People */}
+          {/* Sign-ups over time */}
           <GlassCard padded className="mt-6">
             <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-strong flex items-center gap-2 text-sm font-medium">
+                <LineChart size={16} className="text-[var(--color-gold-400)]" />
+                New sign-ups <span className="text-muted font-normal">· last 14 days</span>
+              </h2>
+              {data.weekOverWeekPct != null && (
+                <span className={cn(
+                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs",
+                  data.weekOverWeekPct >= 0 ? "bg-emerald-500/15 text-emerald-300" : "bg-rose-500/15 text-rose-300",
+                )}>
+                  {data.weekOverWeekPct >= 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
+                  {Math.abs(data.weekOverWeekPct)}% wk/wk
+                </span>
+              )}
+            </div>
+            <div className="flex h-28 items-end gap-1.5">
+              {data.signupsByDay.map((d) => (
+                <div key={d.day} className="group flex h-full flex-1 flex-col items-center justify-end gap-1" title={`${d.count} on ${new Date(d.day).toLocaleDateString()}`}>
+                  <span className="text-muted text-[10px] tabular-nums opacity-0 transition-opacity group-hover:opacity-100">{d.count}</span>
+                  <motion.span
+                    className="w-full rounded-t bg-gradient-to-t from-[var(--color-gold-500)] to-[var(--color-gold-300)]"
+                    initial={{ height: 0 }}
+                    animate={{ height: `${(d.count / signupMax) * 100}%` }}
+                    transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                </div>
+              ))}
+            </div>
+            <div className="text-muted mt-2 flex justify-between text-[10px]">
+              <span>14 days ago</span><span>today</span>
+            </div>
+          </GlassCard>
+
+          {/* People */}
+          <GlassCard padded className="mt-6">
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-strong flex items-center gap-2 text-sm font-medium">
                 <Users size={16} className="text-[var(--color-gold-400)]" />
                 People
                 <span className="text-muted font-normal">· newest first</span>
               </h2>
-              {data.truncated && (
-                <span className="text-muted text-xs">Showing the latest {data.recentUsers.length}</span>
-              )}
+              <div className="relative">
+                <Search size={14} className="text-muted absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder="Search email or name"
+                  className="text-body w-56 max-w-full rounded-full border border-white/10 bg-white/5 py-1.5 pl-8 pr-3 text-sm outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--focus-ring)]"
+                />
+              </div>
             </div>
 
-            {data.recentUsers.length === 0 ? (
-              <p className="text-muted text-sm">No users yet.</p>
+            {filteredUsers.length === 0 ? (
+              <p className="text-muted text-sm">{q ? "No one matches that search." : "No users yet."}</p>
             ) : (
               <ul className="divide-y divide-white/5">
-                {data.recentUsers.map((u) => (
+                {filteredUsers.map((u) => (
                   <li key={u.uid} className="flex items-center gap-3 py-3">
                     <span
                       className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-sm font-medium text-white"

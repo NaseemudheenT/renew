@@ -28,6 +28,10 @@ export interface OwnerOverview {
   providerBreakdown: Record<string, number>;
   /** Most recent sign-ups, newest first (capped). */
   recentUsers: OwnerUserRow[];
+  /** New sign-ups per day for the last 14 days (oldest first). */
+  signupsByDay: { day: number; count: number }[];
+  /** Percent change in new users this week vs last week (null if no baseline). */
+  weekOverWeekPct: number | null;
   /** True if we hit the pagination cap and the totals are a floor, not exact. */
   truncated: boolean;
   generatedAt: number;
@@ -155,7 +159,21 @@ export async function getOwnerOverview(): Promise<OwnerOverview> {
 
   // Newest sign-ups first, capped for the UI.
   rows.sort((a, b) => (b.createdAt ?? 0) - (a.createdAt ?? 0));
-  const recentUsers = rows.slice(0, 50);
+  const recentUsers = rows.slice(0, 100);
+
+  // New sign-ups per day for the last 14 days (local-day buckets).
+  const startOfToday = new Date(now); startOfToday.setHours(0, 0, 0, 0);
+  const signupsByDay: { day: number; count: number }[] = [];
+  for (let i = 13; i >= 0; i--) {
+    const dayStart = startOfToday.getTime() - i * DAY;
+    const dayEnd = dayStart + DAY;
+    let count = 0;
+    for (const r of rows) if (r.createdAt != null && r.createdAt >= dayStart && r.createdAt < dayEnd) count += 1;
+    signupsByDay.push({ day: dayStart, count });
+  }
+  const thisWeek = signupsByDay.slice(7).reduce((s, d) => s + d.count, 0);
+  const lastWeek = signupsByDay.slice(0, 7).reduce((s, d) => s + d.count, 0);
+  const weekOverWeekPct = lastWeek > 0 ? Math.round(((thisWeek - lastWeek) / lastWeek) * 100) : null;
 
   return {
     totalUsers,
@@ -168,6 +186,8 @@ export async function getOwnerOverview(): Promise<OwnerOverview> {
     unverifiedUsers,
     providerBreakdown,
     recentUsers,
+    signupsByDay,
+    weekOverWeekPct,
     truncated,
     generatedAt: now,
   };
