@@ -28,11 +28,11 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
-            // Allow the site's OWN origin to use the camera (in-app QR scanning
-            // in Settings › Link a device); deny it to third parties. Mic and
-            // geolocation stay fully off — Renew never needs them.
+            // Allow the site's OWN origin to use the camera (QR scanning,
+            // receipt capture) and the microphone (Ren's voice + voice-add);
+            // deny both to third parties. Geolocation stays fully off.
             key: "Permissions-Policy",
-            value: "camera=(self), microphone=(), geolocation=()",
+            value: "camera=(self), microphone=(self), geolocation=()",
           },
           // Force HTTPS for two years (incl. subdomains) — bank-grade transport
           // security for a money app. Applies only over HTTPS (Vercel).

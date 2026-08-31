@@ -5,12 +5,23 @@ import { destroyAsset } from "@/lib/cloudinary";
 
 export const runtime = "nodejs";
 
+// EVERY per-user subcollection — must stay in sync with the allowlist in
+// firestore.rules. Deleting an account has to remove ALL of the person's data,
+// financial data included, or it's orphaned forever (a privacy violation).
 const SUBCOLLECTIONS = [
   "reminders",
   "tasks",
   "documents",
   "payments",
   "notifications",
+  "transactions",
+  "budgets",
+  "savings",
+  "investments",
+  "accounts",
+  "transfers",
+  "subscriptions",
+  "razorpayOrders",
 ] as const;
 
 /**
@@ -44,6 +55,15 @@ export async function POST() {
         snap.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
         await batch.commit();
       }
+    }
+
+    // Passkeys live in a top-level collection keyed by credential id, so remove
+    // the ones belonging to this user by query (else they're orphaned).
+    const passkeys = await db.collection("passkeys").where("uid", "==", user.uid).get();
+    for (let i = 0; i < passkeys.docs.length; i += 400) {
+      const batch = db.batch();
+      passkeys.docs.slice(i, i + 400).forEach((d) => batch.delete(d.ref));
+      await batch.commit();
     }
 
     await userRef.delete().catch(() => {});

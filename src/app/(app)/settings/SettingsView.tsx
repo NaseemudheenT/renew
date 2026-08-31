@@ -22,7 +22,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
-import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
+import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription, Reminder } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention } from "@/lib/firestore/profile";
 import { RETENTION_OPTIONS } from "@/lib/retention";
@@ -376,11 +376,13 @@ function DataControl() {
   const accounts = useUserCollection<Account>("accounts");
   const transfers = useUserCollection<Transfer>("transfers");
   const subscriptions = useUserCollection<Subscription>("subscriptions");
+  const reminders = useUserCollection<Reminder>("reminders");
 
   const total =
     transactions.data.length + budgets.data.length + savings.data.length +
     investments.data.length + payments.data.length +
-    accounts.data.length + transfers.data.length + subscriptions.data.length;
+    accounts.data.length + transfers.data.length + subscriptions.data.length +
+    reminders.data.length;
 
   async function exportData() {
     if (total === 0) return toast({ title: t("settings.data.empty") });
@@ -396,6 +398,7 @@ function DataControl() {
       investments: investments.data,
       payments: payments.data,
       subscriptions: subscriptions.data,
+      reminders: reminders.data,
     };
     downloadFile(`renew-${fileDateStamp()}.json`, JSON.stringify(payload, null, 2), "application/json");
     toast({ title: t("settings.data.exported"), variant: "success" });
