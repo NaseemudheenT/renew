@@ -24,7 +24,8 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateNotificationPrefs, updateLocalePrefs } from "@/lib/firestore/profile";
+import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention } from "@/lib/firestore/profile";
+import { RETENTION_OPTIONS } from "@/lib/retention";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AccessibilityControl } from "@/components/settings/AccessibilityControl";
 import { useReauth } from "@/components/security/ReauthProvider";
@@ -365,6 +366,8 @@ function DataControl() {
   const { t } = useLocale();
   const router = useRouter();
   const requireReauth = useReauth();
+  const { profile, uid } = useUserProfile();
+  const retentionDays = profile?.dataRetentionDays ?? 0;
   const transactions = useUserCollection<Transaction>("transactions");
   const budgets = useUserCollection<Budget>("budgets");
   const savings = useUserCollection<SavingsGoal>("savings");
@@ -420,6 +423,43 @@ function DataControl() {
 
       <DataAction icon={Upload} title="Import a statement" desc="Add transactions from a CSV or PDF bank statement" onClick={() => router.push("/import")} />
       <DataAction icon={Download} title="Download my data" desc="Save your own private copy of everything in Renew" onClick={exportData} />
+
+      {/* Auto-clean — keep Renew tidy by removing old entries automatically. */}
+      <div className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5">
+        <p className="text-body text-sm font-medium">Auto-clean old entries</p>
+        <p className="text-muted mb-3 text-xs">Automatically remove transactions older than the time you choose. Off by default — your data is kept forever unless you pick a window.</p>
+        <div className="grid grid-cols-2 gap-2">
+          {RETENTION_OPTIONS.map((o) => {
+            const active = retentionDays === o.days;
+            return (
+              <button
+                key={o.days}
+                type="button"
+                onClick={async () => {
+                  if (!uid || active) return;
+                  if (o.days > 0 && !(await requireReauth("to turn on auto-delete of old entries"))) return;
+                  try { await updateDataRetention(uid, o.days); toast({ title: o.days === 0 ? "Auto-clean off — keeping everything" : `Auto-clean on — ${o.label}`, variant: "success" }); }
+                  catch { toast({ title: "Couldn't save", variant: "error" }); }
+                }}
+                aria-pressed={active}
+                className={cn(
+                  "flex flex-col items-start rounded-xl border p-3 text-left transition-all",
+                  active ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50",
+                )}
+              >
+                <span className="text-strong flex items-center gap-1.5 text-sm font-medium">{o.label}{active && <Check className="size-3.5 text-[var(--color-gold-600)]" />}</span>
+                <span className="text-muted text-[0.7rem]">{o.sub}</span>
+              </button>
+            );
+          })}
+        </div>
+        {retentionDays > 0 && (
+          <p className="mt-3 flex items-start gap-1.5 text-xs text-amber-600 dark:text-amber-400">
+            <Trash2 className="mt-0.5 size-3.5 shrink-0" />
+            Entries older than {RETENTION_OPTIONS.find((o) => o.days === retentionDays)?.label.toLowerCase()} are permanently removed when you open Renew. This can&apos;t be undone.
+          </p>
+        )}
+      </div>
     </div>
   );
 }

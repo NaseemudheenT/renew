@@ -102,7 +102,9 @@ export interface DocItem {
 export type PaymentStatus = "upcoming" | "paid" | "overdue";
 
 /** How a bill/payment is settled — a tracking label, Renew never moves money. */
-export type PaymentMethod = "cash" | "bank" | "card" | "upi" | "autopay" | "other";
+export type PaymentMethod =
+  | "cash" | "bank" | "card" | "upi" | "netbanking" | "wallet"
+  | "cheque" | "autopay" | "other";
 
 export interface Payment {
   id: string;

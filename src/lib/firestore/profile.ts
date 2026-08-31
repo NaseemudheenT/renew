@@ -111,6 +111,11 @@ export async function ignoreRecurring(uid: string, key: string): Promise<void> {
   });
 }
 
+/** Set the auto-clean retention window (days; 0 = keep everything). */
+export async function updateDataRetention(uid: string, days: number): Promise<void> {
+  await updateDoc(profileRef(uid), { dataRetentionDays: days, updatedAt: serverTimestamp() });
+}
+
 export async function updateNotificationPrefs(
   uid: string,
   prefs: NotificationPrefs,

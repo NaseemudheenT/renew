@@ -67,3 +67,13 @@ export async function restoreTransaction(uid: string, tx: Transaction): Promise<
   const { id: _id, createdAt: _c, updatedAt: _u, ...rest } = tx;
   await addDoc(userCollection(uid, "transactions"), { ...rest, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
 }
+
+/** Permanently delete many transactions in batches (used by data retention). */
+export async function deleteManyTransactions(uid: string, ids: string[]): Promise<void> {
+  const db = getDb();
+  for (let i = 0; i < ids.length; i += 400) {
+    const batch = writeBatch(db);
+    for (const id of ids.slice(i, i + 400)) batch.delete(userDoc(uid, "transactions", id));
+    await batch.commit();
+  }
+}

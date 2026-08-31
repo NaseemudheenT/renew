@@ -61,6 +61,9 @@ export interface ProfileDoc {
   avatar?: string;
   /** When the person accepted the Privacy Policy + Terms. */
   acceptedLegalAt?: number;
+  /** Auto-clean window in days (0/undefined = keep everything). Transactions
+   *  older than this are removed on app open. See lib/retention. */
+  dataRetentionDays?: number;
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

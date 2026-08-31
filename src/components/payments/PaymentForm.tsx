@@ -14,11 +14,15 @@ import type { Payment, Category, RepeatRule, PaymentMethod } from "@/lib/types";
 import type { PaymentInput } from "@/lib/firestore/payments";
 
 const METHODS: { value: PaymentMethod; label: string }[] = [
-  { value: "bank", label: "Bank transfer" },
   { value: "upi", label: "UPI" },
   { value: "card", label: "Card" },
-  { value: "cash", label: "Cash" },
+  { value: "netbanking", label: "Net banking" },
+  { value: "wallet", label: "Wallet" },
+  { value: "bank", label: "Bank transfer" },
   { value: "autopay", label: "Auto-pay" },
+  { value: "cheque", label: "Cheque" },
+  { value: "cash", label: "Cash" },
+  { value: "other", label: "Other" },
   { value: "other", label: "Other" },
 ];
 const REMIND: { value: string; label: string }[] = [
