@@ -100,6 +100,9 @@ export function getServerEnv() {
   requireServer();
   return {
     authSecret: clean(process.env.AUTH_SECRET),
+    // Optional explicit WebAuthn relying-party id (e.g. "getrenew.in"). When
+    // empty, it's derived from the request host (leading "www." stripped).
+    webauthnRpId: clean(process.env.WEBAUTHN_RP_ID),
     firebaseServiceAccountKey: clean(process.env.FIREBASE_SERVICE_ACCOUNT_KEY),
     cloudinary: {
       cloudName: clean(process.env.CLOUDINARY_CLOUD_NAME),

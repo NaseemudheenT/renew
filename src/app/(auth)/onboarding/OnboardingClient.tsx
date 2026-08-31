@@ -17,6 +17,7 @@ import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { AnimatedButton } from "@/components/motion";
 import { requestBrowserNotify } from "@/lib/notify";
+import { registerPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
 import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
 import {
@@ -126,6 +127,13 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Could not save.");
+      }
+      // Set up a passkey NOW (Face ID / device unlock) so next sign-in is one
+      // tap — created at first sign-in, never required beforehand. Non-blocking:
+      // if the person dismisses the prompt, is on an unsupported browser, or it
+      // errors, onboarding still completes and they can add one later in Settings.
+      if (isPasskeySupported()) {
+        try { await registerPasskey(); } catch { /* optional — skip silently */ }
       }
       // Open the app in the workspace they chose here.
       setActiveWorkspace(accountType);

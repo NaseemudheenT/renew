@@ -21,14 +21,25 @@ import { getServerEnv } from "@/lib/env";
 export const RP_NAME = "Renew";
 export const CHALLENGE_COOKIE = "renew_pk_chal";
 
-/** Relying-party id (bare host) + full origin, from the incoming request. */
+/**
+ * Relying-party id + full origin, from the incoming request.
+ *
+ * The rpID is the REGISTRABLE domain (we strip a leading `www.`), not the full
+ * host. Passkeys are bound to the rpID, and an rpID that is a registrable suffix
+ * of the origin is valid — so one passkey works on BOTH getrenew.in and
+ * www.getrenew.in (and survives the apex→www redirect). Using the full host
+ * would tie a passkey to one exact subdomain and break the moment the user lands
+ * on the other. An explicit WEBAUTHN_RP_ID env overrides this when set.
+ */
 export function rpFromRequest(request: Request): { rpID: string; origin: string } {
   const host = request.headers.get("host") ?? "localhost:3000";
   const hostname = host.split(":")[0] ?? "localhost";
   const proto =
     request.headers.get("x-forwarded-proto") ??
     (hostname === "localhost" ? "http" : "https");
-  return { rpID: hostname, origin: `${proto}://${host}` };
+  const override = getServerEnv().webauthnRpId;
+  const rpID = override || (hostname === "localhost" ? "localhost" : hostname.replace(/^www\./, ""));
+  return { rpID, origin: `${proto}://${host}` };
 }
 
 /* ---- Signed challenge cookie -------------------------------------------- */

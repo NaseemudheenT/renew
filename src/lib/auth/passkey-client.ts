@@ -64,7 +64,13 @@ export async function signInWithPasskey(): Promise<void> {
   try {
     assertion = await startAuthentication({ optionsJSON: options });
   } catch {
-    throw new AuthError("passkey/cancelled", "Passkey sign-in was cancelled.");
+    // The browser throws the same error whether the person cancelled OR has no
+    // passkey on this device yet. Guide them to the one-time first sign-in that
+    // creates the passkey automatically, rather than showing a dead end.
+    throw new AuthError(
+      "passkey/none",
+      "No passkey on this device yet. Continue with Google or Apple once — Renew sets up your passkey automatically for next time.",
+    );
   }
 
   const verifyRes = await fetch("/api/auth/passkey/authenticate/verify", {
