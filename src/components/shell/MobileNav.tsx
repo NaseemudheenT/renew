@@ -45,6 +45,7 @@ export function MobileNav() {
           <motion.div
             role="dialog"
             aria-label={t("nav.more")}
+            style={{ position: "fixed" }}
             className="glass fixed inset-x-0 bottom-0 z-40 !rounded-b-none !rounded-t-glass px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-4 lg:hidden"
             initial={{ y: "100%" }} animate={{ y: 0 }} exit={{ y: "100%" }}
             transition={{ type: "spring", stiffness: 380, damping: 38 }}
@@ -72,7 +73,7 @@ export function MobileNav() {
         )}
       </AnimatePresence>
 
-      <nav className="glass fixed inset-x-0 bottom-0 z-30 flex !rounded-none !rounded-t-glass px-2 pb-[env(safe-area-inset-bottom)] pt-1.5 lg:hidden" aria-label="Primary">
+      <nav style={{ position: "fixed" }} className="glass fixed inset-x-0 bottom-0 z-30 flex !rounded-none !rounded-t-glass px-2 pb-[env(safe-area-inset-bottom)] pt-1.5 lg:hidden" aria-label="Primary">
         {tabs.map(({ href, msgKey, icon: Icon, isMore }) => {
           const active = isMore ? moreActive || moreOpen : pathname === href || pathname.startsWith(href + "/");
           const label = t(msgKey);

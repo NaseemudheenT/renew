@@ -4,7 +4,7 @@
  * another session's data or stale state). We cache immutable build assets and
  * provide a friendly offline fallback for navigations. */
 
-const VERSION = "renew-v2";
+const VERSION = "renew-v3";
 const STATIC_CACHE = `${VERSION}-static`;
 const OFFLINE_URL = "/offline";
 
