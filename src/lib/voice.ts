@@ -126,3 +126,56 @@ export function parseSpokenTransaction(raw: string): ParsedTransaction {
 
   return { type, amount, category, note: note.charAt(0).toUpperCase() + note.slice(1) };
 }
+
+/* ---- Ren: voice in (listen) + voice out (speak) -------------------------- */
+
+/** True when the browser can speak (text → voice). */
+export function speechOutputSupported(): boolean {
+  return typeof window !== "undefined" && "speechSynthesis" in window;
+}
+
+export interface Listener { stop(): void }
+
+/**
+ * Listen once and hand back the final transcript, then call onEnd. Returns a
+ * handle to stop early, or null when recognition isn't supported.
+ */
+export function listen(
+  opts: { lang?: string; onText: (text: string) => void; onError?: (e: unknown) => void; onEnd?: () => void },
+): Listener | null {
+  const rec = getSpeechRecognition();
+  if (!rec) return null;
+  rec.lang = opts.lang || (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
+  rec.interimResults = false;
+  rec.continuous = false;
+  rec.maxAlternatives = 1;
+  rec.onresult = (e) => {
+    const results = e.results;
+    const last = results[results.length - 1];
+    const text = last?.[0]?.transcript?.trim();
+    if (text) opts.onText(text);
+  };
+  rec.onerror = (e) => opts.onError?.(e);
+  rec.onend = () => opts.onEnd?.();
+  try { rec.start(); } catch { return null; }
+  return { stop: () => { try { rec.stop(); } catch { /* already stopped */ } } };
+}
+
+/** Speak a line in Ren's voice. No-op when synthesis isn't available. */
+export function speak(text: string, opts: { lang?: string } = {}): void {
+  if (!speechOutputSupported() || !text) return;
+  try {
+    window.speechSynthesis.cancel(); // never overlap
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = opts.lang || (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
+    u.rate = 1; u.pitch = 1;
+    const voices = window.speechSynthesis.getVoices();
+    const match = voices.find((v) => v.lang?.startsWith(u.lang.slice(0, 2)));
+    if (match) u.voice = match;
+    window.speechSynthesis.speak(u);
+  } catch { /* speech is a nicety — never throw */ }
+}
+
+export function stopSpeaking(): void {
+  if (speechOutputSupported()) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } }
+}
