@@ -60,8 +60,8 @@ export function NotificationBell() {
           initial={{ opacity: 0, y: -10, scale: 0.96 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ type: "spring", stiffness: 420, damping: 30 }}
-          style={{ transformOrigin: "top right", boxShadow: "0 24px 60px -18px rgba(0,0,0,0.55), 0 0 0 1px var(--glass-border)" }}
-          className="flex max-h-[70vh] min-h-0 w-[min(92vw,22rem)] flex-col overflow-hidden rounded-2xl border border-[var(--glass-border)] bg-[var(--menu-bg)] backdrop-blur-2xl backdrop-saturate-150"
+          style={{ transformOrigin: "top right", boxShadow: "0 24px 60px -18px rgba(0,0,0,0.55)" }}
+          className="flex max-h-[70vh] min-h-0 w-[min(92vw,22rem)] flex-col overflow-hidden rounded-3xl border border-[var(--glass-border)] bg-[var(--menu-bg)] backdrop-blur-2xl backdrop-saturate-150"
         >
           <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3.5">
               <div className="flex items-center gap-2">
