@@ -18,8 +18,8 @@ export function Sidebar({ user }: { user: ShellUser }) {
   const { mode } = useWorkspace();
   const items = navItemsFor(mode);
   return (
-    <aside className="glass fixed inset-y-0 start-0 z-30 hidden w-64 flex-col !rounded-none !rounded-e-glass-lg p-4 lg:flex">
-      <Link href="/dashboard" className="mb-6 flex items-center gap-3 px-2 py-2" aria-label="Renew home">
+    <aside className="glass fixed inset-y-0 start-0 z-30 hidden h-dvh w-64 flex-col !rounded-none !rounded-e-glass-lg p-4 lg:flex">
+      <Link href="/dashboard" className="mb-6 flex shrink-0 items-center gap-3 rounded-2xl px-2 py-2 transition-colors hover:bg-[var(--glass-bg-soft)]" aria-label="Renew home">
         <RenewMark size={34} />
         <Wordmark sizeClassName="text-lg" />
       </Link>
@@ -62,7 +62,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
           );
         })}
       </nav>
-      <div className="mt-2 border-t border-[var(--glass-border)] pt-3">
+      <div className="mt-2 shrink-0 border-t border-[var(--glass-border)] pt-3">
         <AccountMenu user={user} align="left" />
       </div>
     </aside>

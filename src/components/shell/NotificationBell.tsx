@@ -63,10 +63,13 @@ export function NotificationBell() {
           style={{ transformOrigin: "top right" }}
           className="flex min-h-0 w-[min(92vw,22rem)] flex-1 flex-col overflow-hidden rounded-3xl border border-[var(--menu-border)] bg-[var(--menu-bg)] shadow-[var(--glass-shadow)] backdrop-blur-xl"
         >
-          <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3">
-              <span className="text-strong text-sm font-medium">Notifications</span>
+          <div className="flex items-center justify-between border-b border-[var(--glass-border)] px-4 py-3.5">
+              <div className="flex items-center gap-2">
+                <span className="text-strong text-sm font-medium">Notifications</span>
+                {unread > 0 && <span className="grid min-w-[18px] place-items-center rounded-full bg-[var(--color-gold-500)]/15 px-1.5 text-[11px] font-semibold text-[var(--color-gold-600)]">{unread}</span>}
+              </div>
               {unread > 0 && uid && (
-                <button type="button" onClick={() => markAllNotificationsRead(uid).catch(() => {})} className="flex items-center gap-1 text-xs text-[var(--color-gold-600)] hover:underline">
+                <button type="button" onClick={() => markAllNotificationsRead(uid).catch(() => {})} className="flex items-center gap-1 rounded-full px-2 py-1 text-xs font-medium text-[var(--color-gold-600)] transition-colors hover:bg-[var(--glass-bg-soft)]">
                   <Check className="size-3.5" />
                   Mark all read
                 </button>
@@ -74,9 +77,15 @@ export function NotificationBell() {
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
               {data.length === 0 ? (
-                <div className="flex flex-col items-center gap-2 px-6 py-10 text-center">
-                  <Bell className="size-7 text-[var(--text-muted)]" />
-                  <p className="text-muted text-sm">You&apos;re all caught up.</p>
+                <div className="flex flex-col items-center gap-3 px-6 py-12 text-center">
+                  <span className="relative grid size-14 place-items-center rounded-2xl bg-gradient-to-br from-[var(--glass-bg-strong)] to-[var(--glass-bg-soft)]" style={{ border: "1px solid var(--glass-border)" }}>
+                    <span aria-hidden className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_35%,rgba(212,175,110,0.28),transparent_70%)]" />
+                    <Check className="relative size-6 text-[var(--color-gold-500)]" />
+                  </span>
+                  <div>
+                    <p className="text-strong text-sm font-medium">All caught up</p>
+                    <p className="text-muted mt-0.5 text-xs">Reminders, bills and nudges will show here.</p>
+                  </div>
                 </div>
               ) : (
                 data.map((n) => {
