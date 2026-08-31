@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Renew</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body { margin: 0; height: 100%; background: #060a18; color: #eaf0ff; font-family: -apple-system, system-ui, sans-serif; }
+      .wrap { position: fixed; inset: 0; display: grid; place-items: center; }
+      .mark { text-align: center; }
+      .name { font-size: 34px; font-weight: 300; letter-spacing: 10px; background: linear-gradient(120deg, #eadfc4, #d4af6e); -webkit-background-clip: text; background-clip: text; color: transparent; }
+      .dot { margin-top: 22px; width: 8px; height: 8px; border-radius: 50%; background: #d4af6e; margin-inline: auto; animation: pulse 1.4s ease-in-out infinite; }
+      @keyframes pulse { 0%,100% { opacity: .35; transform: scale(.85); } 50% { opacity: 1; transform: scale(1.15); } }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="mark">
+        <div class="name">RENEW</div>
+        <div class="dot"></div>
+      </div>
+    </div>
+    <!--
+      This shell is the cold-start / offline fallback. The Renew app itself is
+      served from https://getrenew.in and loaded by Capacitor (see
+      capacitor.config.ts › server.url). Because Renew is a server-rendered
+      Next.js app it cannot be statically bundled, so the native shell hosts the
+      live app and native plugins add device features (biometrics, UPI-notification
+      tracking, camera, push).
+    -->
+  </body>
+</html>

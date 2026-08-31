@@ -11,9 +11,17 @@
     "lint": "eslint . --max-warnings=0",
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
-    "test": "vitest run"
+    "test": "vitest run",
+    "cap:add:ios": "cap add ios",
+    "cap:add:android": "cap add android",
+    "cap:sync": "cap sync",
+    "cap:ios": "cap open ios",
+    "cap:android": "cap open android"
   },
   "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/core": "^8.5.0",
+    "@capacitor/ios": "^8.5.0",
     "@simplewebauthn/browser": "^13.3.0",
     "@simplewebauthn/server": "^13.3.2",
     "@supabase/ssr": "^0.12.4",
@@ -43,6 +51,7 @@
     "zustand": "5.0.14"
   },
   "devDependencies": {
+    "@capacitor/cli": "^8.5.0",
     "@sentry/nextjs": "^10.19.0",
     "@tailwindcss/postcss": "4.3.3",
     "@types/node": "20.19.43",
