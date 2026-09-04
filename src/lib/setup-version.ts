@@ -14,4 +14,4 @@
  *   3 — country is now a DELIBERATE choice (no silent auto-detect); everyone
  *       re-confirms it so currency/formatting are correct.
  */
-export const CURRENT_SETUP_VERSION = 4;
+export const CURRENT_SETUP_VERSION = 3;
