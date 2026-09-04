@@ -18,7 +18,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
   const { mode } = useWorkspace();
   const items = navItemsFor(mode);
   return (
-    <aside style={{ position: "fixed" }} className="glass fixed inset-y-0 start-0 z-30 hidden h-dvh w-64 flex-col !rounded-none !rounded-e-glass-lg p-4 lg:flex">
+    <aside className="glass hidden h-full w-64 shrink-0 flex-col !rounded-none !rounded-e-glass-lg p-4 lg:flex">
       <Link href="/dashboard" className="mb-6 flex shrink-0 items-center gap-3 rounded-2xl px-2 py-2 transition-colors hover:bg-[var(--glass-bg-soft)]" aria-label="Renew home">
         <RenewMark size={34} />
         <Wordmark sizeClassName="text-lg" />

@@ -12,10 +12,15 @@ import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
 import { WorkspaceProvider } from "@/components/providers/WorkspaceProvider";
 import type { ShellUser } from "./shell-types";
 
-/** Persistent application frame: glass sidebar (desktop), bottom tabs (mobile). */
+/**
+ * Persistent application frame. The frame is the exact height of the viewport
+ * and NEVER scrolls itself — the sidebar (desktop) and top bar are fixed parts
+ * of the frame, and ONLY the <main> content pane scrolls. This is why the left
+ * panel can never move: the page has no scroll to carry it. Bottom tabs on mobile.
+ */
 export function AppShell({ user, children }: { user: ShellUser; children: ReactNode }) {
   return (
-    <div className="min-h-dvh lg:ps-64">
+    <div className="flex h-dvh overflow-hidden">
       {/* Keyboard/screen-reader users can jump straight to the page content. */}
       <a
         href="#main-content"
@@ -28,10 +33,12 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
       <WorkspaceProvider>
         <ReauthProvider>
           <PrivacyProvider>
+            {/* Fixed left panel (desktop) — a real flex column, so it stays put. */}
             <Sidebar user={user} />
-            <div className="flex min-h-dvh flex-col">
+            {/* The scrolling world lives only here. */}
+            <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <TopBar user={user} />
-              <main id="main-content" tabIndex={-1} className="flex-1 px-4 pb-28 pt-1 outline-none sm:px-6 lg:px-8 lg:pb-10">
+              <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overscroll-contain px-4 pb-28 pt-1 outline-none sm:px-6 lg:px-8 lg:pb-10">
                 {children}
               </main>
             </div>
