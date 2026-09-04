@@ -9,8 +9,10 @@ import { listen, speak, stopSpeaking, isVoiceSupported, speechOutputSupported, t
 import { createTransaction, deleteTransaction } from "@/lib/firestore/transactions";
 import { nowMs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import { useCategories } from "@/hooks/useCategories";
 import { toast } from "@/components/ui/toast-store";
+import { publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 interface Msg { id: string; role: "user" | "ren"; text: string; amount?: number; currency?: string }
@@ -23,9 +25,12 @@ const nextId = () => `m${++msgSeq}`;
 
 /**
  * Ren — Renew's finance assistant. Type or speak: record money ("spent 500 on
- * groceries") or ask about it ("how much did I spend?"). Deterministic, from the
- * person's own data, and can be spoken back. No LLM, no network. A floating,
- * premium panel with a living voice orb — Siri-calm, in Renew's champagne style.
+ * groceries") or ask about it ("how much did I spend?"), and hear the answer.
+ * When the LLM brain is enabled (publicEnv.renLlm), it routes through the server
+ * orchestrator (/api/ren) for full natural-language + authorized tool-calling;
+ * otherwise it uses the on-device deterministic engine (no network, always
+ * correct). A floating, premium panel with a living voice orb — Siri-calm, in
+ * Renew's champagne style.
  */
 export function RenChat({
   open, onClose, ctx, uid,
@@ -35,12 +40,14 @@ export function RenChat({
   ctx: Omit<AskContext, "now">;
   uid: string | null;
 }) {
-  const { money } = useLocale();
+  const { money, prefs } = useLocale();
+  const { mode } = useWorkspace();
   const { resolve } = useCategories();
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
   const [speakOn, setSpeakOn] = useState(true);
+  const [thinking, setThinking] = useState(false);
   const listenerRef = useRef<Listener | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const voiceIn = isVoiceSupported();
@@ -64,12 +71,37 @@ export function RenChat({
     say(text);
   }
 
-  function handle(raw: string) {
+  async function handle(raw: string) {
     const text = raw.trim();
     if (!text) return;
     push({ role: "user", text });
     setInput("");
 
+    // When the LLM brain is enabled, route through the server orchestrator (it
+    // understands full natural language + can act via authorized tools). On any
+    // failure it falls back to the on-device engine, so Ren always answers.
+    if (publicEnv.renLlm) {
+      setThinking(true);
+      try {
+        const history = msgs.slice(-10).map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
+        const res = await fetch("/api/ren", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ message: text, history, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode }),
+        });
+        if (res.ok) {
+          const data = (await res.json()) as { mode?: string; text?: string };
+          if (data.mode === "llm" && data.text) { respond(data.text); return; }
+        }
+      } catch { /* fall through to the on-device engine */ }
+      finally { setThinking(false); }
+    }
+
+    handleDeterministic(text);
+  }
+
+  /** The on-device engine — records money or answers, no network (Constitution). */
+  function handleDeterministic(text: string) {
     // 1) A command to record money?
     const draft = parseMoneyCommand(text);
     if (draft && uid) {
@@ -105,7 +137,7 @@ export function RenChat({
     if (listening) { listenerRef.current?.stop(); setListening(false); return; }
     stopSpeaking();
     const l = listen({
-      onText: (t) => { setInput(t); handle(t); },
+      onText: (t) => { setInput(t); void handle(t); },
       onEnd: () => setListening(false),
       onError: () => setListening(false),
     });
@@ -180,6 +212,17 @@ export function RenChat({
                         </div>
                       </motion.div>
                     ))}
+                    {thinking && (
+                      <div className="flex justify-start">
+                        <div className="flex items-center gap-1.5 rounded-3xl rounded-bl-lg border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-4 py-3">
+                          {[0, 1, 2].map((i) => (
+                            <motion.span key={i} className="size-1.5 rounded-full bg-[var(--color-gold-400)]"
+                              animate={{ opacity: [0.3, 1, 0.3], y: [0, -2, 0] }}
+                              transition={{ duration: 1, repeat: Infinity, delay: i * 0.15, ease: "easeInOut" }} />
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -189,7 +232,7 @@ export function RenChat({
             {msgs.length === 0 && !listening && (
               <div className="flex flex-wrap gap-2 px-5 pb-2">
                 {CHIPS.map((c, i) => (
-                  <motion.button key={c} type="button" onClick={() => handle(c)}
+                  <motion.button key={c} type="button" onClick={() => void handle(c)}
                     initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i, ease: EASE }}
                     className="text-body rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-3 py-1.5 text-xs font-medium transition-all hover:-translate-y-0.5 hover:border-[var(--focus-ring)]/50 hover:text-[var(--text-strong)]">{c}</motion.button>
                 ))}
@@ -197,7 +240,7 @@ export function RenChat({
             )}
 
             {/* Composer */}
-            <form onSubmit={(e) => { e.preventDefault(); handle(input); }} className="flex items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
+            <form onSubmit={(e) => { e.preventDefault(); void handle(input); }} className="flex items-center gap-2 px-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)] pt-3">
               {voiceIn && (
                 <button type="button" onClick={toggleMic} aria-label={listening ? "Stop listening" : "Speak to Ren"} aria-pressed={listening}
                   className={cn("relative grid size-12 shrink-0 place-items-center rounded-full transition-all active:scale-95",

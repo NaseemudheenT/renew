@@ -40,6 +40,9 @@ export const publicEnv = {
   /** The single owner/host email — the only account that can open the owner
    *  console. Set NEXT_PUBLIC_OWNER_EMAIL in Vercel to your Renew sign-in email. */
   ownerEmail: clean(process.env.NEXT_PUBLIC_OWNER_EMAIL).toLowerCase(),
+  /** Set NEXT_PUBLIC_REN_LLM=1 (alongside the server ANTHROPIC_API_KEY) to route
+   *  Ren through the LLM orchestrator; otherwise Ren uses the on-device engine. */
+  renLlm: clean(process.env.NEXT_PUBLIC_REN_LLM) === "1",
   firebase: {
     apiKey: clean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY),
     authDomain: clean(process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN),
@@ -103,6 +106,12 @@ export function getServerEnv() {
     // Optional explicit WebAuthn relying-party id (e.g. "getrenew.in"). When
     // empty, it's derived from the request host (leading "www." stripped).
     webauthnRpId: clean(process.env.WEBAUTHN_RP_ID),
+    // REN's LLM brain (server-only, never exposed). When ANTHROPIC_API_KEY is
+    // set, REN uses the LLM for natural language + tool-calling; otherwise it
+    // runs on the deterministic engine. The provider is abstracted so this can
+    // be swapped later (spec §6).
+    anthropicApiKey: clean(process.env.ANTHROPIC_API_KEY),
+    renModel: clean(process.env.REN_MODEL) || "claude-3-5-haiku-latest",
     firebaseServiceAccountKey: clean(process.env.FIREBASE_SERVICE_ACCOUNT_KEY),
     cloudinary: {
       cloudName: clean(process.env.CLOUDINARY_CLOUD_NAME),
