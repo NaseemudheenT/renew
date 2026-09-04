@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { where } from "firebase/firestore";
-import { Sparkles } from "lucide-react";
+import { RenLogo } from "@/components/brand/RenLogo";
 import { RenChat } from "@/components/finance/RenChat";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -45,8 +45,8 @@ export function RenLauncher() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open Ren, your finance assistant"
-        className="fixed end-4 bottom-24 z-40 grid size-14 place-items-center rounded-full text-[var(--text-onGold)] lg:bottom-6 lg:end-6"
-        style={{ background: "radial-gradient(circle at 32% 28%, var(--color-gold-300), var(--color-gold-500) 72%)", boxShadow: "0 10px 30px -6px var(--color-gold-500), 0 0 0 1px rgba(255,255,255,0.12) inset" }}
+        className="fixed end-4 bottom-24 z-40 grid size-14 place-items-center rounded-full lg:bottom-6 lg:end-6"
+        style={{ boxShadow: "0 10px 30px -6px var(--color-gold-500)" }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 380, damping: 24, delay: 0.2 }}
@@ -54,7 +54,7 @@ export function RenLauncher() {
         whileTap={{ scale: 0.94 }}
       >
         <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-[var(--color-gold-400)]/30" style={{ animationDuration: "3s" }} />
-        <Sparkles className="relative size-6" />
+        <RenLogo size={56} idSuffix="fab" className="relative" />
       </motion.button>
 
       <RenChat open={open} onClose={() => setOpen(false)} uid={uid} ctx={ctx} />

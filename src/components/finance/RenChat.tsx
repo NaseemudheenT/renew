@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { Sparkles, X, Mic, ArrowUp, Volume2, VolumeX, Square } from "lucide-react";
+import { X, Mic, ArrowUp, Volume2, VolumeX, Square } from "lucide-react";
+import { RenLogo } from "@/components/brand/RenLogo";
 import { answerQuestion, type AskContext } from "@/lib/ask";
 import { parseMoneyCommand } from "@/lib/ren";
 import { listen, speak, stopSpeaking, isVoiceSupported, speechOutputSupported, type Listener } from "@/lib/voice";
@@ -168,7 +169,7 @@ export function RenChat({
             {/* Header */}
             <div className="relative flex items-center justify-between px-5 py-4">
               <div className="flex items-center gap-3">
-                <RenMark active={listening} />
+                <RenLogo size={38} idSuffix="hdr" />
                 <div>
                   <h2 className="text-strong text-base font-medium leading-tight">Ren</h2>
                   <p className="text-muted text-xs">{listening ? "Listening…" : "Your finance assistant"}</p>
@@ -195,7 +196,7 @@ export function RenChat({
                   </motion.div>
                 ) : msgs.length === 0 ? (
                   <motion.div key="hero" className="flex h-full flex-col items-center justify-center gap-4 text-center" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                    <RenMark large />
+                    <RenLogo size={64} idSuffix="hero" />
                     <div>
                       <p className="text-strong text-base font-medium">Hi, I&apos;m Ren.</p>
                       <p className="text-muted mx-auto mt-1 max-w-xs text-sm">Tell me what you spent, or ask anything about your money. It all stays on your device.</p>
@@ -262,22 +263,6 @@ export function RenChat({
         </>
       )}
     </AnimatePresence>
-  );
-}
-
-/** Ren's mark — a champagne sparkle that softly breathes; pulses when active. */
-function RenMark({ large, active }: { large?: boolean; active?: boolean }) {
-  const size = large ? "size-16" : "size-9";
-  return (
-    <motion.span
-      className={cn("relative grid shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-[var(--glass-bg-strong)] to-[var(--glass-bg-soft)]", size)}
-      animate={active ? { scale: [1, 1.06, 1] } : { scale: 1 }}
-      transition={active ? { duration: 1.4, repeat: Infinity, ease: "easeInOut" } : { duration: 0.3 }}
-      style={{ border: "1px solid var(--glass-border)" }}
-    >
-      <span aria-hidden className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_50%_30%,rgba(212,175,110,0.35),transparent_70%)]" />
-      <Sparkles className={cn("relative text-[var(--color-gold-500)]", large ? "size-8" : "size-4.5")} />
-    </motion.span>
   );
 }
 
