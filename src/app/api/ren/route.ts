@@ -31,6 +31,7 @@ export async function POST(request: Request) {
 
   // No LLM key → the client falls back to the deterministic on-device engine.
   if (!llmConfigured()) {
+    console.log("[ren] mode=deterministic (no ANTHROPIC_API_KEY)");
     return NextResponse.json({ mode: "deterministic" }, { status: 200 });
   }
 

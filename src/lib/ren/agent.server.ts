@@ -69,6 +69,7 @@ async function callAnthropic(system: string, messages: Msg[], signal: AbortSigna
     }),
     signal,
   });
+  console.log(`[ren] anthropic status=${res.status}`);
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
     throw new Error(`LLM ${res.status}: ${detail.slice(0, 300)}`);
@@ -95,6 +96,9 @@ export async function runRenAgent(
   const messages: Msg[] = [...history, { role: "user", content: message }];
   const actions: RenAction[] = [];
 
+  // Safe telemetry only — never the key, the user's message, or any amounts.
+  console.log(`[ren] llm turn model=${getServerEnv().renModel} tz=${ctx.timezone} ccy=${ctx.currency}`);
+
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 30_000);
   try {
@@ -104,8 +108,10 @@ export async function runRenAgent(
 
       if (reply.stop_reason !== "tool_use" || toolUses.length === 0) {
         const text = reply.content.filter((b) => b.type === "text").map((b) => b.text ?? "").join(" ").trim();
+        console.log(`[ren] done turns=${turn + 1} actions=${actions.length}`);
         return { text: text || "Done.", actions };
       }
+      console.log(`[ren] tool_use: ${toolUses.map((t) => t.name).join(", ")}`);
 
       // Run each requested tool, collecting results to feed back.
       messages.push({ role: "assistant", content: reply.content });
