@@ -7,6 +7,7 @@ import { TopBar } from "./TopBar";
 import { NotificationSync } from "./NotificationSync";
 import { RetentionCleanup } from "@/components/providers/RetentionCleanup";
 import { RenLauncher } from "@/components/finance/RenLauncher";
+import { AppLock } from "@/components/security/AppLock";
 import { ReauthProvider } from "@/components/security/ReauthProvider";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
 import { WorkspaceProvider } from "@/components/providers/WorkspaceProvider";
@@ -44,6 +45,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             </div>
             <MobileNav />
             <RenLauncher />
+            <AppLock />
           </PrivacyProvider>
         </ReauthProvider>
       </WorkspaceProvider>

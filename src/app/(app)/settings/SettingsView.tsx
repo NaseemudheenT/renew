@@ -3,7 +3,7 @@
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown } from "lucide-react";
+import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown, Lock } from "lucide-react";
 import { isOwnerEmail } from "@/lib/auth/owner";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -24,7 +24,9 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription, Reminder } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs } from "@/lib/firestore/profile";
+import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
+import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
+import { isPasskeySupported } from "@/lib/auth/passkey-client";
 import { speak, availableVoices, onVoicesReady, speechOutputSupported } from "@/lib/voice";
 import { RETENTION_OPTIONS } from "@/lib/retention";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
@@ -561,6 +563,77 @@ function DataAction({ icon: Icon, title, desc, onClick }: { icon: typeof Downloa
   );
 }
 
+/** iPhone-style passcode (PIN) — a local lock on top of the Firebase session. */
+function PasscodeControl() {
+  const { profile, uid } = useUserProfile();
+  const hasPin = !!profile?.security;
+  const bioOn = profile?.security?.biometricEnabled ?? false;
+  const [open, setOpen] = useState(false);
+  const [pin, setPin] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [err, setErr] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  function close() { setOpen(false); setPin(""); setConfirm(""); setErr(null); }
+  async function save() {
+    if (!uid) return;
+    if (!isValidPasscode(pin, "pin")) return setErr("Use 4–8 digits.");
+    if (pin !== confirm) return setErr("The passcodes don't match.");
+    setSaving(true);
+    try {
+      await setSecurity(uid, await makePasscodeRecord(pin, "pin", isPasskeySupported()));
+      try { sessionStorage.setItem("renew_unlocked", "1"); } catch { /* ignore */ }
+      toast({ title: "Passcode set", variant: "success" });
+      close();
+    } catch { setErr("Couldn't save. Please try again."); }
+    finally { setSaving(false); }
+  }
+  async function turnOff() {
+    if (!uid) return;
+    try {
+      await clearSecurity(uid);
+      try { sessionStorage.removeItem("renew_unlocked"); } catch { /* ignore */ }
+      toast({ title: "Passcode turned off", variant: "success" });
+    } catch { toast({ title: "Couldn't update", variant: "error" }); }
+  }
+  const onlyDigits = (v: string) => v.replace(/\D/g, "").slice(0, 8);
+
+  return (
+    <div className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5">
+      <div className="flex items-center gap-3">
+        <Lock className="size-5 text-[var(--color-gold-500)]" />
+        <div className="min-w-0 flex-1">
+          <p className="text-body text-sm font-medium">Passcode</p>
+          <p className="text-muted text-xs">{hasPin ? "A PIN is asked when you open Renew." : "Add a PIN to lock Renew on this device."}</p>
+        </div>
+        <AnimatedButton size="sm" variant={hasPin ? "glass" : "primary"} onClick={() => setOpen(true)}>{hasPin ? "Change" : "Set up"}</AnimatedButton>
+      </div>
+      {hasPin && (
+        <div className="mt-3 flex flex-col gap-3 border-t border-[var(--glass-border)] pt-3">
+          {isPasskeySupported() && uid && profile?.security && (
+            <div className="flex items-center justify-between">
+              <span className="text-body text-sm">Unlock with Face ID</span>
+              <Switch checked={bioOn} onChange={(on) => { setBiometricEnabled(uid, profile.security!, on).catch(() => {}); }} label="Unlock with Face ID" />
+            </div>
+          )}
+          <button type="button" onClick={turnOff} className="text-start text-sm text-rose-600 hover:underline dark:text-rose-300">Turn off passcode</button>
+        </div>
+      )}
+
+      <AnimatedModal open={open} onClose={close} title={hasPin ? "Change passcode" : "Set a passcode"} description="4–8 digits. You'll enter it when you open Renew.">
+        <div className="flex flex-col gap-4">
+          <Input label="New passcode" type="text" inputMode="numeric" autoFocus value={pin} onChange={(e) => { setErr(null); setPin(onlyDigits(e.target.value)); }} placeholder="••••" />
+          <Input label="Confirm passcode" type="text" inputMode="numeric" value={confirm} onChange={(e) => { setErr(null); setConfirm(onlyDigits(e.target.value)); }} placeholder="••••" error={err ?? undefined} />
+          <div className="flex items-center justify-end gap-3">
+            <AnimatedButton variant="ghost" onClick={close} disabled={saving}>Cancel</AnimatedButton>
+            <AnimatedButton onClick={save} loading={saving} disabled={pin.length < 4 || confirm.length < 4}>Save passcode</AnimatedButton>
+          </div>
+        </div>
+      </AnimatedModal>
+    </div>
+  );
+}
+
 function SecurityControl() {
   const router = useRouter();
   const requireReauth = useReauth();
@@ -589,6 +662,7 @@ function SecurityControl() {
 
   return (
     <div className="flex flex-col gap-3">
+      <PasscodeControl />
       <button type="button" onClick={onSignOut} className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5 text-start transition-colors hover:border-[var(--focus-ring)]/50">
         <LogOut className="size-5 text-[var(--color-gold-500)]" />
         <div className="flex-1"><p className="text-body text-sm font-medium">Sign out</p><p className="text-muted text-xs">End your session on this device.</p></div>
