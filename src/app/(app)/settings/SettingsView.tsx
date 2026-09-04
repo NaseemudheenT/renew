@@ -24,7 +24,7 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription, Reminder } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention } from "@/lib/firestore/profile";
+import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenAutoSpeak } from "@/lib/firestore/profile";
 import { RETENTION_OPTIONS } from "@/lib/retention";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AccessibilityControl } from "@/components/settings/AccessibilityControl";
@@ -46,6 +46,7 @@ export function SettingsView() {
   // Each category is a row you tap into (Apple-style), never everything at once.
   const categories = [
     { id: "account", icon: Briefcase, title: "How you use Renew", sub: "Personal or business", render: () => (uid ? <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} /> : null) },
+    { id: "ren", icon: Sparkles, title: "Ren", sub: "Your assistant — voice & how it helps", render: () => (uid ? <RenControl uid={uid} autoSpeak={profile?.renAutoSpeak ?? true} /> : null) },
     { id: "appearance", icon: Palette, title: "Appearance", sub: "Light or dark theme", render: () => <AppearanceControl /> },
     { id: "region", icon: Globe, title: t("settings.region.title"), sub: "Language, region & currency", render: () => (uid ? <RegionLanguageControl uid={uid} /> : null) },
     { id: "notifications", icon: Bell, title: "Notifications", sub: "Reminders and nudges", render: () => <>{uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}<BrowserNotifyControl /></> },
@@ -358,6 +359,22 @@ function BrowserNotifyControl() {
       ) : status === "default" ? (
         <AnimatedButton size="sm" variant="glass" onClick={enable}>{t("settings.notify.browser.enable")}</AnimatedButton>
       ) : null}
+    </div>
+  );
+}
+
+function RenControl({ uid, autoSpeak }: { uid: string; autoSpeak: boolean }) {
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-muted text-sm">Ren is your finance assistant. Tap the sparkle anywhere in Renew to talk or type — say what you spent, or ask about your money. Ren answers from your own data and can speak back.</p>
+      <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
+        <span className="min-w-0">
+          <span className="text-body block text-sm font-medium">Speak answers aloud</span>
+          <span className="text-muted block text-xs">Ren reads its replies out. You can still mute it from the chat any time.</span>
+        </span>
+        <Switch checked={autoSpeak} onChange={(on) => { updateRenAutoSpeak(uid, on).catch(() => {}); }} label="Speak answers aloud" />
+      </div>
+      <p className="text-muted text-xs">Ren&apos;s language, region and currency follow your <span className="text-body">Region</span> settings.</p>
     </div>
   );
 }

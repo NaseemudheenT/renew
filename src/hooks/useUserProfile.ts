@@ -64,6 +64,8 @@ export interface ProfileDoc {
   /** Auto-clean window in days (0/undefined = keep everything). Transactions
    *  older than this are removed on app open. See lib/retention. */
   dataRetentionDays?: number;
+  /** Whether Ren speaks its answers aloud by default (default true). */
+  renAutoSpeak?: boolean;
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

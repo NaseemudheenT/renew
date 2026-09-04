@@ -10,6 +10,7 @@ import { createTransaction, deleteTransaction } from "@/lib/firestore/transactio
 import { nowMs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useWorkspace } from "@/components/providers/WorkspaceProvider";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useCategories } from "@/hooks/useCategories";
 import { toast } from "@/components/ui/toast-store";
 import { publicEnv } from "@/lib/env";
@@ -42,11 +43,15 @@ export function RenChat({
 }) {
   const { money, prefs } = useLocale();
   const { mode } = useWorkspace();
+  const { profile } = useUserProfile();
   const { resolve } = useCategories();
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
-  const [speakOn, setSpeakOn] = useState(true);
+  // Auto-speak follows the saved Ren preference (Settings › Ren); `muted` is a
+  // per-session override from the in-chat speaker button.
+  const [muted, setMuted] = useState(false);
+  const speakOn = (profile?.renAutoSpeak ?? true) && !muted;
   const [thinking, setThinking] = useState(false);
   const listenerRef = useRef<Listener | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -171,7 +176,7 @@ export function RenChat({
               </div>
               <div className="flex items-center gap-1">
                 {voiceOut && (
-                  <button type="button" onClick={() => { setSpeakOn((v) => { if (v) stopSpeaking(); return !v; }); }} aria-pressed={speakOn} aria-label={speakOn ? "Turn voice off" : "Turn voice on"}
+                  <button type="button" onClick={() => setMuted((m) => { const next = !m; if (next) stopSpeaking(); return next; })} aria-pressed={speakOn} aria-label={speakOn ? "Turn voice off" : "Turn voice on"}
                     className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]">
                     {speakOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
                   </button>
