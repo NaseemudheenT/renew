@@ -167,7 +167,7 @@ export function AccountView() {
       {/* Security & sign-in */}
       {passkeySupported && (
         <Group title="Security & sign-in">
-          <RowButton icon={Fingerprint} title="Add a passkey" desc="Sign in with Face ID / Touch ID — no passwords" onClick={onAddPasskey} loading={addingPasskey} />
+          <RowButton icon={Fingerprint} title="Add a passkey" desc="Sign in instantly with Face ID or Touch ID" onClick={onAddPasskey} loading={addingPasskey} />
         </Group>
       )}
 

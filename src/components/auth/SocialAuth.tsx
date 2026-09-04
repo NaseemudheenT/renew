@@ -110,7 +110,7 @@ export function SocialAuth({
         </StaggerContainer>
 
         <p className="text-muted mt-6 flex items-center justify-center gap-1.5 text-xs">
-          <ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />No passwords. Your money stays private on your device.
+          <ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />Private &amp; secure. Your money stays yours.
         </p>
       </GlassCard>
       <QrSignIn open={qrOpen} onClose={() => setQrOpen(false)} />
