@@ -111,7 +111,7 @@ export function getServerEnv() {
     // runs on the deterministic engine. The provider is abstracted so this can
     // be swapped later (spec §6).
     anthropicApiKey: clean(process.env.ANTHROPIC_API_KEY),
-    renModel: clean(process.env.REN_MODEL) || "claude-3-5-haiku-latest",
+    renModel: clean(process.env.REN_MODEL) || "claude-haiku-4-5-20251001",
     firebaseServiceAccountKey: clean(process.env.FIREBASE_SERVICE_ACCOUNT_KEY),
     cloudinary: {
       cloudName: clean(process.env.CLOUDINARY_CLOUD_NAME),
