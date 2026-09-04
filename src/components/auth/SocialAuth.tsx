@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
-import { AlertCircle, Fingerprint, QrCode, ChevronRight, ShieldCheck } from "lucide-react";
+import { useEffect, useState } from "react";
+import { AlertCircle, Fingerprint, QrCode, ChevronRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { FadeScale, StaggerContainer, StaggerItem } from "@/components/motion";
 import { GoogleIcon } from "@/components/brand/GoogleIcon";
 import { AppleIcon } from "@/components/brand/AppleIcon";
 import { useAuth } from "@/components/providers/AuthProvider";
-import { signInWithGoogle, signInWithApple, AuthError } from "@/lib/auth/client";
+import { signInWithGoogle, signInWithApple, resumeSession, AuthError } from "@/lib/auth/client";
 import { signInWithPasskey, usePasskeySupport } from "@/lib/auth/passkey-client";
 import { QrSignIn } from "@/components/auth/QrSignIn";
 import { useIsBrowser } from "@/lib/pwa/display-mode";
@@ -33,19 +33,30 @@ export function SocialAuth({
    *  the passkey is saved during setup. */
   showPasskey?: boolean;
 }) {
-  const { configured } = useAuth();
+  const { configured, user, loading } = useAuth();
   const passkeySupported = usePasskeySupport();
   const isBrowser = useIsBrowser();
 
   const [pending, setPending] = useState<Pending>(null);
   const [error, setError] = useState<string | null>(null);
   const [qrOpen, setQrOpen] = useState(false);
+  const [resuming, setResuming] = useState(false);
   const busy = pending !== null;
 
   function goInside() {
     // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload to pick up the fresh session cookie
     window.location.assign("/dashboard");
   }
+
+  // Keep returning users signed in: if the Firebase client still has a user
+  // (its persistence is indefinite), silently re-mint the session and go
+  // straight into Renew — the login form only shows after a real sign-out.
+  useEffect(() => {
+    if (loading || !user || resuming) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setResuming(true);
+    resumeSession().then((ok) => { if (ok) goInside(); else setResuming(false); });
+  }, [loading, user, resuming]);
   function fail(err: unknown) {
     setError(err instanceof AuthError ? err.message : "Something went wrong. Please try again.");
     setPending(null);
@@ -65,6 +76,20 @@ export function SocialAuth({
     setError(null);
     setPending("passkey");
     try { await signInWithPasskey(); goInside(); } catch (err) { fail(err); }
+  }
+
+  // Returning user with a live client session — resume quietly, no login form.
+  if (resuming) {
+    return (
+      <FadeScale>
+        <GlassCard padded>
+          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
+            <span className="size-6 animate-spin rounded-full border-2 border-[var(--text-muted)] border-t-transparent" />
+            <p className="text-body text-sm">Signing you in…</p>
+          </div>
+        </GlassCard>
+      </FadeScale>
+    );
   }
 
   return (
@@ -109,9 +134,6 @@ export function SocialAuth({
           )}
         </StaggerContainer>
 
-        <p className="text-muted mt-6 flex items-center justify-center gap-1.5 text-xs">
-          <ShieldCheck className="size-3.5 text-[var(--color-gold-500)]" />Private &amp; secure. Your money stays yours.
-        </p>
       </GlassCard>
       <QrSignIn open={qrOpen} onClose={() => setQrOpen(false)} />
     </FadeScale>

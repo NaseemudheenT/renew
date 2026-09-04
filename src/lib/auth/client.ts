@@ -89,6 +89,18 @@ async function establishSession(user: User, forceRefresh = false): Promise<void>
   }
 }
 
+/**
+ * Keep returning users signed in: if the Firebase client still has a user (its
+ * persistence is indefinite), silently re-mint the server session so they go
+ * straight into Renew without seeing the login screen. Returns false if there's
+ * no signed-in user (they've genuinely logged out) or it couldn't refresh.
+ */
+export async function resumeSession(): Promise<boolean> {
+  const user = getFirebaseAuth().currentUser;
+  if (!user) return false;
+  try { await establishSession(user, true); return true; } catch { return false; }
+}
+
 export async function signUpWithEmail(input: {
   name: string;
   email: string;

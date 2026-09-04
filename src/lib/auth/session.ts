@@ -6,7 +6,7 @@ import { CURRENT_SETUP_VERSION } from "@/lib/setup-version";
 
 /** httpOnly session cookie name. Also referenced (presence-only) by proxy.ts. */
 export const SESSION_COOKIE = "renew_session";
-const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+const SESSION_MS = 14 * 24 * 60 * 60 * 1000; // Firebase session-cookie max (2 weeks); refreshed silently on return.
 
 export interface SessionUser {
   uid: string;
@@ -25,7 +25,7 @@ export async function createSession(idToken: string): Promise<SessionUser> {
   const decoded = await auth.verifyIdToken(idToken, true);
 
   const sessionCookie = await auth.createSessionCookie(idToken, {
-    expiresIn: FIVE_DAYS_MS,
+    expiresIn: SESSION_MS,
   });
 
   const store = await cookies();
@@ -34,7 +34,7 @@ export async function createSession(idToken: string): Promise<SessionUser> {
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: FIVE_DAYS_MS / 1000,
+    maxAge: SESSION_MS / 1000,
   });
 
   return {
