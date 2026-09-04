@@ -85,13 +85,18 @@ export async function runRenAgent(
   ctx: RenContext,
   message: string,
   history: Msg[],
-  opts: { allowHighRisk?: boolean } = {},
+  opts: { allowHighRisk?: boolean; style?: "concise" | "balanced" | "detailed" } = {},
 ): Promise<RenAgentResult> {
   void REN_TOOLS; // ensure the registry is loaded
   const nowLocal = new Intl.DateTimeFormat("en-US", {
     timeZone: ctx.timezone, dateStyle: "full", timeStyle: "short",
   }).format(new Date(ctx.now));
-  const system = systemPrompt(ctx, nowLocal);
+  const styleLine = opts.style === "concise"
+    ? "Answer in one short sentence where possible."
+    : opts.style === "detailed"
+      ? "You may give a fuller explanation when it helps, but stay clear and skimmable."
+      : "Keep replies brief and to the point.";
+  const system = `${systemPrompt(ctx, nowLocal)}\n${styleLine}`;
 
   const messages: Msg[] = [...history, { role: "user", content: message }];
   const actions: RenAction[] = [];

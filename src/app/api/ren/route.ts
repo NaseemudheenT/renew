@@ -23,6 +23,7 @@ const bodySchema = z.object({
   currency: z.string().trim().length(3).optional(),
   workspace: z.enum(["personal", "business"]).default("personal"),
   allowHighRisk: z.boolean().default(false),
+  style: z.enum(["concise", "balanced", "detailed"]).optional(),
 });
 
 export async function POST(request: Request) {
@@ -50,7 +51,7 @@ export async function POST(request: Request) {
   };
 
   try {
-    const result = await runRenAgent(ctx, b.message, b.history, { allowHighRisk: b.allowHighRisk });
+    const result = await runRenAgent(ctx, b.message, b.history, { allowHighRisk: b.allowHighRisk, style: b.style });
     return NextResponse.json({ mode: "llm", ...result }, { headers: { "Cache-Control": "no-store" } });
   } catch (err) {
     console.error("ren agent failed", err);

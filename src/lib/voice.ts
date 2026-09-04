@@ -161,16 +161,35 @@ export function listen(
   return { stop: () => { try { rec.stop(); } catch { /* already stopped */ } } };
 }
 
-/** Speak a line in Ren's voice. No-op when synthesis isn't available. */
-export function speak(text: string, opts: { lang?: string } = {}): void {
+/** The speaking voices available in this browser (may be empty until loaded). */
+export function availableVoices(): SpeechSynthesisVoice[] {
+  if (!speechOutputSupported()) return [];
+  try { return window.speechSynthesis.getVoices(); } catch { return []; }
+}
+
+/** Notify when the voice list becomes available (some browsers load it async). */
+export function onVoicesReady(cb: () => void): () => void {
+  if (!speechOutputSupported()) return () => {};
+  window.speechSynthesis.addEventListener?.("voiceschanged", cb);
+  return () => window.speechSynthesis.removeEventListener?.("voiceschanged", cb);
+}
+
+/**
+ * Speak a line in Ren's voice. Honors a chosen voice (voiceURI) and rate from
+ * the user's Ren settings; falls back to a voice matching the language. No-op
+ * when synthesis isn't available.
+ */
+export function speak(text: string, opts: { lang?: string; voiceURI?: string; rate?: number } = {}): void {
   if (!speechOutputSupported() || !text) return;
   try {
     window.speechSynthesis.cancel(); // never overlap
     const u = new SpeechSynthesisUtterance(text);
     u.lang = opts.lang || (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
-    u.rate = 1; u.pitch = 1;
+    u.rate = opts.rate && opts.rate > 0 ? opts.rate : 1;
+    u.pitch = 1;
     const voices = window.speechSynthesis.getVoices();
-    const match = voices.find((v) => v.lang?.startsWith(u.lang.slice(0, 2)));
+    const chosen = opts.voiceURI ? voices.find((v) => v.voiceURI === opts.voiceURI) : undefined;
+    const match = chosen ?? voices.find((v) => v.lang?.startsWith(u.lang.slice(0, 2)));
     if (match) u.voice = match;
     window.speechSynthesis.speak(u);
   } catch { /* speech is a nicety — never throw */ }

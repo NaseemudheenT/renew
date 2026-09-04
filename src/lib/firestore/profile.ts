@@ -116,6 +116,14 @@ export async function updateDataRetention(uid: string, days: number): Promise<vo
   await updateDoc(profileRef(uid), { dataRetentionDays: days, updatedAt: serverTimestamp() });
 }
 
+/** Ren voice & style preferences (partial merge). */
+export async function updateRenPrefs(
+  uid: string,
+  patch: { renAutoSpeak?: boolean; renVoiceURI?: string; renVoiceRate?: number; renStyle?: "concise" | "balanced" | "detailed" },
+): Promise<void> {
+  await updateDoc(profileRef(uid), { ...patch, updatedAt: serverTimestamp() });
+}
+
 /** Whether Ren speaks answers aloud by default. */
 export async function updateRenAutoSpeak(uid: string, on: boolean): Promise<void> {
   await updateDoc(profileRef(uid), { renAutoSpeak: on, updatedAt: serverTimestamp() });

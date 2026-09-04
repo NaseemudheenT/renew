@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   RefreshCw, ReceiptText, Sparkles, Fingerprint,
   Globe, Palette, Bell, Accessibility, Upload, Database,
-  ChevronRight, LogOut, BadgeCheck,
+  ChevronRight, LogOut,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/shell/Avatar";
@@ -78,9 +78,6 @@ export function AccountView() {
     return upcoming[0] ?? null;
   }, [active]);
 
-  const memberSince = profile?.createdAt
-    ? new Date(profile.createdAt).toLocaleDateString(undefined, { month: "long", year: "numeric" })
-    : null;
 
   async function onSignOut() {
     await signOutUser();
@@ -106,14 +103,11 @@ export function AccountView() {
         <div className="flex items-center gap-4">
           <Avatar user={shellUser} size={64} />
           <div className="min-w-0 flex-1">
-            <h1 className="text-strong truncate text-lg font-semibold">{user?.displayName || "Your account"}</h1>
-            <p className="text-muted truncate text-sm">{user?.email}</p>
-            {memberSince && <p className="text-muted mt-0.5 text-xs">Renew member since {memberSince}</p>}
+            <h1 className="text-strong truncate text-xl font-semibold">{user?.displayName || "Your account"}</h1>
+            <div className="mt-2 flex flex-wrap gap-2">
+              <Chip icon={Sparkles} tone="gold">Free plan</Chip>
+            </div>
           </div>
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Chip icon={Sparkles} tone="gold">Free plan</Chip>
-          <Chip icon={BadgeCheck} tone="calm">Passwordless</Chip>
         </div>
       </GlassCard>
 

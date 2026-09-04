@@ -66,6 +66,12 @@ export interface ProfileDoc {
   dataRetentionDays?: number;
   /** Whether Ren speaks its answers aloud by default (default true). */
   renAutoSpeak?: boolean;
+  /** Chosen speaking voice (SpeechSynthesis voiceURI); empty = auto by language. */
+  renVoiceURI?: string;
+  /** Speaking rate 0.75–1.5 (default 1). */
+  renVoiceRate?: number;
+  /** Ren reply length: concise | balanced | detailed (default balanced). */
+  renStyle?: "concise" | "balanced" | "detailed";
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

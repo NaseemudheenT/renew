@@ -70,7 +70,7 @@ export function RenChat({
   }, [open]);
 
   function push(m: Omit<Msg, "id">) { setMsgs((prev) => [...prev, { id: nextId(), ...m }]); }
-  function say(text: string) { if (speakOn && voiceOut) speak(text); }
+  function say(text: string) { if (speakOn && voiceOut) speak(text, { voiceURI: profile?.renVoiceURI, rate: profile?.renVoiceRate }); }
 
   function respond(text: string, extra?: { amount?: number; currency?: string }) {
     push({ role: "ren", text, ...extra });
@@ -93,7 +93,7 @@ export function RenChat({
         const res = await fetch("/api/ren", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, history, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode }),
+          body: JSON.stringify({ message: text, history, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode, style: profile?.renStyle }),
         });
         if (res.ok) {
           const data = (await res.json()) as { mode?: string; text?: string };
