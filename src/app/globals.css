@@ -200,15 +200,20 @@ html {
   /* Never let iOS silently rescale text — the layout stays fixed and app-like. */
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
+  /* Lock the app to vertical movement only — no sideways drift or rubber-band,
+     especially as an installed PWA. Wide content scrolls inside its own box. */
+  overflow-x: hidden;
+  overscroll-behavior: none;
 }
 body {
   background-color: var(--bg-base);
   color: var(--text-body);
   font-family: var(--font-sans);
   min-height: 100dvh;
+  max-width: 100vw;
   overflow-x: hidden;
   /* Smooth momentum scroll on iOS without the whole page rubber-banding. */
-  overscroll-behavior-y: none;
+  overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
 }
 /* iOS zooms a text field on focus when its font is under 16px — pin inputs to

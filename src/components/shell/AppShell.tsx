@@ -39,7 +39,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             {/* The scrolling world lives only here. */}
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <TopBar user={user} />
-              <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overscroll-contain px-4 pb-28 pt-1 outline-none sm:px-6 lg:px-8 lg:pb-10">
+              <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-28 pt-1 outline-none sm:px-6 lg:px-8 lg:pb-10">
                 {children}
               </main>
             </div>
