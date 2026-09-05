@@ -24,10 +24,11 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription, Reminder } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, addRenMemory, removeRenMemory, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
+import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
 import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
 import { isPasskeySupported } from "@/lib/auth/passkey-client";
-import { speak, availableVoices, onVoicesReady, speechOutputSupported } from "@/lib/voice";
+import { speak, speechOutputSupported } from "@/lib/voice";
+import { REN_VOICES, DEFAULT_REN_VOICE, renVoiceSpeakOpts } from "@/lib/ren-voices";
 import { RETENTION_OPTIONS } from "@/lib/retention";
 import { RenChat } from "@/components/finance/RenChat";
 import { useRenContext } from "@/hooks/useRenContext";
@@ -333,22 +334,12 @@ function RenControl({ uid }: { uid: string }) {
   const { ctx, uid: ctxUid } = useRenContext();
   const [chatOpen, setChatOpen] = useState(false);
   const autoSpeak = profile?.renAutoSpeak ?? true;
-  const voiceURI = profile?.renVoiceURI ?? "";
+  const voiceId = profile?.renVoiceURI || DEFAULT_REN_VOICE;
   const rate = profile?.renVoiceRate ?? 1;
   const style = profile?.renStyle ?? "balanced";
   const personality = profile?.renPersonality ?? "neutral";
-  const memory = profile?.renMemory ?? [];
   const voiceOut = speechOutputSupported();
-  const [voices, setVoices] = useState<{ uri: string; label: string }[]>([]);
   const [localRate, setLocalRate] = useState(rate);
-  const [memInput, setMemInput] = useState("");
-
-  useEffect(() => {
-    if (!voiceOut) return;
-    const load = () => setVoices(availableVoices().map((v) => ({ uri: v.voiceURI, label: `${v.name} · ${v.lang}` })));
-    load();
-    return onVoicesReady(load);
-  }, [voiceOut]);
 
   const STYLES = [
     { id: "concise", label: "Concise" },
@@ -361,16 +352,9 @@ function RenControl({ uid }: { uid: string }) {
     { id: "precise", label: "Precise" },
   ] as const;
 
-  function addMemory() {
-    const fact = memInput.trim();
-    if (!fact) return;
-    addRenMemory(uid, fact).catch(() => {});
-    setMemInput("");
-  }
-
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-muted text-sm">Ren is your finance assistant. Tap the orb anywhere in Renew for a quick voice moment — or open the full conversation here to type, read and scroll back.</p>
+      <p className="text-muted text-sm">Ren is your finance assistant. Tap the orb anywhere in Renew and just talk — Ren understands and replies in any language, automatically. Or open the full conversation here to type and scroll back.</p>
 
       {/* Full conversation — the one place with the complete text chat */}
       <button type="button" onClick={() => setChatOpen(true)}
@@ -393,27 +377,35 @@ function RenControl({ uid }: { uid: string }) {
         <Switch checked={autoSpeak} onChange={(on) => { updateRenPrefs(uid, { renAutoSpeak: on }).catch(() => {}); }} label="Speak answers aloud" />
       </div>
 
-      {/* Voice + speed (only where the browser can speak) */}
+      {/* Ren's voice — four named voices, Siri-simple */}
       {voiceOut && (
-        <div className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5">
+        <div>
           <p className="text-body text-sm font-medium">Ren&apos;s voice</p>
-          <p className="text-muted mb-3 text-xs">Choose from the voices your device offers.</p>
-          {voices.length > 0 ? (
-            <Select label="Voice" value={voiceURI} onChange={(e) => { updateRenPrefs(uid, { renVoiceURI: e.target.value }).catch(() => {}); }}
-              options={[{ value: "", label: "Automatic (match language)" }, ...voices.map((v) => ({ value: v.uri, label: v.label }))]} />
-          ) : (
-            <p className="text-muted text-xs">Loading available voices…</p>
-          )}
+          <p className="text-muted mb-2 text-xs">Four voices. Tap one to hear it.</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {REN_VOICES.map((v) => {
+              const on = voiceId === v.id;
+              return (
+                <button key={v.id} type="button"
+                  onClick={() => { updateRenPrefs(uid, { renVoiceURI: v.id }).catch(() => {}); speak(`Hi, I'm ${v.name}. I'm here to help with your money.`, { ...renVoiceSpeakOpts(v.id), rate: localRate }); }}
+                  aria-pressed={on}
+                  className={cn("flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all",
+                    on ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
+                  <span aria-hidden className={cn("grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold text-white", v.gender === "female" ? "bg-gradient-to-br from-[#c05cff] to-[#ff9d6c]" : "bg-gradient-to-br from-[#37e6ff] to-[#4a7bff]")}>{v.name[0]}</span>
+                  <span className="min-w-0">
+                    <span className="text-strong block text-sm font-medium">{v.name}</span>
+                    <span className="text-muted block truncate text-xs">{v.tagline}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <label className="text-muted mt-4 block text-xs">Speaking speed — {localRate.toFixed(2)}×</label>
           <input type="range" min={0.75} max={1.5} step={0.05} value={localRate}
             onChange={(e) => setLocalRate(Number(e.target.value))}
             onPointerUp={() => updateRenPrefs(uid, { renVoiceRate: localRate }).catch(() => {})}
             onBlur={() => updateRenPrefs(uid, { renVoiceRate: localRate }).catch(() => {})}
             className="mt-1 w-full accent-[var(--color-gold-500)]" aria-label="Speaking speed" />
-          <button type="button" onClick={() => speak("Hi, I'm Ren — here to help with your money.", { voiceURI, rate: localRate })}
-            className="text-body mt-3 rounded-full border border-[var(--field-border)] px-3.5 py-1.5 text-xs font-medium transition-colors hover:border-[var(--focus-ring)]/50 hover:text-[var(--text-strong)]">
-            Preview voice
-          </button>
         </div>
       )}
 
@@ -445,32 +437,6 @@ function RenControl({ uid }: { uid: string }) {
         </div>
       </div>
 
-      {/* What Ren remembers */}
-      <div>
-        <p className="text-body text-sm font-medium">What Ren remembers</p>
-        <p className="text-muted mb-2 text-xs">Short facts Ren keeps in mind when answering — e.g. &ldquo;I&apos;m paid on the 1st&rdquo; or &ldquo;I&apos;m saving for a bike&rdquo;. You can remove any anytime.</p>
-        {memory.length > 0 && (
-          <ul className="mb-2 flex flex-col gap-1.5">
-            {memory.map((m) => (
-              <li key={m} className="flex items-center gap-2 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2">
-                <span className="text-body min-w-0 flex-1 truncate text-sm">{m}</span>
-                <button type="button" onClick={() => removeRenMemory(uid, m).catch(() => {})} aria-label={`Forget: ${m}`}
-                  className="text-muted grid size-6 shrink-0 place-items-center rounded-full transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]">
-                  <Trash2 className="size-3.5" />
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        <div className="flex items-center gap-2">
-          <Input value={memInput} onChange={(e) => setMemInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addMemory(); } }}
-            placeholder="Tell Ren something to remember" aria-label="New fact for Ren" maxLength={200} className="flex-1" />
-          <AnimatedButton variant="glass" onClick={addMemory} disabled={!memInput.trim()}>Add</AnimatedButton>
-        </div>
-        <p className="text-muted mt-2 text-xs">Ren uses these with its AI answers; they never change your money or override Ren&apos;s safety rules.</p>
-      </div>
-
-      <p className="text-muted text-xs">Ren&apos;s language, region and currency follow your <span className="text-body">Region</span> settings.</p>
     </div>
   );
 }

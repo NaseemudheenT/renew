@@ -7,6 +7,7 @@ import { RenLogo } from "@/components/brand/RenLogo";
 import { type AskContext } from "@/lib/ask";
 import { useRenBrain } from "@/hooks/useRenBrain";
 import { listen, speak, stopSpeaking, isVoiceSupported, speechOutputSupported, type Listener } from "@/lib/voice";
+import { renVoiceSpeakOpts } from "@/lib/ren-voices";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "@/components/ui/toast-store";
@@ -64,7 +65,7 @@ export function RenChat({
   }, [open]);
 
   function push(m: Omit<Msg, "id">) { setMsgs((prev) => [...prev, { id: nextId(), ...m }]); }
-  function say(text: string) { if (speakOn && voiceOut) speak(text, { voiceURI: profile?.renVoiceURI, rate: profile?.renVoiceRate }); }
+  function say(text: string) { if (speakOn && voiceOut) speak(text, { ...renVoiceSpeakOpts(profile?.renVoiceURI), rate: profile?.renVoiceRate }); }
 
   function respond(text: string, extra?: { amount?: number; currency?: string }) {
     push({ role: "ren", text, ...extra });
