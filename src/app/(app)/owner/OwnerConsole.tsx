@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import {
   Users, UserPlus, Activity, ShieldCheck, ShieldAlert, Ban,
   RefreshCw, KeyRound, Fingerprint, Mail, Smartphone, Apple, Globe, Circle,
-  Search, TrendingUp, TrendingDown, LineChart,
+  Search, TrendingUp, TrendingDown, LineChart, Crown, BellRing,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -27,6 +27,8 @@ interface OwnerUserRow {
 interface OwnerOverview {
   totalUsers: number;
   onboardedUsers: number;
+  premiumUsers: number;
+  waitlistUsers: number;
   newLast7d: number;
   newLast30d: number;
   activeLast24h: number;
@@ -60,14 +62,19 @@ function initialOf(row: OwnerUserRow): string {
   return (s[0] || "?").toUpperCase();
 }
 
+const REFRESH_MS = 30_000; // Live refresh cadence while the tab is visible.
+
 export function OwnerConsole() {
   const [data, setData] = useState<OwnerOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  // A 1s ticker so "updated Ns ago" stays truthful between refreshes.
+  const [, setTick] = useState(0);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // `silent` polls don't flash the spinner/skeleton — the console just updates.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/owner/overview", { cache: "no-store" });
@@ -76,7 +83,7 @@ export function OwnerConsole() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
@@ -85,6 +92,24 @@ export function OwnerConsole() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
+
+  // Live: refresh on a timer while the tab is visible, and immediately when the
+  // owner returns to the tab. Paused in the background so it never wastes reads.
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const start = () => { timer ??= setInterval(() => { if (!document.hidden) void load(true); }, REFRESH_MS); };
+    const stop = () => { if (timer) { clearInterval(timer); timer = undefined; } };
+    const onVisible = () => { if (document.hidden) { stop(); } else { void load(true); start(); } };
+    start();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVisible); };
+  }, [load]);
+
+  // Tick every second so the relative "updated" label counts up live.
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const providerRows = data
     ? Object.entries(data.providerBreakdown).sort((a, b) => b[1] - a[1])
@@ -109,14 +134,25 @@ export function OwnerConsole() {
         title="Owner console"
         subtitle="Renew at a glance — visible only to you."
         action={
-          <button
-            onClick={() => void load()}
-            disabled={loading}
-            className="text-muted hover:text-strong inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-sm transition disabled:opacity-50"
-          >
-            <RefreshCw size={15} className={cn(loading && "animate-spin")} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            {data && !error && (
+              <span className="text-muted inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300" title={`Auto-refreshing every ${REFRESH_MS / 1000}s`}>
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
+                </span>
+                Live
+              </span>
+            )}
+            <button
+              onClick={() => void load()}
+              disabled={loading}
+              className="text-muted hover:text-strong inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-sm transition disabled:opacity-50"
+            >
+              <RefreshCw size={15} className={cn(loading && "animate-spin")} />
+              Refresh
+            </button>
+          </div>
         }
       />
 
@@ -141,6 +177,19 @@ export function OwnerConsole() {
             <Stat icon={ShieldAlert} label="Unverified" value={data.unverifiedUsers} tone="amber" />
             <Stat icon={Ban} label="Disabled" value={data.disabledUsers} tone="rose" />
           </div>
+
+          {/* Monetization */}
+          <GlassCard padded className="mt-6">
+            <h2 className="text-strong mb-4 flex items-center gap-2 text-sm font-medium">
+              <Crown size={16} className="text-[var(--color-gold-400)]" />
+              Monetization
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Stat icon={Crown} label="Premium members" value={data.premiumUsers} tone="gold" />
+              <Stat icon={BellRing} label="Upgrade interest" value={data.waitlistUsers} tone="emerald" />
+              <Stat icon={TrendingUp} label="Premium rate" value={data.totalUsers > 0 ? Math.round((data.premiumUsers / data.totalUsers) * 100) : 0} suffix="%" tone="sky" />
+            </div>
+          </GlassCard>
 
           {/* How people sign in */}
           <GlassCard padded className="mt-6">
@@ -297,12 +346,12 @@ const TONE: Record<string, string> = {
 };
 
 function Stat({
-  icon: Icon, label, value, tone,
-}: { icon: typeof Users; label: string; value: number; tone: keyof typeof TONE }) {
+  icon: Icon, label, value, tone, suffix,
+}: { icon: typeof Users; label: string; value: number; tone: keyof typeof TONE; suffix?: string }) {
   return (
     <GlassCard padded={false} className="p-4">
       <Icon size={18} className={cn("mb-2", TONE[tone])} />
-      <p className="text-strong text-2xl font-light tabular-nums">{value.toLocaleString()}</p>
+      <p className="text-strong text-2xl font-light tabular-nums">{value.toLocaleString()}{suffix}</p>
       <p className="text-muted mt-0.5 text-xs">{label}</p>
     </GlassCard>
   );
