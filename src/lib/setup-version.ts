@@ -13,5 +13,8 @@
  *       consent, region/currency, avatar).
  *   3 — country is now a DELIBERATE choice (no silent auto-detect); everyone
  *       re-confirms it so currency/formatting are correct.
+ *   4 — Apple-style setup: captures an optional monthly-income baseline (so
+ *       advice works from day one) and sets up the iPhone-style app-lock
+ *       passcode + Face ID during onboarding. Everyone runs it once.
  */
-export const CURRENT_SETUP_VERSION = 3;
+export const CURRENT_SETUP_VERSION = 4;

@@ -12,5 +12,5 @@ export default async function OnboardingPage() {
   const { onboarded, setupCurrent } = await getUserFlags(user.uid);
   if (onboarded && setupCurrent) redirect("/dashboard");
 
-  return <OnboardingClient defaultName={user.displayName ?? ""} />;
+  return <OnboardingClient uid={user.uid} defaultName={user.displayName ?? ""} />;
 }

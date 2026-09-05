@@ -17,6 +17,7 @@ const bodySchema = z.object({
   accountType: z.enum(["personal", "business"]).optional(),
   acceptedLegal: z.boolean().optional(),
   avatar: z.string().trim().max(24).optional(),
+  monthlyIncome: z.number().nonnegative().max(1e12).optional(),
 });
 
 /** Persist minimal onboarding answers and flip the onboarded flag. */

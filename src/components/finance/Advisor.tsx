@@ -10,6 +10,7 @@ import { GlassCard } from "@/components/ui/GlassCard";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { suggestions, type Suggestion, type Severity } from "@/lib/advisor";
 import { useCategories } from "@/hooks/useCategories";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 import type { Transaction, Subscription, Payment, Budget, SavingsGoal } from "@/lib/types";
@@ -34,10 +35,12 @@ export function Advisor({
 }) {
   const { money } = useLocale();
   const { resolve } = useCategories();
+  const { profile } = useUserProfile();
+  const declaredMonthlyIncome = profile?.monthlyIncome;
 
   const items = useMemo(
-    () => suggestions({ transactions, subscriptions, bills, budgets, goals, max }),
-    [transactions, subscriptions, bills, budgets, goals, max],
+    () => suggestions({ transactions, subscriptions, bills, budgets, goals, max, declaredMonthlyIncome }),
+    [transactions, subscriptions, bills, budgets, goals, max, declaredMonthlyIncome],
   );
 
   if (items.length === 0) return null;

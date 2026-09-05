@@ -59,6 +59,10 @@ export interface ProfileDoc {
   security?: PasscodeRecord;
   /** Chosen preset avatar id (see lib/avatars). */
   avatar?: string;
+  /** Roughly how much income arrives each month (display currency), declared at
+   *  setup. Used as a fallback baseline for advice before there's enough
+   *  transaction history to average — never a substitute for real records. */
+  monthlyIncome?: number;
   /** When the person accepted the Privacy Policy + Terms. */
   acceptedLegalAt?: number;
   /** Auto-clean window in days (0/undefined = keep everything). Transactions

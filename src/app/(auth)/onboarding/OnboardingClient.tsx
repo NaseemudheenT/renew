@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Wallet, Receipt, PiggyBank, AlertCircle, Check,
-  Bell, ShieldCheck, ArrowRight,
+  Bell, ShieldCheck, ArrowRight, Lock, Fingerprint, TrendingUp,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { RenewMark } from "@/components/brand/RenewMark";
@@ -18,6 +18,8 @@ import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { AnimatedButton } from "@/components/motion";
 import { requestBrowserNotify } from "@/lib/notify";
 import { registerPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
+import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
+import { setSecurity } from "@/lib/firestore/profile";
 import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
 import {
@@ -41,10 +43,12 @@ const slide = {
   transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-const STEPS = 5;
+const STEPS = 7;
+const onlyDigits = (s: string) => s.replace(/\D/g, "");
 
-export function OnboardingClient({ defaultName }: { defaultName: string }) {
+export function OnboardingClient({ uid, defaultName }: { uid: string; defaultName: string }) {
   const detected = useMemo(() => detectPrefs(), []);
+  const bioSupported = useMemo(() => isPasskeySupported(), []);
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState(defaultName);
@@ -54,19 +58,25 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const [region, setRegion] = useState("");
   const [currency, setCurrency] = useState("");
   const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
+  const [income, setIncome] = useState("");        // declared monthly income (optional)
   const [focus, setFocus] = useState<string[]>([]);
   // Both Personal and Business are always available (switch in the top bar) —
   // we no longer ask at setup. Personal is just the initial active workspace.
   const accountType: AccountType = "personal";
   const [avatar, setAvatar] = useState<string>(AVATARS[0]!.id);
+  // Security — an optional iPhone-style PIN + Face ID, set up right here.
+  const [pin, setPin] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [biometric, setBiometric] = useState(true);
   const [notify, setNotify] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
-  // Security
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const timezone = detected.timezone;
+  const incomeNum = Number(onlyDigits(income));
+  const pinReady = pin.length === 0 || (isValidPasscode(pin, "pin") && pin === pinConfirm);
 
   function onRegionChange(next: string) {
     setRegion(next);
@@ -89,7 +99,8 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
     switch (s) {
       case 0: return name.trim().length > 0;
       case 1: return Boolean(region && currency && language);
-      case 4: return acceptedLegal;
+      case 5: return pinReady;
+      case 6: return acceptedLegal;
       default: return true;
     }
   }
@@ -97,6 +108,9 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   function next() {
     if (step === 0 && !name.trim()) return setError("Please tell us your name.");
     if (step === 1 && !stepValid(1)) return setError("Please choose your language, region and currency.");
+    if (step === 5 && !pinReady) {
+      return setError(pin.length > 0 && pin !== pinConfirm ? "Your passcodes don't match." : "A passcode is 4–8 digits, or leave it blank to skip.");
+    }
     if (!stepValid(step)) return;
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS - 1));
@@ -105,6 +119,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   async function finish() {
     setError(null);
     if (!acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
+    if (!pinReady) return setError("Please finish setting your passcode, or clear it to skip.");
     setSubmitting(true);
     try {
       const res = await fetch("/api/onboarding", {
@@ -122,17 +137,27 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
           accountType,
           acceptedLegal: true,
           avatar,
+          ...(incomeNum > 0 ? { monthlyIncome: incomeNum } : {}),
         }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Could not save.");
       }
+      // Save the app-lock passcode they chose (hashed on-device; the raw PIN
+      // never leaves the browser). Non-blocking — a hiccup here shouldn't trap
+      // them in setup; they can set it in Settings › Security.
+      if (pin.length > 0 && isValidPasscode(pin, "pin")) {
+        try {
+          const record = await makePasscodeRecord(pin, "pin", biometric && bioSupported);
+          await setSecurity(uid, record);
+        } catch { /* optional — carry on */ }
+      }
       // Set up a passkey NOW (Face ID / device unlock) so next sign-in is one
       // tap — created at first sign-in, never required beforehand. Non-blocking:
       // if the person dismisses the prompt, is on an unsupported browser, or it
       // errors, onboarding still completes and they can add one later in Settings.
-      if (isPasskeySupported()) {
+      if (bioSupported) {
         try { await registerPasskey(); } catch { /* optional — skip silently */ }
       }
       // Open the app in the workspace they chose here.
@@ -179,8 +204,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
         {step === 1 && (
           <motion.div key="s1" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Choose your country</h1>
-            <p className="text-muted mt-1 text-sm">This sets your currency and how amounts and dates are shown across Renew. You can change it later in Settings.</p>
+            <StepHead icon={ShieldCheck} title="Choose your country" sub="This sets your currency and how amounts and dates are shown across Renew. You can change it later in Settings." />
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <LanguageSelect label="Language" value={language} onChange={setLanguage} locale={language} />
               <CountrySelect label="Country / region" value={region} onChange={onRegionChange} locale={language} />
@@ -192,9 +216,28 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
         {step === 2 && (
           <motion.div key="s2" {...slide}>
-            <h1 className="text-strong text-xl font-medium">What matters most to you?</h1>
-            <p className="text-muted mt-1 text-sm">Pick what you care about — Renew puts these front and centre for you. You get both Personal and Business, switchable anytime. Change this whenever you like.</p>
-            <div className="mt-6 grid grid-cols-2 gap-3">
+            <StepHead icon={TrendingUp} title="About how much comes in?" sub="Roughly what you earn in a typical month. It helps Ren and your advice make sense from day one — no bank details, and you can skip it." />
+            <div className="mt-6">
+              <label className="text-muted mb-1.5 block text-sm">Monthly income {currency && <span className="text-body">({currency})</span>}</label>
+              <div className="flex items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-4 focus-within:border-[var(--focus-ring)]">
+                {currency && <span className="text-muted shrink-0 text-lg font-medium">{currency}</span>}
+                <input
+                  value={income ? Number(onlyDigits(income)).toLocaleString() : ""}
+                  onChange={(e) => setIncome(onlyDigits(e.target.value))}
+                  inputMode="numeric" autoFocus placeholder="0"
+                  aria-label="Monthly income"
+                  className="text-strong h-14 w-full min-w-0 bg-transparent text-2xl font-light tabular-nums outline-none placeholder:text-[var(--text-muted)]"
+                />
+              </div>
+              <p className="text-muted mt-3 text-xs">Private, like everything in Renew. This is a rough guide, not a promise — your real records always take over once you add them.</p>
+            </div>
+          </motion.div>
+        )}
+
+        {step === 3 && (
+          <motion.div key="s3" {...slide}>
+            <StepHead icon={Wallet} title="What matters most to you?" sub="Pick what you care about — Renew puts these front and centre. You get both Personal and Business, switchable anytime. Change this whenever you like." />
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {FOCUS.map(({ id, label, icon: Icon }) => {
                 const active = focus.includes(id);
                 return (
@@ -210,12 +253,11 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
           </motion.div>
         )}
 
-        {step === 3 && (
-          <motion.div key="s3" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Pick your look</h1>
-            <p className="text-muted mt-1 text-sm">Choose an avatar — you can change it later in Settings.</p>
+        {step === 4 && (
+          <motion.div key="s4" {...slide}>
+            <StepHead title="Pick your look" sub="Your avatar shows your initial on a colour you choose. Change it anytime in Settings." />
             <div className="mt-6 flex justify-center">
-              <span className="grid size-20 place-items-center rounded-full text-2xl font-medium text-white" style={{ background: AVATARS.find((a) => a.id === avatar)?.css }}>{initials}</span>
+              <span className="grid size-20 place-items-center rounded-full text-2xl font-medium text-white shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]" style={{ background: AVATARS.find((a) => a.id === avatar)?.css }}>{initials}</span>
             </div>
             <div className="mt-6 grid grid-cols-4 gap-3 sm:grid-cols-8">
               {AVATARS.map((a) => (
@@ -227,10 +269,34 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
           </motion.div>
         )}
 
-        {step === 4 && (
-          <motion.div key="s4" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Stay in the loop, privately</h1>
-            <p className="text-muted mt-1 text-sm">A couple of choices — you&apos;re always in control.</p>
+        {step === 5 && (
+          <motion.div key="s5" {...slide}>
+            <StepHead icon={Lock} title="Lock Renew with a passcode" sub="An iPhone-style passcode asked when you open Renew — a private lock over your account. Optional, and you can set or change it later in Settings." />
+            <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <Input label="Passcode (4–8 digits)" value={pin} inputMode="numeric" type="text" autoComplete="off"
+                onChange={(e) => setPin(onlyDigits(e.target.value).slice(0, 8))} placeholder="••••" />
+              <Input label="Confirm passcode" value={pinConfirm} inputMode="numeric" type="text" autoComplete="off"
+                onChange={(e) => setPinConfirm(onlyDigits(e.target.value).slice(0, 8))} placeholder="••••" />
+            </div>
+            {pin.length > 0 && pinConfirm.length > 0 && pin !== pinConfirm && (
+              <p className="mt-2 text-xs text-rose-600 dark:text-rose-300">Passcodes don&apos;t match yet.</p>
+            )}
+            {bioSupported && (
+              <div className="mt-4 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
+                <span className="min-w-0">
+                  <span className="text-strong flex items-center gap-2 text-sm font-medium"><Fingerprint className="size-4.5 text-[var(--color-gold-500)]" />Unlock with Face ID / fingerprint</span>
+                  <span className="text-muted mt-0.5 block text-xs">Use your device biometrics instead of typing the passcode.</span>
+                </span>
+                <Switch checked={biometric} onChange={setBiometric} label="Biometric unlock" />
+              </div>
+            )}
+            <p className="text-muted mt-4 flex items-start gap-2 text-xs"><ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-[var(--color-gold-500)]" />Your passcode is stored only as a scrambled hash on your own profile — never as the digits you typed.</p>
+          </motion.div>
+        )}
+
+        {step === 6 && (
+          <motion.div key="s6" {...slide}>
+            <StepHead icon={Bell} title="Stay in the loop, privately" sub="A couple of choices — you're always in control." />
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
               <span className="min-w-0">
                 <span className="text-strong flex items-center gap-2 text-sm font-medium"><Bell className="size-4.5 text-[var(--color-gold-500)]" />Notifications</span>
@@ -258,7 +324,11 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
       <div className="mt-7 flex items-center gap-3">
         {step > 0 && (
-          <AnimatedButton variant="ghost" onClick={() => setStep((s) => s - 1)} disabled={submitting}>Back</AnimatedButton>
+          <AnimatedButton variant="ghost" onClick={() => { setError(null); setStep((s) => s - 1); }} disabled={submitting}>Back</AnimatedButton>
+        )}
+        {/* Optional steps offer a quiet Skip so setup never feels forced. */}
+        {(step === 2 || step === 5) && (
+          <AnimatedButton variant="ghost" onClick={() => { if (step === 5) { setPin(""); setPinConfirm(""); } setError(null); setStep((s) => s + 1); }} disabled={submitting}>Skip</AnimatedButton>
         )}
         {step < STEPS - 1 ? (
           <AnimatedButton size="lg" fullWidth onClick={next} disabled={!stepValid(step)}>Continue</AnimatedButton>
@@ -269,5 +339,20 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         )}
       </div>
     </GlassCard>
+  );
+}
+
+/** A calm, consistent step heading — small gold icon badge + title + one line. */
+function StepHead({ icon: Icon, title, sub }: { icon?: typeof Wallet; title: string; sub: string }) {
+  return (
+    <div>
+      {Icon && (
+        <span className="mb-3 grid size-11 place-items-center rounded-2xl bg-[var(--color-gold-500)]/15">
+          <Icon className="size-5 text-[var(--color-gold-500)]" />
+        </span>
+      )}
+      <h1 className="text-strong text-xl font-medium">{title}</h1>
+      <p className="text-muted mt-1 text-sm">{sub}</p>
+    </div>
   );
 }

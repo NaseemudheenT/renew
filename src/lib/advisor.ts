@@ -75,6 +75,10 @@ export interface AdvisorInput {
   max?: number;
   /** Trailing months used for averages. Default 3. */
   avgMonths?: number;
+  /** Income the person declared at setup (display currency). Used ONLY as a
+   *  fallback when there isn't yet real income history to average — so a brand
+   *  new account still gets meaningful advice. Real transactions always win. */
+  declaredMonthlyIncome?: number;
 }
 
 const DAY = 86_400_000;
@@ -134,7 +138,11 @@ export function suggestions(input: AdvisorInput): Suggestion[] {
 
   const out: Suggestion[] = [];
   const { income: incomeThisMonth, expense: expenseThisMonth, byCategory } = thisMonthTotals(txns, now);
-  const incomeAvg = monthlyIncomeAverage(txns, months, now);
+  // Real averaged income wins; only fall back to the declared setup figure when
+  // there's no income history yet, so new accounts still get useful advice.
+  const averaged = monthlyIncomeAverage(txns, months, now);
+  const declared = input.declaredMonthlyIncome && input.declaredMonthlyIncome > 0 ? input.declaredMonthlyIncome : 0;
+  const incomeAvg = averaged > 0 ? averaged : declared;
   const forecastSpend = monthEndForecast(expenseThisMonth, now);
   const cmp = monthComparison(txns, now, months);
   const hasExpenses = txns.some((t) => t.type === "expense");
