@@ -24,7 +24,7 @@ import { useUserCollection } from "@/hooks/useUserCollection";
 import { downloadFile, fileDateStamp } from "@/lib/export";
 import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Transfer, Subscription, Reminder } from "@/lib/types";
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
-import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
+import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, addRenMemory, removeRenMemory, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
 import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
 import { isPasskeySupported } from "@/lib/auth/passkey-client";
 import { speak, availableVoices, onVoicesReady, speechOutputSupported } from "@/lib/voice";
@@ -336,9 +336,12 @@ function RenControl({ uid }: { uid: string }) {
   const voiceURI = profile?.renVoiceURI ?? "";
   const rate = profile?.renVoiceRate ?? 1;
   const style = profile?.renStyle ?? "balanced";
+  const personality = profile?.renPersonality ?? "neutral";
+  const memory = profile?.renMemory ?? [];
   const voiceOut = speechOutputSupported();
   const [voices, setVoices] = useState<{ uri: string; label: string }[]>([]);
   const [localRate, setLocalRate] = useState(rate);
+  const [memInput, setMemInput] = useState("");
 
   useEffect(() => {
     if (!voiceOut) return;
@@ -352,6 +355,18 @@ function RenControl({ uid }: { uid: string }) {
     { id: "balanced", label: "Balanced" },
     { id: "detailed", label: "Detailed" },
   ] as const;
+  const PERSONAS = [
+    { id: "warm", label: "Warm" },
+    { id: "neutral", label: "Neutral" },
+    { id: "precise", label: "Precise" },
+  ] as const;
+
+  function addMemory() {
+    const fact = memInput.trim();
+    if (!fact) return;
+    addRenMemory(uid, fact).catch(() => {});
+    setMemInput("");
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -414,6 +429,45 @@ function RenControl({ uid }: { uid: string }) {
             </button>
           ))}
         </div>
+      </div>
+
+      {/* Personality / tone */}
+      <div>
+        <p className="text-body text-sm font-medium">Personality</p>
+        <p className="text-muted mb-2 text-xs">The tone Ren speaks in.</p>
+        <div className="inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
+          {PERSONAS.map((p) => (
+            <button key={p.id} type="button" onClick={() => updateRenPrefs(uid, { renPersonality: p.id }).catch(() => {})} aria-pressed={personality === p.id}
+              className={cn("rounded-full px-3.5 py-1.5 transition-colors", personality === p.id ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]")}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* What Ren remembers */}
+      <div>
+        <p className="text-body text-sm font-medium">What Ren remembers</p>
+        <p className="text-muted mb-2 text-xs">Short facts Ren keeps in mind when answering — e.g. &ldquo;I&apos;m paid on the 1st&rdquo; or &ldquo;I&apos;m saving for a bike&rdquo;. You can remove any anytime.</p>
+        {memory.length > 0 && (
+          <ul className="mb-2 flex flex-col gap-1.5">
+            {memory.map((m) => (
+              <li key={m} className="flex items-center gap-2 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2">
+                <span className="text-body min-w-0 flex-1 truncate text-sm">{m}</span>
+                <button type="button" onClick={() => removeRenMemory(uid, m).catch(() => {})} aria-label={`Forget: ${m}`}
+                  className="text-muted grid size-6 shrink-0 place-items-center rounded-full transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]">
+                  <Trash2 className="size-3.5" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+        <div className="flex items-center gap-2">
+          <Input value={memInput} onChange={(e) => setMemInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addMemory(); } }}
+            placeholder="Tell Ren something to remember" aria-label="New fact for Ren" maxLength={200} className="flex-1" />
+          <AnimatedButton variant="glass" onClick={addMemory} disabled={!memInput.trim()}>Add</AnimatedButton>
+        </div>
+        <p className="text-muted mt-2 text-xs">Ren uses these with its AI answers; they never change your money or override Ren&apos;s safety rules.</p>
       </div>
 
       <p className="text-muted text-xs">Ren&apos;s language, region and currency follow your <span className="text-body">Region</span> settings.</p>

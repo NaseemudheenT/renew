@@ -1,6 +1,6 @@
 "use client";
 
-import { updateDoc, serverTimestamp, arrayUnion } from "firebase/firestore";
+import { updateDoc, serverTimestamp, arrayUnion, arrayRemove } from "firebase/firestore";
 import { updateProfile } from "firebase/auth";
 import { doc } from "firebase/firestore";
 import { getDb } from "@/lib/firebase/client";
@@ -135,9 +135,22 @@ export async function updateDataRetention(uid: string, days: number): Promise<vo
 /** Ren voice & style preferences (partial merge). */
 export async function updateRenPrefs(
   uid: string,
-  patch: { renAutoSpeak?: boolean; renVoiceURI?: string; renVoiceRate?: number; renStyle?: "concise" | "balanced" | "detailed" },
+  patch: { renAutoSpeak?: boolean; renVoiceURI?: string; renVoiceRate?: number; renStyle?: "concise" | "balanced" | "detailed"; renPersonality?: "warm" | "neutral" | "precise" },
 ): Promise<void> {
   await updateDoc(profileRef(uid), { ...patch, updatedAt: serverTimestamp() });
+}
+
+/** Add a fact for Ren to remember (deduped, trimmed, capped). Facts are woven
+ *  into Ren's context so answers actually use them. */
+export async function addRenMemory(uid: string, fact: string): Promise<void> {
+  const clean = fact.trim().slice(0, 200);
+  if (!clean) return;
+  await updateDoc(profileRef(uid), { renMemory: arrayUnion(clean), updatedAt: serverTimestamp() });
+}
+
+/** Forget one remembered fact. */
+export async function removeRenMemory(uid: string, fact: string): Promise<void> {
+  await updateDoc(profileRef(uid), { renMemory: arrayRemove(fact), updatedAt: serverTimestamp() });
 }
 
 /** Whether Ren speaks answers aloud by default. */

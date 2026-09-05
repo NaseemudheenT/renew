@@ -54,7 +54,7 @@ export function useRenBrain(ctx: Omit<AskContext, "now">, uid: string | null) {
           const res = await fetch("/api/ren", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: text, history: h, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode, style: profile?.renStyle }),
+            body: JSON.stringify({ message: text, history: h, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode, style: profile?.renStyle, personality: profile?.renPersonality, memory: profile?.renMemory }),
           });
           if (res.ok) {
             const data = (await res.json()) as { mode?: string; text?: string };
