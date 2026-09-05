@@ -34,6 +34,22 @@ export async function updateAvatar(uid: string, avatar: string): Promise<void> {
   await updateDoc(profileRef(uid), { avatar, updatedAt: serverTimestamp() });
 }
 
+/** Set the subscription plan. Premium is additive; downgrading never deletes
+ *  data. Real billing is enforced server-side once a provider is connected —
+ *  this write alone must never be treated as proof of payment. */
+export async function setPlan(uid: string, plan: "free" | "premium"): Promise<void> {
+  await updateDoc(profileRef(uid), {
+    plan,
+    ...(plan === "premium" ? { planSince: Date.now() } : {}),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Record that the person wants to be notified when Premium checkout launches. */
+export async function setPremiumInterest(uid: string, interested: boolean): Promise<void> {
+  await updateDoc(profileRef(uid), { premiumInterest: interested, updatedAt: serverTimestamp() });
+}
+
 /** Set (or update) the app-lock passcode + biometric record. */
 export async function setSecurity(uid: string, security: PasscodeRecord): Promise<void> {
   await updateDoc(profileRef(uid), { security, updatedAt: serverTimestamp() });

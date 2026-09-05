@@ -76,6 +76,12 @@ export interface ProfileDoc {
   renVoiceRate?: number;
   /** Ren reply length: concise | balanced | detailed (default balanced). */
   renStyle?: "concise" | "balanced" | "detailed";
+  /** Subscription plan (default "free"). Premium is additive — see lib/plan. */
+  plan?: "free" | "premium";
+  /** When the person moved to Premium (ms epoch), if ever. */
+  planSince?: number;
+  /** The person asked to be told when Premium checkout launches. */
+  premiumInterest?: boolean;
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

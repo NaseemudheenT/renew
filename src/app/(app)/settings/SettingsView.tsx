@@ -14,7 +14,7 @@ import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { Switch } from "@/components/ui/Switch";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
-import { CreditCardForm, type CardValues } from "@/components/finance/CreditCardForm";
+import { PlanControl } from "@/components/settings/PlanControl";
 import { Avatar } from "@/components/shell/Avatar";
 import { toast } from "@/components/ui/toast-store";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -55,7 +55,7 @@ export function SettingsView() {
     { id: "appearance", icon: Palette, title: "Appearance", sub: "Light or dark theme", render: () => <AppearanceControl /> },
     { id: "region", icon: Globe, title: t("settings.region.title"), sub: "Language, region & currency", render: () => (uid ? <RegionLanguageControl uid={uid} /> : null) },
     { id: "notifications", icon: Bell, title: "Notifications", sub: "Reminders and nudges", render: () => <>{uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}<BrowserNotifyControl /></> },
-    { id: "billing", icon: CreditCard, title: "Billing", sub: "Your plan & payment method", render: () => <BillingControl /> },
+    { id: "billing", icon: CreditCard, title: "Plan & billing", sub: "Free & Premium", render: () => <PlanControl /> },
     { id: "data", icon: Database, title: "Data", sub: "Import, export & delete", render: () => <DataControl /> },
     { id: "accessibility", icon: Accessibility, title: "Accessibility", sub: "Text, contrast, motion & more", render: () => <AccessibilityControl /> },
     { id: "security", icon: ShieldCheck, title: "Security", sub: "Sign out & delete account", render: () => <SecurityControl /> },
@@ -295,46 +295,6 @@ function RegionLanguageControl({ uid }: { uid: string }) {
           {t("common.save")}
         </AnimatedButton>
       </div>
-    </div>
-  );
-}
-
-function BillingControl() {
-  const [methodOpen, setMethodOpen] = useState(false);
-
-  function handleSaveCard(_values: CardValues) {
-    // Provider boundary: raw card details are NEVER stored by Renew. When a live
-    // Stripe publishable key + checkout are configured, this hands the values to
-    // Stripe Elements to tokenize. Until then, we do not persist anything.
-    setMethodOpen(false);
-    toast({
-      title: "Payment provider not connected yet",
-      description: "Card details are never stored by Renew. Paid plans arrive with secure Stripe checkout.",
-    });
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-4">
-        <div className="flex items-center gap-3">
-          <span className="glass grid size-10 place-items-center !rounded-2xl"><Sparkles className="size-5 text-[var(--color-gold-500)]" /></span>
-          <div><p className="text-strong text-sm font-medium">Free plan</p><p className="text-muted text-xs">All of Renew, at no cost during this phase.</p></div>
-        </div>
-        <span className="rounded-full bg-[var(--glass-bg-strong)] px-3 py-1 text-xs font-medium text-[var(--text-strong)]">Current</span>
-      </div>
-      <p className="text-muted text-xs">You&apos;re all set — there&apos;s nothing to pay. Paid plans will appear here when they launch; you&apos;ll never be charged without opting in.</p>
-      <AnimatedButton variant="glass" onClick={() => setMethodOpen(true)}>
-        <CreditCard className="size-4" />
-        Add payment method
-      </AnimatedButton>
-      <AnimatedModal
-        open={methodOpen}
-        onClose={() => setMethodOpen(false)}
-        title="Payment method"
-        description="Saved securely with our payment provider. Renew never stores your card number or CVC."
-      >
-        <CreditCardForm onSubmit={handleSaveCard} />
-      </AnimatedModal>
     </div>
   );
 }

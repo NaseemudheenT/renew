@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   RefreshCw, ReceiptText, Sparkles, Fingerprint,
   Globe, Palette, Bell, Accessibility, Upload, Database,
-  ChevronRight, LogOut,
+  ChevronRight, LogOut, Crown,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/shell/Avatar";
@@ -36,6 +36,7 @@ export function AccountView() {
   const router = useRouter();
   const { user } = useAuth();
   const { profile, uid } = useUserProfile();
+  const isPremiumPlan = profile?.plan === "premium";
   const { prefs } = useLocale();
   const { data: subs } = useScopedUserCollection<Subscription>("subscriptions");
   const passkeySupported = usePasskeySupport();
@@ -105,7 +106,7 @@ export function AccountView() {
           <div className="min-w-0 flex-1">
             <h1 className="text-strong truncate text-xl font-semibold">{user?.displayName || "Your account"}</h1>
             <div className="mt-2 flex flex-wrap gap-2">
-              <Chip icon={Sparkles} tone="gold">Free plan</Chip>
+              <Chip icon={isPremiumPlan ? Crown : Sparkles} tone="gold">{isPremiumPlan ? "Premium" : "Free plan"}</Chip>
             </div>
           </div>
         </div>
@@ -153,7 +154,7 @@ export function AccountView() {
 
       {/* Membership */}
       <Group title="Membership">
-        <Row icon={Sparkles} title="Plan & billing" desc="You're on the free plan" href="/settings#billing" />
+        <Row icon={isPremiumPlan ? Crown : Sparkles} title="Plan & billing" desc={isPremiumPlan ? "You're on Renew Premium" : "You're on the free plan"} href="/settings#billing" />
         <Row icon={RefreshCw} title="Subscriptions" desc={`${active.length} active · manage & track renewals`} href="/payments#subscriptions" />
         <Row icon={ReceiptText} title="Bills" desc="Upcoming and paid bills" href="/payments" />
       </Group>
