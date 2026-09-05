@@ -5,7 +5,7 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Wallet, Receipt, PiggyBank, AlertCircle, Check,
-  Bell, ShieldCheck, ArrowRight, Lock, Fingerprint, TrendingUp,
+  Bell, ShieldCheck, ArrowRight, Lock, Fingerprint,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { RenewMark } from "@/components/brand/RenewMark";
@@ -16,9 +16,10 @@ import { CountrySelect } from "@/components/ui/CountrySelect";
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { AnimatedButton } from "@/components/motion";
+import { PinPad } from "@/components/security/PinPad";
 import { requestBrowserNotify } from "@/lib/notify";
 import { registerPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
-import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
+import { makePasscodeRecord, faceOnlyRecord } from "@/lib/security/passcode";
 import { setSecurity } from "@/lib/firestore/profile";
 import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
@@ -35,6 +36,7 @@ const FOCUS = [
 ] as const;
 
 type AccountType = "personal" | "business";
+type LockMethod = "pin" | "face";
 
 const slide = {
   initial: { opacity: 0, x: 24 },
@@ -43,8 +45,7 @@ const slide = {
   transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-const STEPS = 7;
-const onlyDigits = (s: string) => s.replace(/\D/g, "");
+const STEPS = 6;
 
 export function OnboardingClient({ uid, defaultName }: { uid: string; defaultName: string }) {
   const detected = useMemo(() => detectPrefs(), []);
@@ -58,16 +59,20 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   const [region, setRegion] = useState("");
   const [currency, setCurrency] = useState("");
   const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
-  const [income, setIncome] = useState("");        // declared monthly income (optional)
   const [focus, setFocus] = useState<string[]>([]);
   // Both Personal and Business are always available (switch in the top bar) —
   // we no longer ask at setup. Personal is just the initial active workspace.
   const accountType: AccountType = "personal";
   const [avatar, setAvatar] = useState<string>(AVATARS[0]!.id);
-  // Security — an optional iPhone-style PIN + Face ID, set up right here.
+  // Security — MANDATORY. Either a 4-digit passcode or Face ID only.
+  const [lockMethod, setLockMethod] = useState<LockMethod>("pin");
   const [pin, setPin] = useState("");
   const [pinConfirm, setPinConfirm] = useState("");
+  const [pinStage, setPinStage] = useState<"enter" | "confirm">("enter");
+  const [pinShake, setPinShake] = useState(0);
   const [biometric, setBiometric] = useState(true);
+  const [faceReady, setFaceReady] = useState(false);
+  const [faceBusy, setFaceBusy] = useState(false);
   const [notify, setNotify] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
 
@@ -75,8 +80,8 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   const [submitting, setSubmitting] = useState(false);
 
   const timezone = detected.timezone;
-  const incomeNum = Number(onlyDigits(income));
-  const pinReady = pin.length === 0 || (isValidPasscode(pin, "pin") && pin === pinConfirm);
+  const pinDone = pin.length === 4 && pinConfirm === pin;
+  const lockReady = lockMethod === "pin" ? pinDone : faceReady;
 
   function onRegionChange(next: string) {
     setRegion(next);
@@ -94,13 +99,26 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
     }
   }
 
-  // Required fields per step — advancing is blocked until they're filled.
+  // The passcode-creation flow: enter four digits, then re-enter to confirm.
+  function onPinComplete(code: string) {
+    if (pinStage === "enter") { setPinStage("confirm"); return; }
+    if (code === pin) return; // matches → lockReady becomes true
+    setPin(""); setPinConfirm(""); setPinStage("enter"); setPinShake((s) => s + 1);
+    setError("Those didn't match — let's try again.");
+  }
+  async function setupFace() {
+    setError(null); setFaceBusy(true);
+    try { await registerPasskey(); setFaceReady(true); }
+    catch { setError("Face ID setup was cancelled or isn't available on this device."); }
+    finally { setFaceBusy(false); }
+  }
+
   function stepValid(s: number): boolean {
     switch (s) {
       case 0: return name.trim().length > 0;
       case 1: return Boolean(region && currency && language);
-      case 5: return pinReady;
-      case 6: return acceptedLegal;
+      case 4: return lockReady;
+      case 5: return acceptedLegal;
       default: return true;
     }
   }
@@ -108,9 +126,7 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   function next() {
     if (step === 0 && !name.trim()) return setError("Please tell us your name.");
     if (step === 1 && !stepValid(1)) return setError("Please choose your language, region and currency.");
-    if (step === 5 && !pinReady) {
-      return setError(pin.length > 0 && pin !== pinConfirm ? "Your passcodes don't match." : "A passcode is 4–8 digits, or leave it blank to skip.");
-    }
+    if (step === 4 && !lockReady) return setError(lockMethod === "pin" ? "Please set and confirm your 4-digit passcode." : "Please set up Face ID to continue.");
     if (!stepValid(step)) return;
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS - 1));
@@ -119,9 +135,21 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   async function finish() {
     setError(null);
     if (!acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
-    if (!pinReady) return setError("Please finish setting your passcode, or clear it to skip.");
+    if (!lockReady) { setStep(4); return setError("Please set your passcode or Face ID — it's required."); }
     setSubmitting(true);
     try {
+      // Save the mandatory app lock FIRST — it's required, so a failure here must
+      // stop us (the raw PIN is hashed on-device and never leaves the browser).
+      const record = lockMethod === "pin"
+        ? await makePasscodeRecord(pin, "pin", biometric && bioSupported)
+        : faceOnlyRecord();
+      await setSecurity(uid, record);
+      // A passkey (device Face ID / fingerprint) so unlock + next sign-in are one
+      // tap. Required for face-only; a bonus for a passcode with biometrics on.
+      if (bioSupported && (lockMethod === "face" || (lockMethod === "pin" && biometric))) {
+        try { await registerPasskey(); } catch { /* optional for pin+bio */ }
+      }
+
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -137,32 +165,13 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
           accountType,
           acceptedLegal: true,
           avatar,
-          ...(incomeNum > 0 ? { monthlyIncome: incomeNum } : {}),
         }),
       });
       if (!res.ok) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Could not save.");
       }
-      // Save the app-lock passcode they chose (hashed on-device; the raw PIN
-      // never leaves the browser). Non-blocking — a hiccup here shouldn't trap
-      // them in setup; they can set it in Settings › Security.
-      if (pin.length > 0 && isValidPasscode(pin, "pin")) {
-        try {
-          const record = await makePasscodeRecord(pin, "pin", biometric && bioSupported);
-          await setSecurity(uid, record);
-        } catch { /* optional — carry on */ }
-      }
-      // Set up a passkey NOW (Face ID / device unlock) so next sign-in is one
-      // tap — created at first sign-in, never required beforehand. Non-blocking:
-      // if the person dismisses the prompt, is on an unsupported browser, or it
-      // errors, onboarding still completes and they can add one later in Settings.
-      if (bioSupported) {
-        try { await registerPasskey(); } catch { /* optional — skip silently */ }
-      }
-      // Open the app in the workspace they chose here.
       setActiveWorkspace(accountType);
-      // Full navigation so the server re-reads the freshly-set onboarded flag.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional reload to pick up the new session state
       window.location.assign("/dashboard");
     } catch (err) {
@@ -216,26 +225,6 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
 
         {step === 2 && (
           <motion.div key="s2" {...slide}>
-            <StepHead icon={TrendingUp} title="About how much comes in?" sub="Roughly what you earn in a typical month. It helps Ren and your advice make sense from day one — no bank details, and you can skip it." />
-            <div className="mt-6">
-              <label className="text-muted mb-1.5 block text-sm">Monthly income {currency && <span className="text-body">({currency})</span>}</label>
-              <div className="flex items-center gap-2 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-4 focus-within:border-[var(--focus-ring)]">
-                {currency && <span className="text-muted shrink-0 text-lg font-medium">{currency}</span>}
-                <input
-                  value={income ? Number(onlyDigits(income)).toLocaleString() : ""}
-                  onChange={(e) => setIncome(onlyDigits(e.target.value))}
-                  inputMode="numeric" autoFocus placeholder="0"
-                  aria-label="Monthly income"
-                  className="text-strong h-14 w-full min-w-0 bg-transparent text-2xl font-light tabular-nums outline-none placeholder:text-[var(--text-muted)]"
-                />
-              </div>
-              <p className="text-muted mt-3 text-xs">Private, like everything in Renew. This is a rough guide, not a promise — your real records always take over once you add them.</p>
-            </div>
-          </motion.div>
-        )}
-
-        {step === 3 && (
-          <motion.div key="s3" {...slide}>
             <StepHead icon={Wallet} title="What matters most to you?" sub="Pick what you care about — Renew puts these front and centre. You get both Personal and Business, switchable anytime. Change this whenever you like." />
             <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
               {FOCUS.map(({ id, label, icon: Icon }) => {
@@ -253,8 +242,8 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
           </motion.div>
         )}
 
-        {step === 4 && (
-          <motion.div key="s4" {...slide}>
+        {step === 3 && (
+          <motion.div key="s3" {...slide}>
             <StepHead title="Pick your look" sub="Your avatar shows your initial on a colour you choose. Change it anytime in Settings." />
             <div className="mt-6 flex justify-center">
               <span className="grid size-20 place-items-center rounded-full text-2xl font-medium text-white shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]" style={{ background: AVATARS.find((a) => a.id === avatar)?.css }}>{initials}</span>
@@ -269,33 +258,53 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
           </motion.div>
         )}
 
-        {step === 5 && (
-          <motion.div key="s5" {...slide}>
-            <StepHead icon={Lock} title="Lock Renew with a passcode" sub="An iPhone-style passcode asked when you open Renew — a private lock over your account. Optional, and you can set or change it later in Settings." />
-            <div className="mt-6 grid gap-3 sm:grid-cols-2">
-              <Input label="Passcode (4–8 digits)" value={pin} inputMode="numeric" type="text" autoComplete="off"
-                onChange={(e) => setPin(onlyDigits(e.target.value).slice(0, 8))} placeholder="••••" />
-              <Input label="Confirm passcode" value={pinConfirm} inputMode="numeric" type="text" autoComplete="off"
-                onChange={(e) => setPinConfirm(onlyDigits(e.target.value).slice(0, 8))} placeholder="••••" />
+        {step === 4 && (
+          <motion.div key="s4" {...slide}>
+            <StepHead icon={Lock} title="Lock Renew" sub="A passcode is asked every time you open Renew — a private lock over your money. This step is required; you can change it later in Settings." />
+
+            {/* Method choice */}
+            <div className="mt-5 inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
+              <button type="button" onClick={() => { setLockMethod("pin"); setError(null); }} aria-pressed={lockMethod === "pin"}
+                className={cn("rounded-full px-4 py-1.5 transition-colors", lockMethod === "pin" ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>Passcode</button>
+              {bioSupported && (
+                <button type="button" onClick={() => { setLockMethod("face"); setError(null); }} aria-pressed={lockMethod === "face"}
+                  className={cn("rounded-full px-4 py-1.5 transition-colors", lockMethod === "face" ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>Face ID</button>
+              )}
             </div>
-            {pin.length > 0 && pinConfirm.length > 0 && pin !== pinConfirm && (
-              <p className="mt-2 text-xs text-rose-600 dark:text-rose-300">Passcodes don&apos;t match yet.</p>
-            )}
-            {bioSupported && (
-              <div className="mt-4 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
-                <span className="min-w-0">
-                  <span className="text-strong flex items-center gap-2 text-sm font-medium"><Fingerprint className="size-4.5 text-[var(--color-gold-500)]" />Unlock with Face ID / fingerprint</span>
-                  <span className="text-muted mt-0.5 block text-xs">Use your device biometrics instead of typing the passcode.</span>
-                </span>
-                <Switch checked={biometric} onChange={setBiometric} label="Biometric unlock" />
+
+            {lockMethod === "pin" ? (
+              <div className="mt-6 flex flex-col items-center">
+                <p className="text-body mb-5 text-sm font-medium">
+                  {pinDone ? "Passcode set ✓" : pinStage === "enter" ? "Create a 4-digit passcode" : "Re-enter your passcode"}
+                </p>
+                <PinPad
+                  value={pinStage === "enter" ? pin : pinConfirm}
+                  onChange={(v) => (pinStage === "enter" ? setPin(v) : setPinConfirm(v))}
+                  onComplete={onPinComplete}
+                  shakeSignal={pinShake}
+                />
+                {bioSupported && (
+                  <div className="mt-6 flex w-full items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
+                    <span className="text-strong flex items-center gap-2 text-sm font-medium"><Fingerprint className="size-4.5 text-[var(--color-gold-500)]" />Also unlock with Face ID</span>
+                    <Switch checked={biometric} onChange={setBiometric} label="Face ID unlock" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col items-center">
+                <button type="button" onClick={setupFace} disabled={faceBusy || faceReady}
+                  className={cn("grid size-24 place-items-center rounded-full border transition-all active:scale-95",
+                    faceReady ? "border-emerald-500/40 bg-emerald-500/10" : "border-[var(--field-border)] bg-[var(--field-bg)]")}>
+                  {faceReady ? <Check className="size-12 text-emerald-500" strokeWidth={2.5} /> : <Fingerprint className="size-12 text-[var(--color-gold-500)]" />}
+                </button>
+                <p className="text-muted mt-4 text-sm">{faceReady ? "Face ID is set up ✓" : faceBusy ? "Setting up…" : "Tap to set up Face ID"}</p>
               </div>
             )}
-            <p className="text-muted mt-4 flex items-start gap-2 text-xs"><ShieldCheck className="mt-0.5 size-3.5 shrink-0 text-[var(--color-gold-500)]" />Your passcode is stored only as a scrambled hash on your own profile — never as the digits you typed.</p>
           </motion.div>
         )}
 
-        {step === 6 && (
-          <motion.div key="s6" {...slide}>
+        {step === 5 && (
+          <motion.div key="s5" {...slide}>
             <StepHead icon={Bell} title="Stay in the loop, privately" sub="A couple of choices — you're always in control." />
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
               <span className="min-w-0">
@@ -325,10 +334,6 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
       <div className="mt-7 flex items-center gap-3">
         {step > 0 && (
           <AnimatedButton variant="ghost" onClick={() => { setError(null); setStep((s) => s - 1); }} disabled={submitting}>Back</AnimatedButton>
-        )}
-        {/* Optional steps offer a quiet Skip so setup never feels forced. */}
-        {(step === 2 || step === 5) && (
-          <AnimatedButton variant="ghost" onClick={() => { if (step === 5) { setPin(""); setPinConfirm(""); } setError(null); setStep((s) => s + 1); }} disabled={submitting}>Skip</AnimatedButton>
         )}
         {step < STEPS - 1 ? (
           <AnimatedButton size="lg" fullWidth onClick={next} disabled={!stepValid(step)}>Continue</AnimatedButton>

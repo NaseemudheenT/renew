@@ -16,5 +16,8 @@
  *   4 — Apple-style setup: captures an optional monthly-income baseline (so
  *       advice works from day one) and sets up the iPhone-style app-lock
  *       passcode + Face ID during onboarding. Everyone runs it once.
+ *   5 — Simpler, honest setup: removed the income question; the app-lock is now
+ *       MANDATORY (a 4-digit Apple-style passcode or Face ID only). Everyone
+ *       runs it once so every account is protected.
  */
-export const CURRENT_SETUP_VERSION = 4;
+export const CURRENT_SETUP_VERSION = 5;
