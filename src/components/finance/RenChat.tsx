@@ -4,17 +4,12 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Mic, ArrowUp, Volume2, VolumeX, Square } from "lucide-react";
 import { RenLogo } from "@/components/brand/RenLogo";
-import { answerQuestion, type AskContext } from "@/lib/ask";
-import { parseMoneyCommand } from "@/lib/ren";
+import { type AskContext } from "@/lib/ask";
+import { useRenBrain } from "@/hooks/useRenBrain";
 import { listen, speak, stopSpeaking, isVoiceSupported, speechOutputSupported, type Listener } from "@/lib/voice";
-import { createTransaction, deleteTransaction } from "@/lib/firestore/transactions";
-import { nowMs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { useCategories } from "@/hooks/useCategories";
 import { toast } from "@/components/ui/toast-store";
-import { publicEnv } from "@/lib/env";
 import { cn } from "@/lib/utils";
 
 interface Msg { id: string; role: "user" | "ren"; text: string; amount?: number; currency?: string }
@@ -42,10 +37,9 @@ export function RenChat({
   ctx: Omit<AskContext, "now">;
   uid: string | null;
 }) {
-  const { money, prefs } = useLocale();
-  const { mode } = useWorkspace();
+  const { money } = useLocale();
   const { profile } = useUserProfile();
-  const { resolve } = useCategories();
+  const { ask } = useRenBrain(ctx, uid);
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
@@ -80,63 +74,18 @@ export function RenChat({
   async function handle(raw: string) {
     const text = raw.trim();
     if (!text) return;
+    const history = msgs.slice(-10).map((m) => ({ role: m.role, text: m.text }));
     push({ role: "user", text });
     setInput("");
-
-    // When the LLM brain is enabled, route through the server orchestrator (it
-    // understands full natural language + can act via authorized tools). On any
-    // failure it falls back to the on-device engine, so Ren always answers.
-    if (publicEnv.renLlm) {
-      setThinking(true);
-      try {
-        const history = msgs.slice(-10).map((m) => ({ role: m.role === "user" ? "user" : "assistant", content: m.text }));
-        const res = await fetch("/api/ren", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message: text, history, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode, style: profile?.renStyle }),
-        });
-        if (res.ok) {
-          const data = (await res.json()) as { mode?: string; text?: string };
-          if (data.mode === "llm" && data.text) { respond(data.text); return; }
-        }
-      } catch { /* fall through to the on-device engine */ }
-      finally { setThinking(false); }
+    setThinking(true);
+    try {
+      const res = await ask(text, history);
+      respond(res.text, res.amount !== undefined ? { amount: res.amount, currency: res.currency } : undefined);
+    } catch {
+      respond("Something went wrong just now — please try again.");
+    } finally {
+      setThinking(false);
     }
-
-    handleDeterministic(text);
-  }
-
-  /** The on-device engine — records money or answers, no network (Constitution). */
-  function handleDeterministic(text: string) {
-    // 1) A command to record money?
-    const draft = parseMoneyCommand(text);
-    if (draft && uid) {
-      const label = resolve(draft.category).label;
-      const note = draft.note || label;
-      createTransaction(uid, { type: draft.type, amount: draft.amount, currency: ctx.currency, category: draft.category, note, date: nowMs() })
-        .then((id) => {
-          const line = draft.type === "income"
-            ? `Added ${money(draft.amount, ctx.currency)} income to ${label}.`
-            : `Added ${money(draft.amount, ctx.currency)} to ${label}.`;
-          respond(line, { amount: draft.amount, currency: ctx.currency });
-          toast({ title: "Added by Ren", variant: "success", action: { label: "Undo", onClick: () => deleteTransaction(uid, id).catch(() => {}) } });
-        })
-        .catch(() => respond("I couldn't save that just now — please try again."));
-      return;
-    }
-
-    // 2) A question about their money?
-    const a = answerQuestion(text, { ...ctx, now: nowMs() });
-    if (a) {
-      const line = a.value !== undefined
-        ? `${a.title}: ${money(a.value, a.currency ?? ctx.currency)}.${a.detail ? " " + a.detail : ""}`
-        : (a.detail ?? a.title);
-      respond(line, a.value !== undefined ? { amount: a.value, currency: a.currency ?? ctx.currency } : undefined);
-      return;
-    }
-
-    // 3) Didn't understand.
-    respond("I can add money — say “spent 500 on groceries” — or answer things like “how much did I spend this month?”");
   }
 
   function toggleMic() {

@@ -3,7 +3,7 @@
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown, Lock } from "lucide-react";
+import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown, Lock, MessageSquareText } from "lucide-react";
 import { isOwnerEmail } from "@/lib/auth/owner";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -29,6 +29,8 @@ import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
 import { isPasskeySupported } from "@/lib/auth/passkey-client";
 import { speak, availableVoices, onVoicesReady, speechOutputSupported } from "@/lib/voice";
 import { RETENTION_OPTIONS } from "@/lib/retention";
+import { RenChat } from "@/components/finance/RenChat";
+import { useRenContext } from "@/hooks/useRenContext";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AccessibilityControl } from "@/components/settings/AccessibilityControl";
 import { useReauth } from "@/components/security/ReauthProvider";
@@ -368,6 +370,8 @@ function BrowserNotifyControl() {
 
 function RenControl({ uid }: { uid: string }) {
   const { profile } = useUserProfile();
+  const { ctx, uid: ctxUid } = useRenContext();
+  const [chatOpen, setChatOpen] = useState(false);
   const autoSpeak = profile?.renAutoSpeak ?? true;
   const voiceURI = profile?.renVoiceURI ?? "";
   const rate = profile?.renVoiceRate ?? 1;
@@ -391,7 +395,19 @@ function RenControl({ uid }: { uid: string }) {
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-muted text-sm">Ren is your finance assistant. Tap the sparkle anywhere in Renew to talk or type — Ren answers from your own data and can speak back.</p>
+      <p className="text-muted text-sm">Ren is your finance assistant. Tap the orb anywhere in Renew for a quick voice moment — or open the full conversation here to type, read and scroll back.</p>
+
+      {/* Full conversation — the one place with the complete text chat */}
+      <button type="button" onClick={() => setChatOpen(true)}
+        className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3 text-start transition-colors hover:border-[var(--focus-ring)]/50">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--color-gold-500)]/15"><MessageSquareText className="size-4.5 text-[var(--color-gold-500)]" /></span>
+        <span className="min-w-0 flex-1">
+          <span className="text-body block text-sm font-medium">Open the full conversation</span>
+          <span className="text-muted block text-xs">Type or speak, with your history in view</span>
+        </span>
+        <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
+      </button>
+      <RenChat open={chatOpen} onClose={() => setChatOpen(false)} ctx={ctx} uid={ctxUid} />
 
       {/* Speak aloud */}
       <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
