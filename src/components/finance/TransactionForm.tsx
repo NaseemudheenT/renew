@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Plus, Check, X } from "lucide-react";
+import { Plus, Check, X, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
@@ -38,7 +38,7 @@ export function TransactionForm({
 }) {
   const { prefs } = useLocale();
   const { user } = useAuth();
-  const { forType, subsFor } = useCategories();
+  const { forType, subsFor, resolve } = useCategories();
   const { data: accounts } = useScopedUserCollection<Account>("accounts");
   const activeAccounts = accounts.filter((a) => a.status === "active");
   const [type, setType] = useState<TxType>(initial?.type ?? defaultType);
@@ -60,6 +60,9 @@ export function TransactionForm({
   const [newSub, setNewSub] = useState("");
   // Once the person picks a category themselves, stop auto-guessing from the note.
   const [categoryTouched, setCategoryTouched] = useState(Boolean(initial));
+  // Secondary fields stay tucked away when adding (amount + category is enough);
+  // when editing an existing entry, open them so everything is visible.
+  const [showDetails, setShowDetails] = useState(Boolean(initial));
 
   const cats = forType(type);
 
@@ -138,8 +141,10 @@ export function TransactionForm({
     onSubmit({ type, amount: amt, currency: effectiveCurrency, category, subcategory: subcategory.trim(), note: note.trim(), date: fromDateTimeInputs(date), accountId });
   }
 
+  const effCurrency = selectedAccount ? selectedAccount.currency : currency;
+
   return (
-    <form onSubmit={submit} className="flex flex-col gap-4">
+    <form onSubmit={submit} className="flex flex-col gap-5">
       {/* Income / Expense segmented */}
       <div className="relative grid grid-cols-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
         {(["expense", "income"] as TxType[]).map((t) => (
@@ -150,71 +155,88 @@ export function TransactionForm({
         <motion.span layout className={cn("absolute inset-y-1 z-0 w-[calc(50%-0.25rem)] rounded-full", type === "income" ? "left-[calc(50%+0.125rem)] bg-emerald-500/15" : "left-1 bg-rose-500/15")} transition={{ type: "spring", stiffness: 400, damping: 32 }} />
       </div>
 
-      <div className="grid grid-cols-[1fr_7rem] gap-3">
-        <Input label="Amount" type="text" inputMode="decimal" placeholder="0" value={amount} autoFocus onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(prefs.region, selectedAccount ? selectedAccount.currency : currency)).display)} error={error ?? undefined} />
-        <Select label="Currency" value={selectedAccount ? selectedAccount.currency : currency} onChange={(e) => setCurrency(e.target.value)} disabled={!!selectedAccount} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
+      {/* Hero amount — the one thing that matters, big and clear (iOS-style) */}
+      <div className="flex flex-col items-center py-3">
+        <div className="flex max-w-full items-baseline justify-center gap-1.5">
+          <span className="text-muted text-lg font-medium">{effCurrency}</span>
+          <input
+            type="text" inputMode="decimal" placeholder="0" value={amount} autoFocus aria-label="Amount"
+            onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(prefs.region, effCurrency)).display)}
+            className={cn("min-w-[2ch] max-w-full bg-transparent text-center text-5xl font-light tabular-nums outline-none placeholder:text-[var(--text-muted)]/50",
+              type === "income" ? "text-emerald-500" : "text-[var(--text-strong)]")}
+            style={{ width: `${Math.max(2, amount.length + 1)}ch` }}
+          />
+        </div>
+        {error && <p className="mt-2 text-xs text-rose-500">{error}</p>}
       </div>
 
+      {/* What was it for — drives the smart category guess */}
+      <Input label="What was it for?" placeholder="e.g. Lunch, Salary, Rent" value={note} onChange={(e) => onNoteChange(e.target.value)} />
+
+      {/* Category — fast, tappable chips with icons */}
       <div>
-        <Select label="Category" value={category} onChange={(e) => pickCategory(e.target.value)} options={cats.map((c) => ({ value: c.id, label: c.label }))} />
-        {adding ? (
+        <p className="text-body mb-2 text-sm font-medium">Category</p>
+        <div className="flex flex-wrap gap-2">
+          {cats.map((c) => {
+            const Icon = resolve(c.id).icon;
+            const on = category === c.id;
+            return (
+              <button key={c.id} type="button" onClick={() => pickCategory(c.id)} aria-pressed={on}
+                className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-95",
+                  on ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-body)] hover:border-[var(--focus-ring)]/50")}>
+                <Icon className="size-3.5" />{c.label}
+              </button>
+            );
+          })}
+          {!adding && (
+            <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--field-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-gold-600)] hover:border-[var(--focus-ring)]/50">
+              <Plus className="size-3.5" /> New
+            </button>
+          )}
+        </div>
+        {adding && (
           <div className="mt-2 flex items-center gap-2">
-            <Input
-              placeholder="New category name"
-              value={newCat}
-              autoFocus
-              onChange={(e) => setNewCat(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustom(); } }}
-            />
+            <Input placeholder="New category name" value={newCat} autoFocus onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustom(); } }} />
             <AnimatedButton type="button" size="sm" onClick={saveCustom} disabled={!newCat.trim()} aria-label="Save category"><Check className="size-4" /></AnimatedButton>
             <AnimatedButton type="button" size="sm" variant="ghost" onClick={() => { setAdding(false); setNewCat(""); }} aria-label="Cancel"><X className="size-4" /></AnimatedButton>
           </div>
-        ) : (
-          <button type="button" onClick={() => setAdding(true)} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-gold-600)] hover:underline">
-            <Plus className="size-3.5" /> New category
-          </button>
         )}
       </div>
-      <div>
-        <Select
-          label="Subcategory (optional)"
-          value={subcategory}
-          onChange={(e) => setSubcategory(e.target.value)}
-          options={[{ value: "", label: "None" }, ...subs.map((s) => ({ value: s, label: s }))]}
-        />
-        {addingSub ? (
-          <div className="mt-2 flex items-center gap-2">
-            <Input
-              placeholder="New subcategory name"
-              value={newSub}
-              autoFocus
-              onChange={(e) => setNewSub(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustomSub(); } }}
-            />
-            <AnimatedButton type="button" size="sm" onClick={saveCustomSub} disabled={!newSub.trim()} aria-label="Save subcategory"><Check className="size-4" /></AnimatedButton>
-            <AnimatedButton type="button" size="sm" variant="ghost" onClick={resetSubAdd} aria-label="Cancel"><X className="size-4" /></AnimatedButton>
+
+      {/* More details — tucked away so the common path stays a few taps */}
+      <button type="button" onClick={() => setShowDetails((v) => !v)} className="text-muted inline-flex w-fit items-center gap-1 text-xs font-medium transition-colors hover:text-[var(--text-strong)]">
+        <ChevronDown className={cn("size-3.5 transition-transform", showDetails && "rotate-180")} /> {showDetails ? "Fewer details" : "More details"}
+      </button>
+
+      {showDetails && (
+        <div className="flex flex-col gap-4">
+          {(subs.length > 0 || addingSub) && (
+            <div>
+              <Select label="Subcategory (optional)" value={subcategory} onChange={(e) => setSubcategory(e.target.value)} options={[{ value: "", label: "None" }, ...subs.map((s) => ({ value: s, label: s }))]} />
+              {addingSub ? (
+                <div className="mt-2 flex items-center gap-2">
+                  <Input placeholder="New subcategory name" value={newSub} autoFocus onChange={(e) => setNewSub(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustomSub(); } }} />
+                  <AnimatedButton type="button" size="sm" onClick={saveCustomSub} disabled={!newSub.trim()} aria-label="Save subcategory"><Check className="size-4" /></AnimatedButton>
+                  <AnimatedButton type="button" size="sm" variant="ghost" onClick={resetSubAdd} aria-label="Cancel"><X className="size-4" /></AnimatedButton>
+                </div>
+              ) : (
+                <button type="button" onClick={() => setAddingSub(true)} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-gold-600)] hover:underline">
+                  <Plus className="size-3.5" /> New subcategory
+                </button>
+              )}
+            </div>
+          )}
+          {activeAccounts.length > 0 && (
+            <Select label="Account (optional)" value={accountId}
+              onChange={(e) => { const next = e.target.value; setAccountId(next); const acc = activeAccounts.find((a) => a.id === next); if (acc) setCurrency(acc.currency); }}
+              options={[{ value: "", label: "Unassigned" }, ...activeAccounts.map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }))]} />
+          )}
+          <div className="grid grid-cols-2 gap-3">
+            <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+            <Select label="Currency" value={effCurrency} onChange={(e) => setCurrency(e.target.value)} disabled={!!selectedAccount} options={CURRENCIES.map((c) => ({ value: c, label: c }))} />
           </div>
-        ) : (
-          <button type="button" onClick={() => setAddingSub(true)} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-gold-600)] hover:underline">
-            <Plus className="size-3.5" /> New subcategory
-          </button>
-        )}
-      </div>
-      {activeAccounts.length > 0 && (
-        <Select
-          label="Account (optional)"
-          value={accountId}
-          onChange={(e) => {
-            const next = e.target.value;
-            setAccountId(next);
-            const acc = activeAccounts.find((a) => a.id === next);
-            if (acc) setCurrency(acc.currency);
-          }}
-          options={[{ value: "", label: "Unassigned" }, ...activeAccounts.map((a) => ({ value: a.id, label: `${a.name} (${a.currency})` }))]}
-        />
+        </div>
       )}
-      <Input label="Date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <Input label="Note (optional)" placeholder="e.g. Lunch with team" value={note} onChange={(e) => onNoteChange(e.target.value)} />
 
       <div className="mt-1 flex items-center justify-end gap-3">
         <AnimatedButton type="button" variant="ghost" onClick={onCancel} disabled={submitting}>Cancel</AnimatedButton>

@@ -57,11 +57,15 @@ export function renVoiceSpeakOpts(id: string | undefined | null): { voiceURI?: s
   const inLang = voices.filter((v) => v.lang?.toLowerCase().startsWith(base));
   const pool = inLang.length > 0 ? inLang : voices;
 
-  // Prefer a voice whose guessed gender matches the preset.
-  const byGender = pool.find((v) => guessGender(v.name) === preset.gender);
-  // Otherwise spread the four presets across whatever voices exist, so the
-  // choices still sound distinct.
-  const spread = pool[REN_VOICES.findIndex((v) => v.id === preset.id) % pool.length];
-  const chosen = byGender ?? spread ?? pool[0];
+  // Score for a strong, clear, natural voice (not the old robotic ones): premium
+  // engines and on-device neural voices sound best.
+  const HQ = /(natural|neural|premium|enhanced|google|siri|samantha|aria|jenny|sonia|libby|eloquence)/i;
+  const quality = (v: SpeechSynthesisVoice) => (HQ.test(v.name) ? 2 : 0) + (v.localService ? 1 : 0);
+  const ranked = [...pool].sort((a, b) => quality(b) - quality(a));
+
+  // Prefer the best-quality voice matching the preset's character; else the best
+  // quality overall, so Ren always sounds clear and premium.
+  const byGender = ranked.find((v) => guessGender(v.name) === preset.gender);
+  const chosen = byGender ?? ranked[0];
   return chosen ? { voiceURI: chosen.voiceURI } : {};
 }
