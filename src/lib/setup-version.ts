@@ -19,5 +19,7 @@
  *   5 — Simpler, honest setup: removed the income question; the app-lock is now
  *       MANDATORY (a 4-digit Apple-style passcode or Face ID only). Everyone
  *       runs it once so every account is protected.
+ *   6 — Leaner still: removed the "what matters most" focus step; richer
+ *       Apple-style avatar picker. Name → country → avatar → lock → notify.
  */
-export const CURRENT_SETUP_VERSION = 5;
+export const CURRENT_SETUP_VERSION = 6;

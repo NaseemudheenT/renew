@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Wallet, Receipt, PiggyBank, AlertCircle, Check,
+  Wallet, AlertCircle, Check,
   Bell, ShieldCheck, ArrowRight, Lock, Fingerprint,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -29,12 +29,6 @@ import {
 } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
-const FOCUS = [
-  { id: "spending", label: "Spending & budgets", icon: Wallet },
-  { id: "bills", label: "Bills & subscriptions", icon: Receipt },
-  { id: "savings", label: "Savings goals", icon: PiggyBank },
-] as const;
-
 type AccountType = "personal" | "business";
 type LockMethod = "pin" | "face";
 
@@ -45,7 +39,7 @@ const slide = {
   transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-const STEPS = 6;
+const STEPS = 5;
 
 export function OnboardingClient({ uid, defaultName }: { uid: string; defaultName: string }) {
   const detected = useMemo(() => detectPrefs(), []);
@@ -59,7 +53,6 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   const [region, setRegion] = useState("");
   const [currency, setCurrency] = useState("");
   const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
-  const [focus, setFocus] = useState<string[]>([]);
   // Both Personal and Business are always available (switch in the top bar) —
   // we no longer ask at setup. Personal is just the initial active workspace.
   const accountType: AccountType = "personal";
@@ -88,9 +81,6 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
     setCurrency(REGION_CURRENCY[next] ?? currency);
     setWeekStart(weekStartFor(next));
   }
-  function toggleFocus(id: string) {
-    setFocus((p) => (p.includes(id) ? p.filter((f) => f !== id) : [...p, id]));
-  }
   async function onToggleNotify(on: boolean) {
     setNotify(on);
     if (on) {
@@ -117,8 +107,8 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
     switch (s) {
       case 0: return name.trim().length > 0;
       case 1: return Boolean(region && currency && language);
-      case 4: return lockReady;
-      case 5: return acceptedLegal;
+      case 3: return lockReady;
+      case 4: return acceptedLegal;
       default: return true;
     }
   }
@@ -126,7 +116,7 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   function next() {
     if (step === 0 && !name.trim()) return setError("Please tell us your name.");
     if (step === 1 && !stepValid(1)) return setError("Please choose your language, region and currency.");
-    if (step === 4 && !lockReady) return setError(lockMethod === "pin" ? "Please set and confirm your 4-digit passcode." : "Please set up Face ID to continue.");
+    if (step === 3 && !lockReady) return setError(lockMethod === "pin" ? "Please set and confirm your 4-digit passcode." : "Please set up Face ID to continue.");
     if (!stepValid(step)) return;
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS - 1));
@@ -135,7 +125,7 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   async function finish() {
     setError(null);
     if (!acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
-    if (!lockReady) { setStep(4); return setError("Please set your passcode or Face ID — it's required."); }
+    if (!lockReady) { setStep(3); return setError("Please set your passcode or Face ID — it's required."); }
     setSubmitting(true);
     try {
       // Save the mandatory app lock FIRST — it's required, so a failure here must
@@ -156,7 +146,7 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
         body: JSON.stringify({
           displayName: name.trim(),
           timezone,
-          focus,
+          focus: [],
           locale: language,
           region,
           currency,
@@ -225,41 +215,24 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
 
         {step === 2 && (
           <motion.div key="s2" {...slide}>
-            <StepHead icon={Wallet} title="What matters most to you?" sub="Pick what you care about — Renew puts these front and centre. You get both Personal and Business, switchable anytime. Change this whenever you like." />
-            <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              {FOCUS.map(({ id, label, icon: Icon }) => {
-                const active = focus.includes(id);
-                return (
-                  <button key={id} type="button" onClick={() => toggleFocus(id)} aria-pressed={active}
-                    className={cn("relative flex items-center gap-2.5 rounded-2xl border px-3.5 py-3 text-left text-sm transition-all", active ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-body)] hover:border-[var(--focus-ring)]/50")}>
-                    <Icon className="size-4.5 shrink-0 text-[var(--color-gold-500)]" />
-                    <span className="flex-1">{label}</span>
-                    <span className={cn("grid size-4 place-items-center rounded-full transition-all", active ? "bg-gradient-to-b from-gold-300 to-gold-500 text-[var(--text-onGold)]" : "opacity-0")}><Check className="size-3" strokeWidth={3} /></span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {step === 3 && (
-          <motion.div key="s3" {...slide}>
-            <StepHead title="Pick your look" sub="Your avatar shows your initial on a colour you choose. Change it anytime in Settings." />
+            <StepHead title="Make it yours" sub="Your avatar shows your initial on a colour you choose. Pick a look — change it anytime in Settings." />
             <div className="mt-6 flex justify-center">
-              <span className="grid size-20 place-items-center rounded-full text-2xl font-medium text-white shadow-[0_8px_24px_-8px_rgba(0,0,0,0.5)]" style={{ background: AVATARS.find((a) => a.id === avatar)?.css }}>{initials}</span>
+              <motion.span key={avatar} initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                className="grid size-24 place-items-center rounded-full text-3xl font-semibold text-white shadow-[0_10px_30px_-8px_rgba(0,0,0,0.55)] ring-1 ring-white/20"
+                style={{ background: AVATARS.find((a) => a.id === avatar)?.css }}>{initials}</motion.span>
             </div>
-            <div className="mt-6 grid grid-cols-4 gap-3 sm:grid-cols-8">
+            <div className="mt-6 grid max-h-56 grid-cols-5 gap-3 overflow-y-auto overscroll-contain pr-1 sm:grid-cols-8">
               {AVATARS.map((a) => (
                 <button key={a.id} type="button" onClick={() => setAvatar(a.id)} aria-label={a.id} aria-pressed={avatar === a.id}
-                  className={cn("size-11 rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all", avatar === a.id ? "ring-[var(--focus-ring)]" : "ring-transparent hover:ring-[var(--field-border)]")}
+                  className={cn("aspect-square rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all active:scale-90", avatar === a.id ? "ring-[var(--focus-ring)] scale-105" : "ring-transparent hover:ring-[var(--field-border)]")}
                   style={{ background: a.css }} />
               ))}
             </div>
           </motion.div>
         )}
 
-        {step === 4 && (
-          <motion.div key="s4" {...slide}>
+        {step === 3 && (
+          <motion.div key="s3" {...slide}>
             <StepHead icon={Lock} title="Lock Renew" sub="A passcode is asked every time you open Renew — a private lock over your money. This step is required; you can change it later in Settings." />
 
             {/* Method choice */}
@@ -303,8 +276,8 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
           </motion.div>
         )}
 
-        {step === 5 && (
-          <motion.div key="s5" {...slide}>
+        {step === 4 && (
+          <motion.div key="s4" {...slide}>
             <StepHead icon={Bell} title="Stay in the loop, privately" sub="A couple of choices — you're always in control." />
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
               <span className="min-w-0">
