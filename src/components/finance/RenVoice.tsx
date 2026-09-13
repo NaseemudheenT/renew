@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
-import { useRouter } from "next/navigation";
-import { X, ArrowUp, MessageSquareText } from "lucide-react";
+import { X, ArrowUp } from "lucide-react";
 import { RenLogo } from "@/components/brand/RenLogo";
 import { useRenBrain, type RenTurn } from "@/hooks/useRenBrain";
 import { listen, speak, stopSpeaking, isVoiceSupported, speechOutputSupported, type Listener } from "@/lib/voice";
@@ -15,6 +14,12 @@ import { cn } from "@/lib/utils";
 type Phase = "idle" | "listening" | "thinking" | "speaking";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
+
+/** Drop a leading wake phrase ("Hey Ren", "Hi Ren", "Ren, …") so the command is
+ *  clean — the user can naturally start with "Hey Ren" like Siri. */
+function stripWake(t: string): string {
+  return t.replace(/^\s*(hey|hi|hello|ok|okay)?\s*(ren|wren|rehn)\b[\s,.:!-]*/i, "").trim() || t.trim();
+}
 
 /**
  * Ren, the Siri way. The floating orb opens this everywhere except Settings — a
@@ -33,7 +38,6 @@ export function RenVoice({
   ctx: Omit<AskContext, "now">;
   uid: string | null;
 }) {
-  const router = useRouter();
   const { profile } = useUserProfile();
   const { ask } = useRenBrain(ctx, uid);
 
@@ -56,7 +60,7 @@ export function RenVoice({
 
   // Send one turn through Ren's brain and speak the answer.
   const send = useCallback(async (raw: string) => {
-    const text = raw.trim();
+    const text = stripWake(raw);
     if (!text) return;
     stopMic();
     setHeard(text);
@@ -118,8 +122,8 @@ export function RenVoice({
     reply ? "Ren" : "Tap to speak";
 
   const caption = phase === "listening"
-    ? (heard || "Speak in any language — Ren understands.")
-    : (reply || "Hi, I’m Ren. How can I help with your money?");
+    ? heard
+    : (reply || (phase === "idle" ? "Hi, I’m Ren." : ""));
 
   return (
     <AnimatePresence>
@@ -199,28 +203,19 @@ export function RenVoice({
               </motion.p>
             </AnimatePresence>
 
-            {/* Text fallback — quiet, no microphone anywhere */}
-            {typing ? (
+            {/* Pure voice, like Siri. A quiet text field appears ONLY where the
+                device can't do speech recognition — never a visible toggle. */}
+            {typing && (
               <form onSubmit={(e) => { e.preventDefault(); const v = input; setInput(""); void send(v); }}
-                className="mt-4 flex w-full items-center gap-2">
-                <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Type to Ren…" aria-label="Message Ren"
+                className="mt-6 flex w-full items-center gap-2">
+                <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Message Ren" aria-label="Message Ren"
                   className="text-strong h-12 min-w-0 flex-1 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-5 text-sm outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--focus-ring)]" />
                 <button type="submit" disabled={!input.trim()} aria-label="Send"
                   className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#4a7bff] to-[#c05cff] text-white shadow-[0_6px_20px_-6px_#4a7bff] transition-all active:scale-95 disabled:opacity-40">
                   <ArrowUp className="size-5" />
                 </button>
               </form>
-            ) : (
-              <button type="button" onClick={() => { stopMic(); setPhase("idle"); setTyping(true); }}
-                className="text-muted mt-6 text-sm font-medium transition-colors hover:text-[var(--text-strong)]">
-                Type instead
-              </button>
             )}
-
-            <button type="button" onClick={() => { onClose(); router.push("/settings#ren"); }}
-              className="text-muted mt-8 inline-flex items-center gap-1.5 text-xs font-medium transition-colors hover:text-[var(--text-strong)]">
-              <MessageSquareText className="size-3.5" /> Open the full conversation
-            </button>
           </div>
         </motion.div>
       )}
