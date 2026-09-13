@@ -9,8 +9,15 @@ import {
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { RenewMark } from "@/components/brand/RenewMark";
+import { PinPad } from "@/components/security/PinPad";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { verifyPasscode } from "@/lib/security/passcode";
+import { signInWithPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
 import { relativeTime, shortDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+
+const OWNER_OK_KEY = "renew_owner_verified";
 
 interface OwnerUserRow {
   uid: string;
@@ -64,7 +71,66 @@ function initialOf(row: OwnerUserRow): string {
 
 const REFRESH_MS = 30_000; // Live refresh cadence while the tab is visible.
 
+/**
+ * Step-up security for the owner console. Even though the server already gates
+ * /owner to the single owner email, this requires the owner to re-verify with
+ * their passcode or Face ID before any user data is shown — a second lock on the
+ * most sensitive screen. Verification lasts the browser session.
+ */
+function OwnerSecurityGate({ onUnlock }: { onUnlock: () => void }) {
+  const { profile } = useUserProfile();
+  const security = profile?.security ?? null;
+  const [entry, setEntry] = useState("");
+  const [shake, setShake] = useState(0);
+  const [bioBusy, setBioBusy] = useState(false);
+
+  const verify = useCallback(async (code: string) => {
+    if (!security) return;
+    if (await verifyPasscode(code, security)) { onUnlock(); return; }
+    setEntry(""); setShake((s) => s + 1);
+  }, [security, onUnlock]);
+
+  async function faceId() {
+    setBioBusy(true);
+    try { await signInWithPasskey(); onUnlock(); }
+    catch { setShake((s) => s + 1); }
+    finally { setBioBusy(false); }
+  }
+
+  const bio = (security?.biometricEnabled || security?.faceOnly) && isPasskeySupported();
+
+  return (
+    <div className="mx-auto flex max-w-sm flex-col items-center px-6 py-16 text-center">
+      <RenewMark size={48} idSuffix="ownergate" />
+      <h1 className="text-strong mt-6 text-lg font-medium">Owner verification</h1>
+      <p className="text-muted mt-1 text-sm">Confirm it&apos;s you to open the console.</p>
+      {security && !security.faceOnly && (
+        <div className="mt-8"><PinPad value={entry} onChange={setEntry} onComplete={(c) => void verify(c)} shakeSignal={shake} /></div>
+      )}
+      {bio && (
+        <button type="button" onClick={faceId} disabled={bioBusy} className="text-body mt-8 inline-flex items-center gap-2 text-sm font-medium disabled:opacity-50">
+          <Fingerprint className="size-5 text-[var(--color-gold-500)]" />{bioBusy ? "Verifying…" : "Use Face ID"}
+        </button>
+      )}
+      {!security && (
+        <p className="text-muted mt-8 max-w-xs text-xs">Set a passcode in Settings › Security to lock this console.</p>
+      )}
+    </div>
+  );
+}
+
 export function OwnerConsole() {
+  const { profile } = useUserProfile();
+  const [verified, setVerified] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(OWNER_OK_KEY) === "1"; } catch { return false; }
+  });
+  const unlockOwner = useCallback(() => {
+    try { sessionStorage.setItem(OWNER_OK_KEY, "1"); } catch { /* ignore */ }
+    setVerified(true);
+  }, []);
+  // Require step-up only when the owner actually has a lock set.
+  const needsGate = !!profile?.security && !verified;
+
   const [data, setData] = useState<OwnerOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -88,7 +154,7 @@ export function OwnerConsole() {
   }, []);
 
   useEffect(() => {
-    // Fetch once on mount. The leading setLoading is a deliberate load state.
+    // Fetch once on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
@@ -127,6 +193,8 @@ export function OwnerConsole() {
     );
   }, [data?.recentUsers, q]);
   const signupMax = data ? Math.max(1, ...data.signupsByDay.map((d) => d.count)) : 1;
+
+  if (needsGate) return <OwnerSecurityGate onUnlock={unlockOwner} />;
 
   return (
     <div className="mx-auto max-w-5xl">
