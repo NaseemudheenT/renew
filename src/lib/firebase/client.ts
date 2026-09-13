@@ -10,6 +10,8 @@ import {
 import {
   initializeFirestore,
   getFirestore,
+  persistentLocalCache,
+  persistentMultipleTabManager,
   type Firestore,
 } from "firebase/firestore";
 import { getStorage, type FirebaseStorage } from "firebase/storage";
@@ -79,6 +81,11 @@ export function getDb(): Firestore {
       // edit of a record with an empty optional field fail with a generic error.
       // Ignoring undefined makes writes drop those fields instead of throwing.
       ignoreUndefinedProperties: true,
+      // On-device cache: Renew loads instantly and keeps working with no signal
+      // (vital on phones). Data lives in IndexedDB on the user's own device and
+      // syncs when back online; multi-tab keeps every open tab consistent. On
+      // browsers that can't persist, the SDK falls back to memory automatically.
+      localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }),
     });
   } catch {
     // Already initialized elsewhere — fall back to the existing instance.
