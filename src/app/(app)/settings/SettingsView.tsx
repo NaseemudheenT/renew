@@ -3,7 +3,7 @@
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown, Lock } from "lucide-react";
+import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown, Lock, MessageSquareText } from "lucide-react";
 import { isOwnerEmail } from "@/lib/auth/owner";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -14,7 +14,7 @@ import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { Switch } from "@/components/ui/Switch";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
-import { CreditCardForm, type CardValues } from "@/components/finance/CreditCardForm";
+import { PlanControl } from "@/components/settings/PlanControl";
 import { Avatar } from "@/components/shell/Avatar";
 import { toast } from "@/components/ui/toast-store";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -27,8 +27,11 @@ import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } fr
 import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
 import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
 import { isPasskeySupported } from "@/lib/auth/passkey-client";
-import { speak, availableVoices, onVoicesReady, speechOutputSupported } from "@/lib/voice";
+import { speak, speechOutputSupported } from "@/lib/voice";
+import { REN_VOICES, DEFAULT_REN_VOICE, renVoiceSpeakOpts } from "@/lib/ren-voices";
 import { RETENTION_OPTIONS } from "@/lib/retention";
+import { RenChat } from "@/components/finance/RenChat";
+import { useRenContext } from "@/hooks/useRenContext";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
 import { AccessibilityControl } from "@/components/settings/AccessibilityControl";
 import { useReauth } from "@/components/security/ReauthProvider";
@@ -53,7 +56,7 @@ export function SettingsView() {
     { id: "appearance", icon: Palette, title: "Appearance", sub: "Light or dark theme", render: () => <AppearanceControl /> },
     { id: "region", icon: Globe, title: t("settings.region.title"), sub: "Language, region & currency", render: () => (uid ? <RegionLanguageControl uid={uid} /> : null) },
     { id: "notifications", icon: Bell, title: "Notifications", sub: "Reminders and nudges", render: () => <>{uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}<BrowserNotifyControl /></> },
-    { id: "billing", icon: CreditCard, title: "Billing", sub: "Your plan & payment method", render: () => <BillingControl /> },
+    { id: "billing", icon: CreditCard, title: "Plan & billing", sub: "Free & Premium", render: () => <PlanControl /> },
     { id: "data", icon: Database, title: "Data", sub: "Import, export & delete", render: () => <DataControl /> },
     { id: "accessibility", icon: Accessibility, title: "Accessibility", sub: "Text, contrast, motion & more", render: () => <AccessibilityControl /> },
     { id: "security", icon: ShieldCheck, title: "Security", sub: "Sign out & delete account", render: () => <SecurityControl /> },
@@ -297,46 +300,6 @@ function RegionLanguageControl({ uid }: { uid: string }) {
   );
 }
 
-function BillingControl() {
-  const [methodOpen, setMethodOpen] = useState(false);
-
-  function handleSaveCard(_values: CardValues) {
-    // Provider boundary: raw card details are NEVER stored by Renew. When a live
-    // Stripe publishable key + checkout are configured, this hands the values to
-    // Stripe Elements to tokenize. Until then, we do not persist anything.
-    setMethodOpen(false);
-    toast({
-      title: "Payment provider not connected yet",
-      description: "Card details are never stored by Renew. Paid plans arrive with secure Stripe checkout.",
-    });
-  }
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-4">
-        <div className="flex items-center gap-3">
-          <span className="glass grid size-10 place-items-center !rounded-2xl"><Sparkles className="size-5 text-[var(--color-gold-500)]" /></span>
-          <div><p className="text-strong text-sm font-medium">Free plan</p><p className="text-muted text-xs">All of Renew, at no cost during this phase.</p></div>
-        </div>
-        <span className="rounded-full bg-[var(--glass-bg-strong)] px-3 py-1 text-xs font-medium text-[var(--text-strong)]">Current</span>
-      </div>
-      <p className="text-muted text-xs">You&apos;re all set — there&apos;s nothing to pay. Paid plans will appear here when they launch; you&apos;ll never be charged without opting in.</p>
-      <AnimatedButton variant="glass" onClick={() => setMethodOpen(true)}>
-        <CreditCard className="size-4" />
-        Add payment method
-      </AnimatedButton>
-      <AnimatedModal
-        open={methodOpen}
-        onClose={() => setMethodOpen(false)}
-        title="Payment method"
-        description="Saved securely with our payment provider. Renew never stores your card number or CVC."
-      >
-        <CreditCardForm onSubmit={handleSaveCard} />
-      </AnimatedModal>
-    </div>
-  );
-}
-
 function BrowserNotifyControl() {
   const { t } = useLocale();
   const status = useSyncExternalStore<NotifyStatus>(noopSubscribe, browserNotifyStatus, () => "unsupported");
@@ -368,30 +331,42 @@ function BrowserNotifyControl() {
 
 function RenControl({ uid }: { uid: string }) {
   const { profile } = useUserProfile();
+  const { ctx, uid: ctxUid } = useRenContext();
+  const [chatOpen, setChatOpen] = useState(false);
   const autoSpeak = profile?.renAutoSpeak ?? true;
-  const voiceURI = profile?.renVoiceURI ?? "";
+  const voiceId = profile?.renVoiceURI || DEFAULT_REN_VOICE;
   const rate = profile?.renVoiceRate ?? 1;
   const style = profile?.renStyle ?? "balanced";
+  const personality = profile?.renPersonality ?? "neutral";
   const voiceOut = speechOutputSupported();
-  const [voices, setVoices] = useState<{ uri: string; label: string }[]>([]);
   const [localRate, setLocalRate] = useState(rate);
-
-  useEffect(() => {
-    if (!voiceOut) return;
-    const load = () => setVoices(availableVoices().map((v) => ({ uri: v.voiceURI, label: `${v.name} · ${v.lang}` })));
-    load();
-    return onVoicesReady(load);
-  }, [voiceOut]);
 
   const STYLES = [
     { id: "concise", label: "Concise" },
     { id: "balanced", label: "Balanced" },
     { id: "detailed", label: "Detailed" },
   ] as const;
+  const PERSONAS = [
+    { id: "warm", label: "Warm" },
+    { id: "neutral", label: "Neutral" },
+    { id: "precise", label: "Precise" },
+  ] as const;
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-muted text-sm">Ren is your finance assistant. Tap the sparkle anywhere in Renew to talk or type — Ren answers from your own data and can speak back.</p>
+      <p className="text-muted text-sm">Ren is your finance assistant. Tap the orb anywhere in Renew and just talk — Ren understands and replies in any language, automatically. Or open the full conversation here to type and scroll back.</p>
+
+      {/* Full conversation — the one place with the complete text chat */}
+      <button type="button" onClick={() => setChatOpen(true)}
+        className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3 text-start transition-colors hover:border-[var(--focus-ring)]/50">
+        <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--color-gold-500)]/15"><MessageSquareText className="size-4.5 text-[var(--color-gold-500)]" /></span>
+        <span className="min-w-0 flex-1">
+          <span className="text-body block text-sm font-medium">Open the full conversation</span>
+          <span className="text-muted block text-xs">Type or speak, with your history in view</span>
+        </span>
+        <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
+      </button>
+      <RenChat open={chatOpen} onClose={() => setChatOpen(false)} ctx={ctx} uid={ctxUid} />
 
       {/* Speak aloud */}
       <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
@@ -402,27 +377,35 @@ function RenControl({ uid }: { uid: string }) {
         <Switch checked={autoSpeak} onChange={(on) => { updateRenPrefs(uid, { renAutoSpeak: on }).catch(() => {}); }} label="Speak answers aloud" />
       </div>
 
-      {/* Voice + speed (only where the browser can speak) */}
+      {/* Ren's voice — four named voices, Siri-simple */}
       {voiceOut && (
-        <div className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5">
+        <div>
           <p className="text-body text-sm font-medium">Ren&apos;s voice</p>
-          <p className="text-muted mb-3 text-xs">Choose from the voices your device offers.</p>
-          {voices.length > 0 ? (
-            <Select label="Voice" value={voiceURI} onChange={(e) => { updateRenPrefs(uid, { renVoiceURI: e.target.value }).catch(() => {}); }}
-              options={[{ value: "", label: "Automatic (match language)" }, ...voices.map((v) => ({ value: v.uri, label: v.label }))]} />
-          ) : (
-            <p className="text-muted text-xs">Loading available voices…</p>
-          )}
+          <p className="text-muted mb-2 text-xs">Four voices. Tap one to hear it.</p>
+          <div className="grid grid-cols-2 gap-2.5">
+            {REN_VOICES.map((v) => {
+              const on = voiceId === v.id;
+              return (
+                <button key={v.id} type="button"
+                  onClick={() => { updateRenPrefs(uid, { renVoiceURI: v.id }).catch(() => {}); speak(`Hi, I'm ${v.name}. I'm here to help with your money.`, { ...renVoiceSpeakOpts(v.id), rate: localRate }); }}
+                  aria-pressed={on}
+                  className={cn("flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all",
+                    on ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
+                  <span aria-hidden className={cn("grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold text-white", v.gender === "female" ? "bg-gradient-to-br from-[#c05cff] to-[#ff9d6c]" : "bg-gradient-to-br from-[#37e6ff] to-[#4a7bff]")}>{v.name[0]}</span>
+                  <span className="min-w-0">
+                    <span className="text-strong block text-sm font-medium">{v.name}</span>
+                    <span className="text-muted block truncate text-xs">{v.tagline}</span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <label className="text-muted mt-4 block text-xs">Speaking speed — {localRate.toFixed(2)}×</label>
           <input type="range" min={0.75} max={1.5} step={0.05} value={localRate}
             onChange={(e) => setLocalRate(Number(e.target.value))}
             onPointerUp={() => updateRenPrefs(uid, { renVoiceRate: localRate }).catch(() => {})}
             onBlur={() => updateRenPrefs(uid, { renVoiceRate: localRate }).catch(() => {})}
             className="mt-1 w-full accent-[var(--color-gold-500)]" aria-label="Speaking speed" />
-          <button type="button" onClick={() => speak("Hi, I'm Ren — here to help with your money.", { voiceURI, rate: localRate })}
-            className="text-body mt-3 rounded-full border border-[var(--field-border)] px-3.5 py-1.5 text-xs font-medium transition-colors hover:border-[var(--focus-ring)]/50 hover:text-[var(--text-strong)]">
-            Preview voice
-          </button>
         </div>
       )}
 
@@ -440,7 +423,20 @@ function RenControl({ uid }: { uid: string }) {
         </div>
       </div>
 
-      <p className="text-muted text-xs">Ren&apos;s language, region and currency follow your <span className="text-body">Region</span> settings.</p>
+      {/* Personality / tone */}
+      <div>
+        <p className="text-body text-sm font-medium">Personality</p>
+        <p className="text-muted mb-2 text-xs">The tone Ren speaks in.</p>
+        <div className="inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
+          {PERSONAS.map((p) => (
+            <button key={p.id} type="button" onClick={() => updateRenPrefs(uid, { renPersonality: p.id }).catch(() => {})} aria-pressed={personality === p.id}
+              className={cn("rounded-full px-3.5 py-1.5 transition-colors", personality === p.id ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]")}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
     </div>
   );
 }

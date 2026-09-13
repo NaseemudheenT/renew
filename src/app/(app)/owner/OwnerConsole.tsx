@@ -1,16 +1,23 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   Users, UserPlus, Activity, ShieldCheck, ShieldAlert, Ban,
   RefreshCw, KeyRound, Fingerprint, Mail, Smartphone, Apple, Globe, Circle,
-  Search, TrendingUp, TrendingDown, LineChart,
+  Search, TrendingUp, TrendingDown, LineChart, Crown, BellRing, MoreHorizontal,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { RenewMark } from "@/components/brand/RenewMark";
+import { PinPad } from "@/components/security/PinPad";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { verifyPasscode } from "@/lib/security/passcode";
+import { signInWithPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
 import { relativeTime, shortDate } from "@/lib/dates";
 import { cn } from "@/lib/utils";
+
+const OWNER_OK_KEY = "renew_owner_verified";
 
 interface OwnerUserRow {
   uid: string;
@@ -22,11 +29,16 @@ interface OwnerUserRow {
   lastSignInAt: number | null;
   emailVerified: boolean;
   disabled: boolean;
+  premium: boolean;
 }
+
+type OwnerAction = "disable" | "enable" | "grantPremium" | "revokePremium" | "signout";
 
 interface OwnerOverview {
   totalUsers: number;
   onboardedUsers: number;
+  premiumUsers: number;
+  waitlistUsers: number;
   newLast7d: number;
   newLast30d: number;
   activeLast24h: number;
@@ -60,14 +72,80 @@ function initialOf(row: OwnerUserRow): string {
   return (s[0] || "?").toUpperCase();
 }
 
+const REFRESH_MS = 30_000; // Live refresh cadence while the tab is visible.
+
+/**
+ * Step-up security for the owner console. Even though the server already gates
+ * /owner to the single owner email, this requires the owner to re-verify with
+ * their passcode or Face ID before any user data is shown — a second lock on the
+ * most sensitive screen. Verification lasts the browser session.
+ */
+function OwnerSecurityGate({ onUnlock }: { onUnlock: () => void }) {
+  const { profile } = useUserProfile();
+  const security = profile?.security ?? null;
+  const [entry, setEntry] = useState("");
+  const [shake, setShake] = useState(0);
+  const [bioBusy, setBioBusy] = useState(false);
+
+  const verify = useCallback(async (code: string) => {
+    if (!security) return;
+    if (await verifyPasscode(code, security)) { onUnlock(); return; }
+    setEntry(""); setShake((s) => s + 1);
+  }, [security, onUnlock]);
+
+  async function faceId() {
+    setBioBusy(true);
+    try { await signInWithPasskey(); onUnlock(); }
+    catch { setShake((s) => s + 1); }
+    finally { setBioBusy(false); }
+  }
+
+  const bio = (security?.biometricEnabled || security?.faceOnly) && isPasskeySupported();
+
+  return (
+    <div className="mx-auto flex max-w-sm flex-col items-center px-6 py-16 text-center">
+      <RenewMark size={48} idSuffix="ownergate" />
+      <h1 className="text-strong mt-6 text-lg font-medium">Owner verification</h1>
+      <p className="text-muted mt-1 text-sm">Confirm it&apos;s you to open the console.</p>
+      {security && !security.faceOnly && (
+        <div className="mt-8"><PinPad value={entry} onChange={setEntry} onComplete={(c) => void verify(c)} shakeSignal={shake} /></div>
+      )}
+      {bio && (
+        <button type="button" onClick={faceId} disabled={bioBusy} className="text-body mt-8 inline-flex items-center gap-2 text-sm font-medium disabled:opacity-50">
+          <Fingerprint className="size-5 text-[var(--color-gold-500)]" />{bioBusy ? "Verifying…" : "Use Face ID"}
+        </button>
+      )}
+      {!security && (
+        <p className="text-muted mt-8 max-w-xs text-xs">Set a passcode in Settings › Security to lock this console.</p>
+      )}
+    </div>
+  );
+}
+
 export function OwnerConsole() {
+  const { profile } = useUserProfile();
+  const [verified, setVerified] = useState<boolean>(() => {
+    try { return sessionStorage.getItem(OWNER_OK_KEY) === "1"; } catch { return false; }
+  });
+  const unlockOwner = useCallback(() => {
+    try { sessionStorage.setItem(OWNER_OK_KEY, "1"); } catch { /* ignore */ }
+    setVerified(true);
+  }, []);
+  // Require step-up only when the owner actually has a lock set.
+  const needsGate = !!profile?.security && !verified;
+
   const [data, setData] = useState<OwnerOverview | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [openMenuUid, setOpenMenuUid] = useState<string | null>(null);
+  const [busyUid, setBusyUid] = useState<string | null>(null);
+  // A 1s ticker so "updated Ns ago" stays truthful between refreshes.
+  const [, setTick] = useState(0);
 
-  const load = useCallback(async () => {
-    setLoading(true);
+  // `silent` polls don't flash the spinner/skeleton — the console just updates.
+  const load = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const res = await fetch("/api/owner/overview", { cache: "no-store" });
@@ -76,15 +154,33 @@ export function OwnerConsole() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not load.");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    // Fetch once on mount. The leading setLoading is a deliberate load state.
+    // Fetch once on mount.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
+
+  // Live: refresh on a timer while the tab is visible, and immediately when the
+  // owner returns to the tab. Paused in the background so it never wastes reads.
+  useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | undefined;
+    const start = () => { timer ??= setInterval(() => { if (!document.hidden) void load(true); }, REFRESH_MS); };
+    const stop = () => { if (timer) { clearInterval(timer); timer = undefined; } };
+    const onVisible = () => { if (document.hidden) { stop(); } else { void load(true); start(); } };
+    start();
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { stop(); document.removeEventListener("visibilitychange", onVisible); };
+  }, [load]);
+
+  // Tick every second so the relative "updated" label counts up live.
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 1000);
+    return () => clearInterval(id);
+  }, []);
 
   const providerRows = data
     ? Object.entries(data.providerBreakdown).sort((a, b) => b[1] - a[1])
@@ -103,20 +199,52 @@ export function OwnerConsole() {
   }, [data?.recentUsers, q]);
   const signupMax = data ? Math.max(1, ...data.signupsByDay.map((d) => d.count)) : 1;
 
+  async function act(uid: string, action: OwnerAction, confirmMsg?: string) {
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
+    setBusyUid(uid);
+    try {
+      const res = await fetch("/api/owner/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, action }),
+      });
+      if (!res.ok) throw new Error();
+      setOpenMenuUid(null);
+      await load(true);
+    } catch {
+      setError("That action didn't go through — try again.");
+    } finally {
+      setBusyUid(null);
+    }
+  }
+
+  if (needsGate) return <OwnerSecurityGate onUnlock={unlockOwner} />;
+
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader
         title="Owner console"
         subtitle="Renew at a glance — visible only to you."
         action={
-          <button
-            onClick={() => void load()}
-            disabled={loading}
-            className="text-muted hover:text-strong inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-sm transition disabled:opacity-50"
-          >
-            <RefreshCw size={15} className={cn(loading && "animate-spin")} />
-            Refresh
-          </button>
+          <div className="flex items-center gap-2">
+            {data && !error && (
+              <span className="text-muted inline-flex items-center gap-1.5 rounded-full border border-emerald-500/25 bg-emerald-500/10 px-2.5 py-1 text-xs font-medium text-emerald-300" title={`Auto-refreshing every ${REFRESH_MS / 1000}s`}>
+                <span className="relative flex size-1.5">
+                  <span className="absolute inline-flex size-full animate-ping rounded-full bg-emerald-400 opacity-75" />
+                  <span className="relative inline-flex size-1.5 rounded-full bg-emerald-400" />
+                </span>
+                Live
+              </span>
+            )}
+            <button
+              onClick={() => void load()}
+              disabled={loading}
+              className="text-muted hover:text-strong inline-flex items-center gap-2 rounded-full border border-white/10 px-3 py-1.5 text-sm transition disabled:opacity-50"
+            >
+              <RefreshCw size={15} className={cn(loading && "animate-spin")} />
+              Refresh
+            </button>
+          </div>
         }
       />
 
@@ -141,6 +269,19 @@ export function OwnerConsole() {
             <Stat icon={ShieldAlert} label="Unverified" value={data.unverifiedUsers} tone="amber" />
             <Stat icon={Ban} label="Disabled" value={data.disabledUsers} tone="rose" />
           </div>
+
+          {/* Monetization */}
+          <GlassCard padded className="mt-6">
+            <h2 className="text-strong mb-4 flex items-center gap-2 text-sm font-medium">
+              <Crown size={16} className="text-[var(--color-gold-400)]" />
+              Monetization
+            </h2>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+              <Stat icon={Crown} label="Premium members" value={data.premiumUsers} tone="gold" />
+              <Stat icon={BellRing} label="Upgrade interest" value={data.waitlistUsers} tone="emerald" />
+              <Stat icon={TrendingUp} label="Premium rate" value={data.totalUsers > 0 ? Math.round((data.premiumUsers / data.totalUsers) * 100) : 0} suffix="%" tone="sky" />
+            </div>
+          </GlassCard>
 
           {/* How people sign in */}
           <GlassCard padded className="mt-6">
@@ -235,7 +376,8 @@ export function OwnerConsole() {
             ) : (
               <ul className="divide-y divide-white/5">
                 {filteredUsers.map((u) => (
-                  <li key={u.uid} className="flex items-center gap-3 py-3">
+                  <li key={u.uid} className="flex flex-col py-3">
+                   <div className="flex items-center gap-3">
                     <span
                       className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-sm font-medium text-white"
                       aria-hidden
@@ -247,6 +389,9 @@ export function OwnerConsole() {
                         <p className="text-strong truncate text-sm">
                           {u.displayName || u.email || u.uid.slice(0, 8)}
                         </p>
+                        {u.premium && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-[var(--color-gold-500)]/15 px-1.5 py-0.5 text-[10px] text-[var(--color-gold-400)]"><Crown size={10} />Premium</span>
+                        )}
                         {u.disabled && (
                           <span className="rounded-full bg-rose-500/15 px-1.5 py-0.5 text-[10px] text-rose-300">Disabled</span>
                         )}
@@ -272,6 +417,23 @@ export function OwnerConsole() {
                         );
                       })}
                     </div>
+                    <button type="button" onClick={() => setOpenMenuUid((v) => (v === u.uid ? null : u.uid))} aria-label="Manage user"
+                      className="text-muted hover:text-strong grid size-8 shrink-0 place-items-center rounded-full transition-colors hover:bg-white/5">
+                      <MoreHorizontal size={16} />
+                    </button>
+                   </div>
+
+                   {openMenuUid === u.uid && (
+                     <div className="mt-2 flex flex-wrap gap-2 ps-12">
+                       {u.premium
+                         ? <AdminBtn onClick={() => void act(u.uid, "revokePremium")} busy={busyUid === u.uid}>Revoke Premium</AdminBtn>
+                         : <AdminBtn onClick={() => void act(u.uid, "grantPremium")} busy={busyUid === u.uid}>Grant Premium</AdminBtn>}
+                       {u.disabled
+                         ? <AdminBtn onClick={() => void act(u.uid, "enable")} busy={busyUid === u.uid}>Enable account</AdminBtn>
+                         : <AdminBtn danger onClick={() => void act(u.uid, "disable", "Disable this account? They'll be signed out and can't sign in until re-enabled.")} busy={busyUid === u.uid}>Disable account</AdminBtn>}
+                       <AdminBtn onClick={() => void act(u.uid, "signout", "Sign this user out of all devices?")} busy={busyUid === u.uid}>Sign out everywhere</AdminBtn>
+                     </div>
+                   )}
                   </li>
                 ))}
               </ul>
@@ -297,14 +459,28 @@ const TONE: Record<string, string> = {
 };
 
 function Stat({
-  icon: Icon, label, value, tone,
-}: { icon: typeof Users; label: string; value: number; tone: keyof typeof TONE }) {
+  icon: Icon, label, value, tone, suffix,
+}: { icon: typeof Users; label: string; value: number; tone: keyof typeof TONE; suffix?: string }) {
   return (
     <GlassCard padded={false} className="p-4">
       <Icon size={18} className={cn("mb-2", TONE[tone])} />
-      <p className="text-strong text-2xl font-light tabular-nums">{value.toLocaleString()}</p>
+      <p className="text-strong text-2xl font-light tabular-nums">{value.toLocaleString()}{suffix}</p>
       <p className="text-muted mt-0.5 text-xs">{label}</p>
     </GlassCard>
+  );
+}
+
+function AdminBtn({ children, onClick, busy, danger }: { children: ReactNode; onClick: () => void; busy?: boolean; danger?: boolean }) {
+  return (
+    <button type="button" onClick={onClick} disabled={busy}
+      className={cn(
+        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
+        danger
+          ? "border-rose-500/30 text-rose-300 hover:bg-rose-500/10"
+          : "border-white/10 text-[var(--text-body)] hover:bg-white/5 hover:text-[var(--text-strong)]",
+      )}>
+      {busy ? "…" : children}
+    </button>
   );
 }
 

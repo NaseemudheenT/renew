@@ -9,7 +9,20 @@
 
 let workerReady = false;
 
-export async function extractPdfText(file: File): Promise<string> {
+/**
+ * Thrown when a PDF is locked. `wrong` distinguishes "we need the password"
+ * (first try) from "that password was incorrect" so the UI can react cleanly.
+ * The password is only ever used in-memory on the device to open the file — it
+ * is never stored or sent anywhere.
+ */
+export class PdfPasswordError extends Error {
+  constructor(public readonly wrong: boolean) {
+    super(wrong ? "Incorrect PDF password" : "This PDF is password protected");
+    this.name = "PdfPasswordError";
+  }
+}
+
+export async function extractPdfText(file: File, password?: string): Promise<string> {
   const pdfjs = await import("pdfjs-dist");
   if (!workerReady) {
     pdfjs.GlobalWorkerOptions.workerSrc = new URL(
@@ -20,7 +33,15 @@ export async function extractPdfText(file: File): Promise<string> {
   }
 
   const data = new Uint8Array(await file.arrayBuffer());
-  const doc = await pdfjs.getDocument({ data }).promise;
+  let doc;
+  try {
+    doc = await pdfjs.getDocument({ data, password }).promise;
+  } catch (e) {
+    // pdf.js PasswordException: code 1 = need password, 2 = wrong password.
+    const ex = e as { name?: string; code?: number };
+    if (ex?.name === "PasswordException") throw new PdfPasswordError(ex.code === 2);
+    throw e;
+  }
   const lines: string[] = [];
 
   for (let p = 1; p <= doc.numPages; p++) {

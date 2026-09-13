@@ -4,8 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-  Wallet, Receipt, PiggyBank, AlertCircle, Check,
-  Bell, ShieldCheck, ArrowRight,
+  Wallet, AlertCircle, Check,
+  Bell, ShieldCheck, ArrowRight, Lock, Fingerprint,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { RenewMark } from "@/components/brand/RenewMark";
@@ -16,8 +16,11 @@ import { CountrySelect } from "@/components/ui/CountrySelect";
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { AnimatedButton } from "@/components/motion";
+import { PinPad } from "@/components/security/PinPad";
 import { requestBrowserNotify } from "@/lib/notify";
 import { registerPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
+import { makePasscodeRecord, faceOnlyRecord } from "@/lib/security/passcode";
+import { setSecurity } from "@/lib/firestore/profile";
 import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
 import {
@@ -26,13 +29,8 @@ import {
 } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
-const FOCUS = [
-  { id: "spending", label: "Spending & budgets", icon: Wallet },
-  { id: "bills", label: "Bills & subscriptions", icon: Receipt },
-  { id: "savings", label: "Savings goals", icon: PiggyBank },
-] as const;
-
 type AccountType = "personal" | "business";
+type LockMethod = "pin" | "face";
 
 const slide = {
   initial: { opacity: 0, x: 24 },
@@ -43,8 +41,9 @@ const slide = {
 
 const STEPS = 5;
 
-export function OnboardingClient({ defaultName }: { defaultName: string }) {
+export function OnboardingClient({ uid, defaultName }: { uid: string; defaultName: string }) {
   const detected = useMemo(() => detectPrefs(), []);
+  const bioSupported = useMemo(() => isPasskeySupported(), []);
 
   const [step, setStep] = useState(0);
   const [name, setName] = useState(defaultName);
@@ -54,27 +53,33 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   const [region, setRegion] = useState("");
   const [currency, setCurrency] = useState("");
   const [weekStart, setWeekStart] = useState<WeekStart>(detected.weekStart);
-  const [focus, setFocus] = useState<string[]>([]);
   // Both Personal and Business are always available (switch in the top bar) —
   // we no longer ask at setup. Personal is just the initial active workspace.
   const accountType: AccountType = "personal";
   const [avatar, setAvatar] = useState<string>(AVATARS[0]!.id);
+  // Security — MANDATORY. Either a 4-digit passcode or Face ID only.
+  const [lockMethod, setLockMethod] = useState<LockMethod>("pin");
+  const [pin, setPin] = useState("");
+  const [pinConfirm, setPinConfirm] = useState("");
+  const [pinStage, setPinStage] = useState<"enter" | "confirm">("enter");
+  const [pinShake, setPinShake] = useState(0);
+  const [biometric, setBiometric] = useState(true);
+  const [faceReady, setFaceReady] = useState(false);
+  const [faceBusy, setFaceBusy] = useState(false);
   const [notify, setNotify] = useState(false);
   const [acceptedLegal, setAcceptedLegal] = useState(false);
-  // Security
 
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
   const timezone = detected.timezone;
+  const pinDone = pin.length === 4 && pinConfirm === pin;
+  const lockReady = lockMethod === "pin" ? pinDone : faceReady;
 
   function onRegionChange(next: string) {
     setRegion(next);
     setCurrency(REGION_CURRENCY[next] ?? currency);
     setWeekStart(weekStartFor(next));
-  }
-  function toggleFocus(id: string) {
-    setFocus((p) => (p.includes(id) ? p.filter((f) => f !== id) : [...p, id]));
   }
   async function onToggleNotify(on: boolean) {
     setNotify(on);
@@ -84,11 +89,25 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
     }
   }
 
-  // Required fields per step — advancing is blocked until they're filled.
+  // The passcode-creation flow: enter four digits, then re-enter to confirm.
+  function onPinComplete(code: string) {
+    if (pinStage === "enter") { setPinStage("confirm"); return; }
+    if (code === pin) return; // matches → lockReady becomes true
+    setPin(""); setPinConfirm(""); setPinStage("enter"); setPinShake((s) => s + 1);
+    setError("Those didn't match — let's try again.");
+  }
+  async function setupFace() {
+    setError(null); setFaceBusy(true);
+    try { await registerPasskey(); setFaceReady(true); }
+    catch { setError("Face ID setup was cancelled or isn't available on this device."); }
+    finally { setFaceBusy(false); }
+  }
+
   function stepValid(s: number): boolean {
     switch (s) {
       case 0: return name.trim().length > 0;
       case 1: return Boolean(region && currency && language);
+      case 3: return lockReady;
       case 4: return acceptedLegal;
       default: return true;
     }
@@ -97,6 +116,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   function next() {
     if (step === 0 && !name.trim()) return setError("Please tell us your name.");
     if (step === 1 && !stepValid(1)) return setError("Please choose your language, region and currency.");
+    if (step === 3 && !lockReady) return setError(lockMethod === "pin" ? "Please set and confirm your 4-digit passcode." : "Please set up Face ID to continue.");
     if (!stepValid(step)) return;
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS - 1));
@@ -105,15 +125,28 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
   async function finish() {
     setError(null);
     if (!acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
+    if (!lockReady) { setStep(3); return setError("Please set your passcode or Face ID — it's required."); }
     setSubmitting(true);
     try {
+      // Save the mandatory app lock FIRST — it's required, so a failure here must
+      // stop us (the raw PIN is hashed on-device and never leaves the browser).
+      const record = lockMethod === "pin"
+        ? await makePasscodeRecord(pin, "pin", biometric && bioSupported)
+        : faceOnlyRecord();
+      await setSecurity(uid, record);
+      // A passkey (device Face ID / fingerprint) so unlock + next sign-in are one
+      // tap. Required for face-only; a bonus for a passcode with biometrics on.
+      if (bioSupported && (lockMethod === "face" || (lockMethod === "pin" && biometric))) {
+        try { await registerPasskey(); } catch { /* optional for pin+bio */ }
+      }
+
       const res = await fetch("/api/onboarding", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           displayName: name.trim(),
           timezone,
-          focus,
+          focus: [],
           locale: language,
           region,
           currency,
@@ -128,16 +161,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         const data = (await res.json().catch(() => ({}))) as { error?: string };
         throw new Error(data.error ?? "Could not save.");
       }
-      // Set up a passkey NOW (Face ID / device unlock) so next sign-in is one
-      // tap — created at first sign-in, never required beforehand. Non-blocking:
-      // if the person dismisses the prompt, is on an unsupported browser, or it
-      // errors, onboarding still completes and they can add one later in Settings.
-      if (isPasskeySupported()) {
-        try { await registerPasskey(); } catch { /* optional — skip silently */ }
-      }
-      // Open the app in the workspace they chose here.
       setActiveWorkspace(accountType);
-      // Full navigation so the server re-reads the freshly-set onboarded flag.
       // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- intentional reload to pick up the new session state
       window.location.assign("/dashboard");
     } catch (err) {
@@ -179,8 +203,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
         {step === 1 && (
           <motion.div key="s1" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Choose your country</h1>
-            <p className="text-muted mt-1 text-sm">This sets your currency and how amounts and dates are shown across Renew. You can change it later in Settings.</p>
+            <StepHead icon={ShieldCheck} title="Choose your country" sub="This sets your currency and how amounts and dates are shown across Renew. You can change it later in Settings." />
             <div className="mt-6 grid gap-4 sm:grid-cols-2">
               <LanguageSelect label="Language" value={language} onChange={setLanguage} locale={language} />
               <CountrySelect label="Country / region" value={region} onChange={onRegionChange} locale={language} />
@@ -192,45 +215,70 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
         {step === 2 && (
           <motion.div key="s2" {...slide}>
-            <h1 className="text-strong text-xl font-medium">What matters most to you?</h1>
-            <p className="text-muted mt-1 text-sm">Pick what you care about — Renew puts these front and centre for you. You get both Personal and Business, switchable anytime. Change this whenever you like.</p>
-            <div className="mt-6 grid grid-cols-2 gap-3">
-              {FOCUS.map(({ id, label, icon: Icon }) => {
-                const active = focus.includes(id);
-                return (
-                  <button key={id} type="button" onClick={() => toggleFocus(id)} aria-pressed={active}
-                    className={cn("relative flex items-center gap-2.5 rounded-2xl border px-3.5 py-3 text-left text-sm transition-all", active ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-body)] hover:border-[var(--focus-ring)]/50")}>
-                    <Icon className="size-4.5 shrink-0 text-[var(--color-gold-500)]" />
-                    <span className="flex-1">{label}</span>
-                    <span className={cn("grid size-4 place-items-center rounded-full transition-all", active ? "bg-gradient-to-b from-gold-300 to-gold-500 text-[var(--text-onGold)]" : "opacity-0")}><Check className="size-3" strokeWidth={3} /></span>
-                  </button>
-                );
-              })}
-            </div>
-          </motion.div>
-        )}
-
-        {step === 3 && (
-          <motion.div key="s3" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Pick your look</h1>
-            <p className="text-muted mt-1 text-sm">Choose an avatar — you can change it later in Settings.</p>
+            <StepHead title="Make it yours" sub="Your avatar shows your initial on a colour you choose. Pick a look — change it anytime in Settings." />
             <div className="mt-6 flex justify-center">
-              <span className="grid size-20 place-items-center rounded-full text-2xl font-medium text-white" style={{ background: AVATARS.find((a) => a.id === avatar)?.css }}>{initials}</span>
+              <motion.span key={avatar} initial={{ scale: 0.9 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300, damping: 18 }}
+                className="grid size-24 place-items-center rounded-full text-3xl font-semibold text-white shadow-[0_10px_30px_-8px_rgba(0,0,0,0.55)] ring-1 ring-white/20"
+                style={{ background: AVATARS.find((a) => a.id === avatar)?.css }}>{initials}</motion.span>
             </div>
-            <div className="mt-6 grid grid-cols-4 gap-3 sm:grid-cols-8">
+            <div className="mt-6 grid max-h-56 grid-cols-5 gap-3 overflow-y-auto overscroll-contain pr-1 sm:grid-cols-8">
               {AVATARS.map((a) => (
                 <button key={a.id} type="button" onClick={() => setAvatar(a.id)} aria-label={a.id} aria-pressed={avatar === a.id}
-                  className={cn("size-11 rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all", avatar === a.id ? "ring-[var(--focus-ring)]" : "ring-transparent hover:ring-[var(--field-border)]")}
+                  className={cn("aspect-square rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all active:scale-90", avatar === a.id ? "ring-[var(--focus-ring)] scale-105" : "ring-transparent hover:ring-[var(--field-border)]")}
                   style={{ background: a.css }} />
               ))}
             </div>
           </motion.div>
         )}
 
+        {step === 3 && (
+          <motion.div key="s3" {...slide}>
+            <StepHead icon={Lock} title="Lock Renew" sub="A passcode is asked every time you open Renew — a private lock over your money. This step is required; you can change it later in Settings." />
+
+            {/* Method choice */}
+            <div className="mt-5 inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
+              <button type="button" onClick={() => { setLockMethod("pin"); setError(null); }} aria-pressed={lockMethod === "pin"}
+                className={cn("rounded-full px-4 py-1.5 transition-colors", lockMethod === "pin" ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>Passcode</button>
+              {bioSupported && (
+                <button type="button" onClick={() => { setLockMethod("face"); setError(null); }} aria-pressed={lockMethod === "face"}
+                  className={cn("rounded-full px-4 py-1.5 transition-colors", lockMethod === "face" ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>Face ID</button>
+              )}
+            </div>
+
+            {lockMethod === "pin" ? (
+              <div className="mt-6 flex flex-col items-center">
+                <p className="text-body mb-5 text-sm font-medium">
+                  {pinDone ? "Passcode set ✓" : pinStage === "enter" ? "Create a 4-digit passcode" : "Re-enter your passcode"}
+                </p>
+                <PinPad
+                  value={pinStage === "enter" ? pin : pinConfirm}
+                  onChange={(v) => (pinStage === "enter" ? setPin(v) : setPinConfirm(v))}
+                  onComplete={onPinComplete}
+                  shakeSignal={pinShake}
+                />
+                {bioSupported && (
+                  <div className="mt-6 flex w-full items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
+                    <span className="text-strong flex items-center gap-2 text-sm font-medium"><Fingerprint className="size-4.5 text-[var(--color-gold-500)]" />Also unlock with Face ID</span>
+                    <Switch checked={biometric} onChange={setBiometric} label="Face ID unlock" />
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="mt-6 flex flex-col items-center">
+                <button type="button" onClick={setupFace} disabled={faceBusy || faceReady}
+                  className={cn("grid size-24 place-items-center rounded-full border transition-all active:scale-95",
+                    faceReady ? "border-emerald-500/40 bg-emerald-500/10" : "border-[var(--field-border)] bg-[var(--field-bg)]")}>
+                  {faceReady ? <Check className="size-12 text-emerald-500" strokeWidth={2.5} /> : <Fingerprint className="size-12 text-[var(--color-gold-500)]" />}
+                </button>
+                <p className="text-muted mt-4 text-sm">{faceReady ? "Face ID is set up ✓" : faceBusy ? "Setting up…" : "Tap to set up Face ID"}</p>
+              </div>
+            )}
+          </motion.div>
+        )}
+
         {step === 4 && (
           <motion.div key="s4" {...slide}>
-            <h1 className="text-strong text-xl font-medium">Stay in the loop, privately</h1>
-            <p className="text-muted mt-1 text-sm">A couple of choices — you&apos;re always in control.</p>
+            <StepHead icon={Bell} title="Stay in the loop, privately" sub="A couple of choices — you're always in control." />
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
               <span className="min-w-0">
                 <span className="text-strong flex items-center gap-2 text-sm font-medium"><Bell className="size-4.5 text-[var(--color-gold-500)]" />Notifications</span>
@@ -258,7 +306,7 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
 
       <div className="mt-7 flex items-center gap-3">
         {step > 0 && (
-          <AnimatedButton variant="ghost" onClick={() => setStep((s) => s - 1)} disabled={submitting}>Back</AnimatedButton>
+          <AnimatedButton variant="ghost" onClick={() => { setError(null); setStep((s) => s - 1); }} disabled={submitting}>Back</AnimatedButton>
         )}
         {step < STEPS - 1 ? (
           <AnimatedButton size="lg" fullWidth onClick={next} disabled={!stepValid(step)}>Continue</AnimatedButton>
@@ -269,5 +317,20 @@ export function OnboardingClient({ defaultName }: { defaultName: string }) {
         )}
       </div>
     </GlassCard>
+  );
+}
+
+/** A calm, consistent step heading — small gold icon badge + title + one line. */
+function StepHead({ icon: Icon, title, sub }: { icon?: typeof Wallet; title: string; sub: string }) {
+  return (
+    <div>
+      {Icon && (
+        <span className="mb-3 grid size-11 place-items-center rounded-2xl bg-[var(--color-gold-500)]/15">
+          <Icon className="size-5 text-[var(--color-gold-500)]" />
+        </span>
+      )}
+      <h1 className="text-strong text-xl font-medium">{title}</h1>
+      <p className="text-muted mt-1 text-sm">{sub}</p>
+    </div>
   );
 }

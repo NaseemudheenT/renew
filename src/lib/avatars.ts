@@ -31,6 +31,19 @@ export const AVATARS: AvatarPreset[] = [
   { id: "aurora2", css: "linear-gradient(135deg,#00c6ff,#0072ff)" },
   { id: "plum", css: "linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)" },
   { id: "slate", css: "linear-gradient(135deg,#232526,#414345)" },
+  // Premium iridescent set — richer, jewel-like auras.
+  { id: "iris", css: "linear-gradient(135deg,#4a7bff,#c05cff,#ff9d6c)" },
+  { id: "lagoon", css: "linear-gradient(135deg,#43e97b,#38f9d7)" },
+  { id: "flare", css: "linear-gradient(135deg,#fa709a,#fee140)" },
+  { id: "cobalt", css: "linear-gradient(135deg,#2b32b2,#1488cc)" },
+  { id: "orchid", css: "linear-gradient(135deg,#b24592,#f15f79)" },
+  { id: "aurora3", css: "linear-gradient(135deg,#00dbde,#fc00ff)" },
+  { id: "moss", css: "linear-gradient(135deg,#134e5e,#71b280)" },
+  { id: "dawn", css: "linear-gradient(135deg,#ff6a88,#ff99ac,#fbc2eb)" },
+  { id: "steelrose", css: "linear-gradient(135deg,#8e9eab,#eef2f3)" },
+  { id: "nebula", css: "linear-gradient(135deg,#654ea3,#eaafc8)" },
+  { id: "ink", css: "linear-gradient(135deg,#0f0c29,#302b63,#24243e)" },
+  { id: "citrus", css: "linear-gradient(135deg,#f7971e,#ffd200)" },
 ];
 
 export function avatarGradient(id?: string | null): string | null {

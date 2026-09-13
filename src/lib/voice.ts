@@ -19,7 +19,7 @@ interface SpeechRecognitionLike {
   maxAlternatives: number;
   start(): void;
   stop(): void;
-  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }>> }) => void) | null;
+  onresult: ((e: { results: ArrayLike<ArrayLike<{ transcript: string }> & { isFinal?: boolean }> }) => void) | null;
   onerror: ((e: { error: string }) => void) | null;
   onend: (() => void) | null;
 }
@@ -138,22 +138,33 @@ export interface Listener { stop(): void }
 
 /**
  * Listen once and hand back the final transcript, then call onEnd. Returns a
- * handle to stop early, or null when recognition isn't supported.
+ * handle to stop early, or null when recognition isn't supported. Pass
+ * `onPartial` to receive the live (interim) transcript as the user speaks —
+ * used by the Siri-style voice orb to show words appearing in real time.
  */
 export function listen(
-  opts: { lang?: string; onText: (text: string) => void; onError?: (e: unknown) => void; onEnd?: () => void },
+  opts: { lang?: string; onText: (text: string) => void; onPartial?: (text: string) => void; onError?: (e: unknown) => void; onEnd?: () => void },
 ): Listener | null {
   const rec = getSpeechRecognition();
   if (!rec) return null;
   rec.lang = opts.lang || (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
-  rec.interimResults = false;
+  rec.interimResults = !!opts.onPartial;
   rec.continuous = false;
   rec.maxAlternatives = 1;
   rec.onresult = (e) => {
     const results = e.results;
-    const last = results[results.length - 1];
-    const text = last?.[0]?.transcript?.trim();
-    if (text) opts.onText(text);
+    let finalText = "";
+    let interim = "";
+    for (let i = 0; i < results.length; i++) {
+      const r = results[i];
+      const t = r?.[0]?.transcript ?? "";
+      if (r?.isFinal) finalText += t;
+      else interim += t;
+    }
+    const partial = (finalText + interim).trim();
+    if (partial) opts.onPartial?.(partial);
+    const done = finalText.trim();
+    if (done) opts.onText(done);
   };
   rec.onerror = (e) => opts.onError?.(e);
   rec.onend = () => opts.onEnd?.();
@@ -179,8 +190,8 @@ export function onVoicesReady(cb: () => void): () => void {
  * the user's Ren settings; falls back to a voice matching the language. No-op
  * when synthesis isn't available.
  */
-export function speak(text: string, opts: { lang?: string; voiceURI?: string; rate?: number } = {}): void {
-  if (!speechOutputSupported() || !text) return;
+export function speak(text: string, opts: { lang?: string; voiceURI?: string; rate?: number; onEnd?: () => void } = {}): void {
+  if (!speechOutputSupported() || !text) { opts.onEnd?.(); return; }
   try {
     window.speechSynthesis.cancel(); // never overlap
     const u = new SpeechSynthesisUtterance(text);
@@ -191,8 +202,9 @@ export function speak(text: string, opts: { lang?: string; voiceURI?: string; ra
     const chosen = opts.voiceURI ? voices.find((v) => v.voiceURI === opts.voiceURI) : undefined;
     const match = chosen ?? voices.find((v) => v.lang?.startsWith(u.lang.slice(0, 2)));
     if (match) u.voice = match;
+    if (opts.onEnd) { u.onend = () => opts.onEnd?.(); u.onerror = () => opts.onEnd?.(); }
     window.speechSynthesis.speak(u);
-  } catch { /* speech is a nicety — never throw */ }
+  } catch { opts.onEnd?.(); /* speech is a nicety — never throw */ }
 }
 
 export function stopSpeaking(): void {

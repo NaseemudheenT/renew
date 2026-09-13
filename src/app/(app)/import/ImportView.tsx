@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Upload, FileText, ArrowRight, Info, Camera, ImageUp, ScanLine } from "lucide-react";
+import { Upload, FileText, ArrowRight, Info, Camera, ImageUp, ScanLine, Lock } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Select } from "@/components/ui/Select";
@@ -12,7 +12,7 @@ import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { parseCSV, parseStatement, parseReceipt, detectMapping, buildDrafts, type DraftRow, type ColumnMapping } from "@/lib/import";
 import { getOcrEngine } from "@/lib/ocr";
-import { extractPdfText } from "@/lib/pdf";
+import { extractPdfText, PdfPasswordError } from "@/lib/pdf";
 import { importTransactions, type TransactionInput } from "@/lib/firestore/transactions";
 import { categoriesFor } from "@/lib/finance";
 import { toDateInput } from "@/lib/dates";
@@ -35,6 +35,10 @@ export function ImportView() {
   const [parsing, setParsing] = useState(false);
   const [scanPct, setScanPct] = useState<number | null>(null);
   const [importing, setImporting] = useState(false);
+  // A locked PDF is held here (on-device only) until the person types its password.
+  const [pdfPending, setPdfPending] = useState<File | null>(null);
+  const [pdfPassword, setPdfPassword] = useState("");
+  const [pdfWrong, setPdfWrong] = useState(false);
 
   // Deep link: /import?scan=1 jumps straight into the camera scan. This is what
   // a Back Tap / Siri Shortcut opens — "Renew, scan a receipt". Best-effort: the
@@ -50,31 +54,59 @@ export function ImportView() {
   const included = useMemo(() => drafts.filter((d) => d.include), [drafts]);
   const dupCount = useMemo(() => drafts.filter((d) => d.duplicate).length, [drafts]);
 
+  /** Turn parsed rows into reviewable drafts. Returns false if nothing usable. */
+  function applyParsed(parsed: Record<string, string>[]): boolean {
+    if (parsed.length === 0) return false;
+    const hdrs = Object.keys(parsed[0]!);
+    const map = detectMapping(hdrs);
+    setHeaders(hdrs);
+    setRows(parsed);
+    setMapping(map);
+    setDrafts(buildDrafts(parsed, map, existing, prefs.currency));
+    return true;
+  }
+
+  /** Read a PDF statement, prompting for its password if the file is locked. */
+  async function processPdf(file: File, password?: string) {
+    setParsing(true);
+    try {
+      const text = await extractPdfText(file, password);
+      if (!applyParsed(parseStatement(text))) {
+        toast({ title: "Couldn't find transactions in that PDF", description: "It may be a scanned image — try Scan a receipt, or the CSV export.", variant: "error" });
+        return;
+      }
+      setPdfPending(null);
+      setPdfPassword("");
+    } catch (err) {
+      if (err instanceof PdfPasswordError) {
+        setPdfPending(file);
+        setPdfWrong(err.wrong);
+        return;
+      }
+      toast({ title: "That file couldn't be read", variant: "error" });
+    } finally {
+      setParsing(false);
+    }
+  }
+
   async function onFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
     setFileName(file.name);
+    const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+    if (isPdf) {
+      setPdfPending(null);
+      setPdfPassword("");
+      setPdfWrong(false);
+      await processPdf(file);
+      return;
+    }
     setParsing(true);
     try {
-      const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
-      let parsed: Record<string, string>[];
-      if (isPdf) {
-        const text = await extractPdfText(file);
-        parsed = parseStatement(text);
-      } else {
-        parsed = parseCSV(await file.text());
+      if (!applyParsed(parseCSV(await file.text()))) {
+        toast({ title: "Couldn't read any rows from that file", variant: "error" });
       }
-      if (parsed.length === 0) {
-        toast({ title: isPdf ? "Couldn't find transactions in that PDF" : "Couldn't read any rows from that file", description: isPdf ? "It may be a scanned image — try the CSV export instead." : undefined, variant: "error" });
-        return;
-      }
-      const hdrs = Object.keys(parsed[0]!);
-      const map = detectMapping(hdrs);
-      setHeaders(hdrs);
-      setRows(parsed);
-      setMapping(map);
-      setDrafts(buildDrafts(parsed, map, existing, prefs.currency));
     } catch {
       toast({ title: "That file couldn't be read", variant: "error" });
     } finally {
@@ -95,16 +127,10 @@ export function ImportView() {
       // as a photographed statement (many rows). Both go through review.
       let parsed = parseReceipt(text);
       if (parsed.length === 0) parsed = parseStatement(text);
-      if (parsed.length === 0) {
+      if (!applyParsed(parsed)) {
         toast({ title: "Couldn't read an amount from that photo", description: "Try a clearer, well-lit shot of the whole receipt.", variant: "error" });
         return;
       }
-      const hdrs = Object.keys(parsed[0]!);
-      const map = detectMapping(hdrs);
-      setHeaders(hdrs);
-      setRows(parsed);
-      setMapping(map);
-      setDrafts(buildDrafts(parsed, map, existing, prefs.currency));
     } catch {
       toast({ title: "That photo couldn't be scanned", variant: "error" });
     } finally {
@@ -171,6 +197,30 @@ export function ImportView() {
               )}
             </div>
           </GlassCard>
+        ) : pdfPending ? (
+          <GlassCard padded>
+            <div className="flex flex-col items-center gap-4 px-4 py-6 text-center">
+              <span className="grid size-14 place-items-center rounded-3xl bg-[var(--glass-bg-strong)]"><Lock className="size-6 text-[var(--color-gold-500)]" /></span>
+              <div>
+                <p className="text-strong text-sm font-medium">This statement is password protected</p>
+                <p className="text-muted mx-auto mt-1 max-w-xs text-xs">Enter the PDF password to unlock it. It&apos;s used only on your device to open the file — never stored or sent anywhere.</p>
+              </div>
+              <input
+                type="password" value={pdfPassword} autoFocus
+                onChange={(e) => { setPdfPassword(e.target.value); setPdfWrong(false); }}
+                onKeyDown={(e) => { if (e.key === "Enter" && pdfPassword.trim()) void processPdf(pdfPending, pdfPassword); }}
+                placeholder="PDF password" aria-label="PDF password"
+                className="text-strong h-12 w-full max-w-xs rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-4 text-center text-sm outline-none focus:border-[var(--focus-ring)]"
+              />
+              {pdfWrong && <p className="text-xs text-rose-500">That password didn&apos;t work — try again.</p>}
+              <div className="flex w-full max-w-xs flex-col gap-2">
+                <AnimatedButton size="lg" fullWidth disabled={!pdfPassword.trim()} onClick={() => { if (pdfPassword.trim()) void processPdf(pdfPending, pdfPassword); }}>
+                  <Lock className="size-4" /> Unlock &amp; read
+                </AnimatedButton>
+                <button type="button" onClick={() => { setPdfPending(null); setPdfPassword(""); setPdfWrong(false); }} className="text-muted text-xs hover:text-[var(--text-strong)]">Choose a different file</button>
+              </div>
+            </div>
+          </GlassCard>
         ) : (
         <div className="flex flex-col gap-3">
           {/* Hero path — scan a receipt or bill with the camera/photo (on-device OCR). */}
@@ -202,7 +252,7 @@ export function ImportView() {
               <span className="grid size-10 place-items-center rounded-xl bg-[var(--glass-bg-strong)]"><Upload className="size-5 text-[var(--color-gold-500)]" /></span>
               <span className="min-w-0">
                 <span className="text-strong block text-sm font-medium">Upload a statement</span>
-                <span className="text-muted block text-xs">CSV or PDF export from your bank.</span>
+                <span className="text-muted block text-xs">CSV or PDF from your bank — password-protected PDFs work too.</span>
               </span>
             </button>
           </GlassCard>
@@ -216,7 +266,7 @@ export function ImportView() {
       ) : (
         <div className="flex flex-col gap-4">
           <GlassCard padded>
-            <div className="flex items-center gap-2 text-sm"><FileText className="size-4 text-[var(--color-gold-500)]" /><span className="text-body truncate">{fileName}</span><button type="button" onClick={() => { setDrafts([]); setRows([]); setMapping(null); }} className="text-muted ml-auto text-xs hover:text-[var(--text-strong)]">Change file</button></div>
+            <div className="flex items-center gap-2 text-sm"><FileText className="size-4 text-[var(--color-gold-500)]" /><span className="text-body truncate">{fileName}</span><button type="button" onClick={() => { setDrafts([]); setRows([]); setMapping(null); setPdfPending(null); setPdfPassword(""); setPdfWrong(false); }} className="text-muted ml-auto text-xs hover:text-[var(--text-strong)]">Change file</button></div>
             <p className="text-muted mt-3 mb-2 text-xs">If a column looks wrong, fix it here:</p>
             <div className="grid gap-2 sm:grid-cols-2">
               <Select label="Date column" value={mapping?.date ?? ""} onChange={(e) => remap({ date: e.target.value || null })} options={colOptions} />

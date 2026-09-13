@@ -15,7 +15,15 @@ export interface PasscodeRecord {
   salt: string;
   kind: PasscodeKind;
   biometricEnabled: boolean;
+  /** Face ID is the ONLY factor — there is no PIN to type (hash/salt are empty).
+   *  The lock screen shows biometric unlock only. */
+  faceOnly?: boolean;
   updatedAt: number;
+}
+
+/** A biometric-only lock record — Face ID / fingerprint with no PIN. */
+export function faceOnlyRecord(): PasscodeRecord {
+  return { hash: "", salt: "", kind: "pin", biometricEnabled: true, faceOnly: true, updatedAt: Date.now() };
 }
 
 function toHex(buf: ArrayBuffer): string {

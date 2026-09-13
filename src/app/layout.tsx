@@ -88,6 +88,40 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-content",
 };
 
+// Structured data so Google can show Renew as a rich result — name, logo,
+// domain and what it is. No ratings are declared (there are no real reviews to
+// cite yet — we never fabricate them).
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "Organization",
+      "@id": `${appUrl}/#org`,
+      name: "Renew",
+      url: appUrl,
+      logo: `${appUrl}/icon-512.png`,
+      description: "A calm, premium personal finance companion.",
+    },
+    {
+      "@type": "WebSite",
+      "@id": `${appUrl}/#website`,
+      name: "Renew",
+      url: appUrl,
+      publisher: { "@id": `${appUrl}/#org` },
+    },
+    {
+      "@type": "SoftwareApplication",
+      name: "Renew",
+      applicationCategory: "FinanceApplication",
+      operatingSystem: "Web, iOS, Android",
+      url: appUrl,
+      description:
+        "See what you have, where it's going, and what's coming next — accounts, budgets, savings, bills and subscriptions, with Ren, your finance assistant.",
+      offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -97,6 +131,7 @@ export default function RootLayout({
         {/* No-flash theme + accessibility prefs: set on <html> before hydration. */}
         <script dangerouslySetInnerHTML={{ __html: themeNoFlashScript }} />
         <script dangerouslySetInnerHTML={{ __html: a11yNoFlashScript }} />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
       <body className={`${inter.variable} ${jost.variable} antialiased`}>
         <GlassFilter />

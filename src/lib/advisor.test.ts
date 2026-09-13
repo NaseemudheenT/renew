@@ -96,6 +96,31 @@ describe("advisor.suggestions", () => {
     expect(res.some((s) => s.kind === "negative_cashflow" && s.severity === "urgent")).toBe(true);
   });
 
+  it("uses the declared setup income when there's no income history yet", () => {
+    // A brand-new account: no income transactions, but they told us ~50k/mo at
+    // setup and have already spent 40k halfway through the month (pace ≈ 80k).
+    const withDeclared = suggestions({
+      transactions: [tx("shopping", 40_000, 0)],
+      declaredMonthlyIncome: 50_000,
+      now: NOW,
+    });
+    expect(withDeclared.some((s) => s.kind === "negative_cashflow")).toBe(true);
+    // Without it there's no income baseline, so no cashflow warning can fire.
+    const without = suggestions({ transactions: [tx("shopping", 40_000, 0)], now: NOW });
+    expect(without.some((s) => s.kind === "negative_cashflow")).toBe(false);
+  });
+
+  it("prefers real income history over the declared setup figure", () => {
+    // Real averaged income (50k) should win over a stale/low declared value (1k),
+    // so no false cashflow alarm from the declared number.
+    const res = suggestions({
+      transactions: [...income, tx("food", 5_000, 0)],
+      declaredMonthlyIncome: 1_000,
+      now: NOW,
+    });
+    expect(res.some((s) => s.kind === "negative_cashflow")).toBe(false);
+  });
+
   it("celebrates a reached savings goal", () => {
     const res = suggestions({
       transactions: income,

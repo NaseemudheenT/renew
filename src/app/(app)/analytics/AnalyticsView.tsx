@@ -1,11 +1,11 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { orderBy } from "firebase/firestore";
 import { FinancialIntelligence } from "@/components/finance/FinancialIntelligence";
 import { subMonths } from "date-fns";
 import { motion, useReducedMotion } from "framer-motion";
-import { BarChart3, ArrowDownLeft, ArrowUpRight, PiggyBank } from "lucide-react";
+import { BarChart3, ArrowDownLeft, ArrowUpRight, PiggyBank, ChevronLeft, ChevronRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -26,43 +26,58 @@ export function AnalyticsView() {
   const { resolve } = useCategories();
   const loc = `${prefs.language}-${prefs.region}`;
   const monthFmt = useMemo(() => new Intl.DateTimeFormat(loc, { month: "short" }), [loc]);
+  const monthYearFmt = useMemo(() => new Intl.DateTimeFormat(loc, { month: "long", year: "numeric" }), [loc]);
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading } = useScopedUserCollection<Transaction>("transactions", txC);
   const subs = useScopedUserCollection<Subscription>("subscriptions");
   const reduced = useReducedMotion();
   const currency = data[0]?.currency ?? prefs.currency;
 
+  // Which month is being viewed — 0 = this month, higher = further back. Renew
+  // is month-wise on purpose: you always know exactly which month you're seeing.
+  const [offset, setOffset] = useState(0);
+  const ref = useMemo(() => subMonths(new Date(), offset), [offset]);
+
+  // Trailing six months ENDING at the viewed month, so the chart frames it.
   const months = useMemo(() => {
-    const out: { label: string; income: number; expense: number }[] = [];
+    const out: { label: string; income: number; expense: number; off: number }[] = [];
     for (let i = MONTHS - 1; i >= 0; i--) {
-      const ref = subMonths(new Date(), i);
-      const { start, end } = monthRange(ref);
+      const d = subMonths(ref, i);
+      const { start, end } = monthRange(d);
       let income = 0, expense = 0;
       for (const t of data) if (t.date >= start && t.date < end) { if (t.type === "income") income += t.amount; else expense += t.amount; }
-      out.push({ label: monthFmt.format(ref), income, expense });
+      out.push({ label: monthFmt.format(d), income, expense, off: offset + i });
     }
     return out;
-  }, [data, monthFmt]);
+  }, [data, monthFmt, ref, offset]);
 
-  const thisMonth = months[months.length - 1] ?? { income: 0, expense: 0 };
-  const savingsRate = thisMonth.income > 0 ? Math.round(((thisMonth.income - thisMonth.expense) / thisMonth.income) * 100) : 0;
+  const viewMonth = months[months.length - 1] ?? { income: 0, expense: 0 };
+  const savingsRate = viewMonth.income > 0 ? Math.round(((viewMonth.income - viewMonth.expense) / viewMonth.income) * 100) : 0;
 
   const byCategory = useMemo(() => {
-    const { start, end } = monthRange();
+    const { start, end } = monthRange(ref);
     const m = new Map<string, number>();
     for (const t of data) if (t.type === "expense" && t.date >= start && t.date < end) m.set(t.category, (m.get(t.category) ?? 0) + t.amount);
     return Array.from(m.entries()).map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
-  }, [data]);
+  }, [data, ref]);
   const catMax = Math.max(1, ...byCategory.map((c) => c.amount));
 
   const bySource = useMemo(() => {
-    const { start, end } = monthRange();
+    const { start, end } = monthRange(ref);
     const m = new Map<string, number>();
     for (const t of data) if (t.type === "income" && t.date >= start && t.date < end) m.set(t.category, (m.get(t.category) ?? 0) + t.amount);
     return Array.from(m.entries()).map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount);
-  }, [data]);
+  }, [data, ref]);
   const srcMax = Math.max(1, ...bySource.map((c) => c.amount));
   const maxMonth = Math.max(1, ...months.map((m) => Math.max(m.income, m.expense)));
+
+  // Whole-year totals for the viewed year.
+  const year = ref.getFullYear();
+  const yearTotals = useMemo(() => {
+    let income = 0, expense = 0;
+    for (const t of data) if (new Date(t.date).getFullYear() === year) { if (t.type === "income") income += t.amount; else expense += t.amount; }
+    return { income, expense };
+  }, [data, year]);
 
   if (!loading && data.length === 0) {
     return (
@@ -75,14 +90,51 @@ export function AnalyticsView() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title={t("nav.analytics")} subtitle="A clear, honest picture of your money." />
+      <PageHeader title={t("nav.analytics")} subtitle="A clear, honest picture of your money, month by month." />
       <StaggerContainer className="flex flex-col gap-6" stagger={0.07}>
+        {/* Month picker — you always know exactly which month you're looking at. */}
+        <StaggerItem>
+          <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-2 py-1.5">
+            <button type="button" onClick={() => setOffset((o) => o + 1)} aria-label="Previous month"
+              className="grid size-9 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)]">
+              <ChevronLeft className="size-5" />
+            </button>
+            <span className="text-strong text-sm font-medium">{monthYearFmt.format(ref)}{offset === 0 && <span className="text-muted"> · this month</span>}</span>
+            <button type="button" onClick={() => setOffset((o) => Math.max(0, o - 1))} disabled={offset === 0} aria-label="Next month"
+              className="grid size-9 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] disabled:opacity-30">
+              <ChevronRight className="size-5" />
+            </button>
+          </div>
+        </StaggerItem>
+
         <StaggerItem>
           <div className="grid grid-cols-3 gap-3">
-            <Stat icon={ArrowDownLeft} label="Income · month" amount={thisMonth.income} currency={currency} tone="emerald" />
-            <Stat icon={ArrowUpRight} label="Spent · month" amount={thisMonth.expense} currency={currency} tone="rose" />
+            <Stat icon={ArrowDownLeft} label="Income · month" amount={viewMonth.income} currency={currency} tone="emerald" />
+            <Stat icon={ArrowUpRight} label="Spent · month" amount={viewMonth.expense} currency={currency} tone="rose" />
             <Stat icon={PiggyBank} label="Savings rate" value={`${savingsRate}%`} />
           </div>
+        </StaggerItem>
+
+        {/* Whole-year totals for the viewed year. */}
+        <StaggerItem>
+          <GlassCard padded>
+            <div className="flex items-center justify-between">
+              <h2 className="text-strong text-sm font-medium">{year} · year so far</h2>
+              <span className={cn("text-sm font-medium tabular-nums", yearTotals.income - yearTotals.expense >= 0 ? "text-emerald-500" : "text-rose-500")}>
+                {yearTotals.income - yearTotals.expense >= 0 ? "+" : "−"}{money(Math.abs(yearTotals.income - yearTotals.expense), currency)}
+              </span>
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-emerald-500/20 bg-emerald-500/[0.07] p-3">
+                <p className="text-muted text-xs">Income</p>
+                <AnimatedAmount value={yearTotals.income} currency={currency} className="mt-1 block text-lg font-semibold tabular-nums text-emerald-500" />
+              </div>
+              <div className="rounded-2xl border border-rose-500/20 bg-rose-500/[0.07] p-3">
+                <p className="text-muted text-xs">Spent</p>
+                <AnimatedAmount value={yearTotals.expense} currency={currency} className="mt-1 block text-lg font-semibold tabular-nums text-rose-500" />
+              </div>
+            </div>
+          </GlassCard>
         </StaggerItem>
 
         <StaggerItem>
@@ -94,13 +146,14 @@ export function AnalyticsView() {
             <h2 className="text-strong mb-4 text-sm font-medium">Income vs expense</h2>
             <div className="flex h-44 items-end gap-3">
               {months.map((m, i) => (
-                <div key={i} className="flex h-full flex-1 flex-col items-center justify-end gap-1">
+                <button type="button" key={i} onClick={() => setOffset(m.off)} title={`View ${m.label}`}
+                  className={cn("flex h-full flex-1 flex-col items-center justify-end gap-1 rounded-lg pt-1 transition-colors", m.off === offset ? "bg-[var(--glass-bg-soft)]" : "hover:bg-[var(--glass-bg-soft)]/60")}>
                   <div className="flex h-full w-full items-end justify-center gap-1">
-                    <motion.div className="w-1/2 max-w-4 origin-bottom rounded-t-md bg-gradient-to-t from-emerald-500 to-emerald-300" style={{ height: `${(m.income / maxMonth) * 100}%` }} initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: i * 0.04 }} title={`Income: ${money(m.income, currency)}`} />
-                    <motion.div className="w-1/2 max-w-4 origin-bottom rounded-t-md bg-gradient-to-t from-rose-500 to-rose-300" style={{ height: `${(m.expense / maxMonth) * 100}%` }} initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: i * 0.04 + 0.05 }} title={`Expense: ${money(m.expense, currency)}`} />
+                    <motion.div className="w-1/2 max-w-4 origin-bottom rounded-t-md bg-gradient-to-t from-emerald-500 to-emerald-300" style={{ height: `${(m.income / maxMonth) * 100}%` }} initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: i * 0.04 }} />
+                    <motion.div className="w-1/2 max-w-4 origin-bottom rounded-t-md bg-gradient-to-t from-rose-500 to-rose-300" style={{ height: `${(m.expense / maxMonth) * 100}%` }} initial={reduced ? false : { scaleY: 0 }} animate={{ scaleY: 1 }} transition={{ duration: 0.5, delay: i * 0.04 + 0.05 }} />
                   </div>
-                  <span className="text-muted text-[10px]">{m.label}</span>
-                </div>
+                  <span className={cn("text-[10px]", m.off === offset ? "text-strong font-medium" : "text-muted")}>{m.label}</span>
+                </button>
               ))}
             </div>
             <div className="mt-3 flex items-center gap-4 text-xs">
@@ -114,7 +167,7 @@ export function AnalyticsView() {
         {bySource.length > 0 && (
           <StaggerItem>
             <GlassCard padded>
-              <h2 className="text-strong mb-4 text-sm font-medium">Income by source · this month</h2>
+              <h2 className="text-strong mb-4 text-sm font-medium">Income by source</h2>
               <div className="flex flex-col gap-3">
                 {bySource.map((d, i) => {
                   const meta = resolve(d.category);
@@ -136,7 +189,7 @@ export function AnalyticsView() {
 
         <StaggerItem>
           <GlassCard padded>
-            <h2 className="text-strong mb-4 text-sm font-medium">Spending by category · this month</h2>
+            <h2 className="text-strong mb-4 text-sm font-medium">Spending by category</h2>
             {byCategory.length === 0 ? (
               <EmptyState compact icon={BarChart3} title="No spending yet this month" />
             ) : (

@@ -13,11 +13,16 @@ export interface OwnerUserRow {
   lastSignInAt: number | null;
   emailVerified: boolean;
   disabled: boolean;
+  premium: boolean;
 }
 
 export interface OwnerOverview {
   totalUsers: number;
   onboardedUsers: number;
+  /** People on the Premium plan (profile.plan === "premium"). */
+  premiumUsers: number;
+  /** People who asked to be told when Premium launches (premiumInterest). */
+  waitlistUsers: number;
   newLast7d: number;
   newLast30d: number;
   activeLast24h: number;
@@ -100,6 +105,21 @@ export async function getOwnerOverview(): Promise<OwnerOverview> {
     // Non-fatal.
   }
 
+  // Monetization signals — plan + upgrade interest. Targeted queries: only the
+  // premium / interested docs match, so these stay small. Never any money.
+  let premiumUsers = 0;
+  let waitlistUsers = 0;
+  const premiumUids = new Set<string>();
+  try {
+    const snap = await getAdminDb().collection("users").where("plan", "==", "premium").get();
+    snap.forEach((doc) => premiumUids.add(doc.id));
+    premiumUsers = premiumUids.size;
+  } catch { /* non-fatal */ }
+  try {
+    const snap = await getAdminDb().collection("users").where("premiumInterest", "==", true).get();
+    waitlistUsers = snap.size;
+  } catch { /* non-fatal */ }
+
   let totalUsers = 0;
   let newLast7d = 0;
   let newLast30d = 0;
@@ -147,6 +167,7 @@ export async function getOwnerOverview(): Promise<OwnerOverview> {
         lastSignInAt,
         emailVerified: u.emailVerified,
         disabled: u.disabled,
+        premium: premiumUids.has(u.uid),
       });
     }
     pageToken = res.pageToken;
@@ -178,6 +199,8 @@ export async function getOwnerOverview(): Promise<OwnerOverview> {
   return {
     totalUsers,
     onboardedUsers,
+    premiumUsers,
+    waitlistUsers,
     newLast7d,
     newLast30d,
     activeLast24h,

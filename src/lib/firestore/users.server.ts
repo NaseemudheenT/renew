@@ -67,6 +67,8 @@ export interface OnboardingInput {
   acceptedLegal?: boolean;
   /** Chosen preset avatar id (see lib/avatars). */
   avatar?: string;
+  /** Declared approximate monthly income (display currency); optional. */
+  monthlyIncome?: number;
 }
 
 /** Persist onboarding answers and flip the onboarded flag. */
@@ -93,6 +95,7 @@ export async function completeOnboarding(
   if (input.accountType) doc.accountType = input.accountType;
   if (input.acceptedLegal) doc.acceptedLegalAt = Date.now();
   if (input.avatar) doc.avatar = input.avatar;
+  if (typeof input.monthlyIncome === "number" && input.monthlyIncome > 0) doc.monthlyIncome = input.monthlyIncome;
 
   await getAdminDb().collection("users").doc(uid).set(doc, { merge: true });
 }

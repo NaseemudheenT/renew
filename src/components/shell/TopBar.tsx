@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
+import { PanelLeft } from "lucide-react";
 import { RenewMark } from "@/components/brand/RenewMark";
+import { toggleSidebar } from "./sidebar-store";
 import { NotificationBell } from "./NotificationBell";
 import { GlobalSearch } from "./GlobalSearch";
 import { InstallRenew } from "@/components/pwa/InstallRenew";
@@ -36,6 +38,10 @@ export function TopBar({ user }: { user: ShellUser }) {
       )}
     >
       <div className="flex min-w-0 items-center gap-3">
+        <button type="button" onClick={toggleSidebar} aria-label="Hide or show menu"
+          className="hidden size-9 shrink-0 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)] lg:grid">
+          <PanelLeft className="size-5" />
+        </button>
         <Link href="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Renew home">
           <RenewMark size={30} />
         </Link>

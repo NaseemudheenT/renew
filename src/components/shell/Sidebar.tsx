@@ -10,15 +10,23 @@ import type { ShellUser } from "./shell-types";
 import { navItemsFor } from "@/lib/nav";
 import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { useSidebarCollapsed } from "./sidebar-store";
 import { cn } from "@/lib/utils";
 
 export function Sidebar({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const { t } = useLocale();
   const { mode } = useWorkspace();
+  const collapsed = useSidebarCollapsed();
   const items = navItemsFor(mode);
   return (
-    <aside className="glass hidden h-full w-64 shrink-0 flex-col !rounded-none !rounded-e-glass-lg p-4 lg:flex">
+    <motion.aside
+      className="glass hidden h-full shrink-0 flex-col overflow-hidden !rounded-none !rounded-e-glass-lg lg:flex"
+      initial={false}
+      animate={{ width: collapsed ? 0 : 256 }}
+      transition={{ type: "spring", stiffness: 320, damping: 34 }}
+    >
+    <div className="flex h-full w-64 flex-col p-4">
       <Link href="/dashboard" className="mb-6 flex shrink-0 items-center gap-3 rounded-2xl px-2 py-2 transition-colors hover:bg-[var(--glass-bg-soft)]" aria-label="Renew home">
         <RenewMark size={34} />
         <Wordmark sizeClassName="text-lg" />
@@ -65,6 +73,7 @@ export function Sidebar({ user }: { user: ShellUser }) {
       <div className="mt-2 shrink-0 border-t border-[var(--glass-border)] pt-3">
         <AccountMenu user={user} align="left" />
       </div>
-    </aside>
+    </div>
+    </motion.aside>
   );
 }
