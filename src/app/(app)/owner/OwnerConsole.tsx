@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import {
   Users, UserPlus, Activity, ShieldCheck, ShieldAlert, Ban,
   RefreshCw, KeyRound, Fingerprint, Mail, Smartphone, Apple, Globe, Circle,
-  Search, TrendingUp, TrendingDown, LineChart, Crown, BellRing,
+  Search, TrendingUp, TrendingDown, LineChart, Crown, BellRing, MoreHorizontal,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -29,7 +29,10 @@ interface OwnerUserRow {
   lastSignInAt: number | null;
   emailVerified: boolean;
   disabled: boolean;
+  premium: boolean;
 }
+
+type OwnerAction = "disable" | "enable" | "grantPremium" | "revokePremium" | "signout";
 
 interface OwnerOverview {
   totalUsers: number;
@@ -135,6 +138,8 @@ export function OwnerConsole() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [openMenuUid, setOpenMenuUid] = useState<string | null>(null);
+  const [busyUid, setBusyUid] = useState<string | null>(null);
   // A 1s ticker so "updated Ns ago" stays truthful between refreshes.
   const [, setTick] = useState(0);
 
@@ -193,6 +198,25 @@ export function OwnerConsole() {
     );
   }, [data?.recentUsers, q]);
   const signupMax = data ? Math.max(1, ...data.signupsByDay.map((d) => d.count)) : 1;
+
+  async function act(uid: string, action: OwnerAction, confirmMsg?: string) {
+    if (confirmMsg && !window.confirm(confirmMsg)) return;
+    setBusyUid(uid);
+    try {
+      const res = await fetch("/api/owner/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ uid, action }),
+      });
+      if (!res.ok) throw new Error();
+      setOpenMenuUid(null);
+      await load(true);
+    } catch {
+      setError("That action didn't go through — try again.");
+    } finally {
+      setBusyUid(null);
+    }
+  }
 
   if (needsGate) return <OwnerSecurityGate onUnlock={unlockOwner} />;
 
@@ -352,7 +376,8 @@ export function OwnerConsole() {
             ) : (
               <ul className="divide-y divide-white/5">
                 {filteredUsers.map((u) => (
-                  <li key={u.uid} className="flex items-center gap-3 py-3">
+                  <li key={u.uid} className="flex flex-col py-3">
+                   <div className="flex items-center gap-3">
                     <span
                       className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-sm font-medium text-white"
                       aria-hidden
@@ -364,6 +389,9 @@ export function OwnerConsole() {
                         <p className="text-strong truncate text-sm">
                           {u.displayName || u.email || u.uid.slice(0, 8)}
                         </p>
+                        {u.premium && (
+                          <span className="inline-flex items-center gap-0.5 rounded-full bg-[var(--color-gold-500)]/15 px-1.5 py-0.5 text-[10px] text-[var(--color-gold-400)]"><Crown size={10} />Premium</span>
+                        )}
                         {u.disabled && (
                           <span className="rounded-full bg-rose-500/15 px-1.5 py-0.5 text-[10px] text-rose-300">Disabled</span>
                         )}
@@ -389,6 +417,23 @@ export function OwnerConsole() {
                         );
                       })}
                     </div>
+                    <button type="button" onClick={() => setOpenMenuUid((v) => (v === u.uid ? null : u.uid))} aria-label="Manage user"
+                      className="text-muted hover:text-strong grid size-8 shrink-0 place-items-center rounded-full transition-colors hover:bg-white/5">
+                      <MoreHorizontal size={16} />
+                    </button>
+                   </div>
+
+                   {openMenuUid === u.uid && (
+                     <div className="mt-2 flex flex-wrap gap-2 ps-12">
+                       {u.premium
+                         ? <AdminBtn onClick={() => void act(u.uid, "revokePremium")} busy={busyUid === u.uid}>Revoke Premium</AdminBtn>
+                         : <AdminBtn onClick={() => void act(u.uid, "grantPremium")} busy={busyUid === u.uid}>Grant Premium</AdminBtn>}
+                       {u.disabled
+                         ? <AdminBtn onClick={() => void act(u.uid, "enable")} busy={busyUid === u.uid}>Enable account</AdminBtn>
+                         : <AdminBtn danger onClick={() => void act(u.uid, "disable", "Disable this account? They'll be signed out and can't sign in until re-enabled.")} busy={busyUid === u.uid}>Disable account</AdminBtn>}
+                       <AdminBtn onClick={() => void act(u.uid, "signout", "Sign this user out of all devices?")} busy={busyUid === u.uid}>Sign out everywhere</AdminBtn>
+                     </div>
+                   )}
                   </li>
                 ))}
               </ul>
@@ -422,6 +467,20 @@ function Stat({
       <p className="text-strong text-2xl font-light tabular-nums">{value.toLocaleString()}{suffix}</p>
       <p className="text-muted mt-0.5 text-xs">{label}</p>
     </GlassCard>
+  );
+}
+
+function AdminBtn({ children, onClick, busy, danger }: { children: ReactNode; onClick: () => void; busy?: boolean; danger?: boolean }) {
+  return (
+    <button type="button" onClick={onClick} disabled={busy}
+      className={cn(
+        "rounded-full border px-3 py-1.5 text-xs font-medium transition-colors disabled:opacity-50",
+        danger
+          ? "border-rose-500/30 text-rose-300 hover:bg-rose-500/10"
+          : "border-white/10 text-[var(--text-body)] hover:bg-white/5 hover:text-[var(--text-strong)]",
+      )}>
+      {busy ? "…" : children}
+    </button>
   );
 }
 

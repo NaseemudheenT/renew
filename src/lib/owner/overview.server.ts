@@ -13,6 +13,7 @@ export interface OwnerUserRow {
   lastSignInAt: number | null;
   emailVerified: boolean;
   disabled: boolean;
+  premium: boolean;
 }
 
 export interface OwnerOverview {
@@ -108,9 +109,11 @@ export async function getOwnerOverview(): Promise<OwnerOverview> {
   // premium / interested docs match, so these stay small. Never any money.
   let premiumUsers = 0;
   let waitlistUsers = 0;
+  const premiumUids = new Set<string>();
   try {
     const snap = await getAdminDb().collection("users").where("plan", "==", "premium").get();
-    premiumUsers = snap.size;
+    snap.forEach((doc) => premiumUids.add(doc.id));
+    premiumUsers = premiumUids.size;
   } catch { /* non-fatal */ }
   try {
     const snap = await getAdminDb().collection("users").where("premiumInterest", "==", true).get();
@@ -164,6 +167,7 @@ export async function getOwnerOverview(): Promise<OwnerOverview> {
         lastSignInAt,
         emailVerified: u.emailVerified,
         disabled: u.disabled,
+        premium: premiumUids.has(u.uid),
       });
     }
     pageToken = res.pageToken;

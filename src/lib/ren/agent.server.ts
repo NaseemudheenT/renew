@@ -65,7 +65,7 @@ async function callAnthropic(system: string, messages: Msg[], signal: AbortSigna
     },
     body: JSON.stringify({
       model: env.renModel,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system,
       tools: toolDefsForLLM(),
       messages,
