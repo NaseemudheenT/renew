@@ -1,90 +1,98 @@
 /**
- * REN's mark — a luminous glass orb: a deep blue sphere with a glossy highlight
- * and an iridescent cyan→violet→peach wave threading through its centre. This is
- * Ren's face everywhere (the floating launcher, the voice screen, the chat
- * header). It replaces the old waveform mark — no microphone, no bars, just the
- * living sphere, matching the founder's Ren logo (the round centre, in Renew's
- * palette). Pure self-contained SVG; `idSuffix` keeps gradient ids unique when
- * several render on one page.
+ * REN's mark — a Siri-style living glass orb. A smooth 3D sphere of fluid,
+ * blended iridescence (cyan, blue, violet, magenta, peach) with an inner glow, a
+ * bright specular highlight, a light pool refracting at the base, a darkened edge
+ * for roundness, and a cool rim. It gently shimmers when idle so it feels alive.
+ * Ren's face everywhere (launcher, voice, chat). Self-contained SVG; `idSuffix`
+ * keeps gradient ids unique. `animate` (default true) enables the shimmer.
  */
 export function RenLogo({
   size = 28,
   className,
   idSuffix = "",
+  animate = true,
 }: {
   size?: number;
   className?: string;
   idSuffix?: string;
+  animate?: boolean;
 }) {
-  const body = `ren-body-${idSuffix}`;
-  const gloss = `ren-gloss-${idSuffix}`;
-  const rim = `ren-rim-${idSuffix}`;
-  const wave = `ren-wave-${idSuffix}`;
-  const clip = `ren-clip-${idSuffix}`;
+  const s = idSuffix;
+  const base = `ren-base-${s}`, cyan = `ren-cyan-${s}`, violet = `ren-violet-${s}`;
+  const pink = `ren-pink-${s}`, peach = `ren-peach-${s}`, glow = `ren-glow-${s}`;
+  const pool = `ren-pool-${s}`, vign = `ren-vign-${s}`, gloss = `ren-gloss-${s}`;
+  const rim = `ren-rim-${s}`, clip = `ren-clip-${s}`;
+  const soft = (id: string, color: string) => (
+    <radialGradient id={id} cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stopColor={color} stopOpacity="1" />
+      <stop offset="0.5" stopColor={color} stopOpacity="0.5" />
+      <stop offset="1" stopColor={color} stopOpacity="0" />
+    </radialGradient>
+  );
   return (
-    <svg
-      viewBox="0 0 48 48"
-      width={size}
-      height={size}
-      className={className}
-      role="img"
-      aria-label="Ren"
-    >
+    <svg viewBox="0 0 48 48" width={size} height={size} className={className} role="img" aria-label="Ren">
       <defs>
-        {/* Deep glass sphere — royal navy core lifting to a bright rim. */}
-        <radialGradient id={body} cx="0.38" cy="0.34" r="0.75">
-          <stop offset="0" stopColor="#3b6fe0" />
-          <stop offset="0.45" stopColor="#1e3aa8" />
-          <stop offset="0.82" stopColor="#101a5c" />
-          <stop offset="1" stopColor="#4aa8ff" />
+        <radialGradient id={base} cx="0.42" cy="0.38" r="0.78">
+          <stop offset="0" stopColor="#6b7cff" />
+          <stop offset="0.58" stopColor="#2a2f9e" />
+          <stop offset="1" stopColor="#0c0c38" />
         </radialGradient>
-        {/* Top-left specular highlight. */}
-        <radialGradient id={gloss} cx="0.32" cy="0.24" r="0.55">
-          <stop offset="0" stopColor="#ffffff" stopOpacity="0.85" />
-          <stop offset="0.4" stopColor="#ffffff" stopOpacity="0.14" />
+        {soft(cyan, "#3ce9ff")}
+        {soft(violet, "#a35cff")}
+        {soft(pink, "#ff5ec7")}
+        {soft(peach, "#ffb27a")}
+        <radialGradient id={glow} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.9" />
+          <stop offset="0.55" stopColor="#dcecff" stopOpacity="0.14" />
+          <stop offset="1" stopColor="#dcecff" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={pool} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#bfeaff" stopOpacity="0.85" />
+          <stop offset="1" stopColor="#bfeaff" stopOpacity="0" />
+        </radialGradient>
+        <radialGradient id={vign} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0.62" stopColor="#05052a" stopOpacity="0" />
+          <stop offset="1" stopColor="#05052a" stopOpacity="0.55" />
+        </radialGradient>
+        <radialGradient id={gloss} cx="0.5" cy="0.5" r="0.5">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.95" />
+          <stop offset="0.7" stopColor="#ffffff" stopOpacity="0.25" />
           <stop offset="1" stopColor="#ffffff" stopOpacity="0" />
         </radialGradient>
-        {/* Cool rim light around the edge. */}
         <radialGradient id={rim} cx="0.5" cy="0.5" r="0.5">
-          <stop offset="0.78" stopColor="#7fd0ff" stopOpacity="0" />
-          <stop offset="0.95" stopColor="#8fe0ff" stopOpacity="0.55" />
-          <stop offset="1" stopColor="#8fe0ff" stopOpacity="0" />
+          <stop offset="0.78" stopColor="#a5ecff" stopOpacity="0" />
+          <stop offset="0.95" stopColor="#a5ecff" stopOpacity="0.7" />
+          <stop offset="1" stopColor="#a5ecff" stopOpacity="0" />
         </radialGradient>
-        {/* Iridescent wave — cyan through violet to warm peach. */}
-        <linearGradient id={wave} x1="10" y1="26" x2="38" y2="22" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#37e6ff" />
-          <stop offset="0.4" stopColor="#4a7bff" />
-          <stop offset="0.7" stopColor="#c05cff" />
-          <stop offset="1" stopColor="#ff9d6c" />
-        </linearGradient>
         <clipPath id={clip}><circle cx="24" cy="24" r="21" /></clipPath>
       </defs>
 
-      {/* Sphere */}
-      <circle cx="24" cy="24" r="21" fill={`url(#${body})`} />
+      <circle cx="24" cy="24" r="21" fill={`url(#${base})`} />
 
-      {/* Iridescent S-wave through the middle (clipped to the sphere) */}
       <g clipPath={`url(#${clip})`}>
-        <path
-          d="M6 27 C 13 20, 19 20, 24 24 C 29 28, 35 28, 42 21"
-          fill="none"
-          stroke={`url(#${wave})`}
-          strokeWidth="4.2"
-          strokeLinecap="round"
-          opacity="0.95"
-        />
-        <path
-          d="M6 27 C 13 20, 19 20, 24 24 C 29 28, 35 28, 42 21"
-          fill="none"
-          stroke="#ffffff"
-          strokeOpacity="0.5"
-          strokeWidth="1.2"
-          strokeLinecap="round"
-        />
+        {/* Fluid colour blooms — slowly drift to shimmer like Siri */}
+        <g>
+          {animate && (
+            <animateTransform attributeName="transform" type="rotate" values="-8 24 24; 8 24 24; -8 24 24" dur="9s" repeatCount="indefinite" />
+          )}
+          <circle cx="15" cy="14" r="20" fill={`url(#${cyan})`} />
+          <circle cx="34" cy="30" r="21" fill={`url(#${violet})`} />
+          <circle cx="29" cy="37" r="16" fill={`url(#${pink})`} />
+          <circle cx="36" cy="16" r="14" fill={`url(#${peach})`} />
+        </g>
+        {/* Inner glow, breathing */}
+        <circle cx="22" cy="22" r="12" fill={`url(#${glow})`}>
+          {animate && <animate attributeName="r" values="11;13.5;11" dur="4.5s" repeatCount="indefinite" />}
+        </circle>
+        {/* Light pool refracting at the base */}
+        <ellipse cx="26" cy="40" rx="15" ry="6" fill={`url(#${pool})`} />
+        {/* Edge shadow for 3D roundness */}
+        <circle cx="24" cy="24" r="21" fill={`url(#${vign})`} />
+        {/* Specular highlights */}
+        <ellipse cx="18" cy="14" rx="9" ry="5.5" fill={`url(#${gloss})`} transform="rotate(-28 18 14)" />
+        <circle cx="15.5" cy="12.5" r="1.7" fill="#ffffff" fillOpacity="0.95" />
       </g>
 
-      {/* Glass finish */}
-      <circle cx="24" cy="24" r="21" fill={`url(#${gloss})`} />
       <circle cx="24" cy="24" r="21" fill={`url(#${rim})`} />
     </svg>
   );
