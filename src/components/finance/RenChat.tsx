@@ -4,18 +4,25 @@ import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { X, Mic, ArrowUp, Volume2, VolumeX, Square } from "lucide-react";
 import { RenLogo } from "@/components/brand/RenLogo";
+import { RenChart, type RenChartData } from "@/components/finance/RenChart";
 import { type AskContext } from "@/lib/ask";
 import { useRenBrain } from "@/hooks/useRenBrain";
 import { listen, speak, stopSpeaking, isVoiceSupported, speechOutputSupported, type Listener } from "@/lib/voice";
 import { renVoiceSpeakOpts } from "@/lib/ren-voices";
+import { monthRange } from "@/lib/finance";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toast } from "@/components/ui/toast-store";
 import { cn } from "@/lib/utils";
 
-interface Msg { id: string; role: "user" | "ren"; text: string; amount?: number; currency?: string }
+interface Msg { id: string; role: "user" | "ren"; text: string; amount?: number; currency?: string; chart?: RenChartData }
 
-const CHIPS = ["Spent 200 on lunch", "How much did I spend this month?", "How much can I spend?", "What's my net worth?", "Am I on track?"];
+/** "Show me my spending / a breakdown / a chart" — a request Ren answers visually. */
+function wantsChart(t: string): boolean {
+  return /\b(show|see|display|chart|graph|visual|breakdown|pie|bar)\b/i.test(t) && /(spend|spent|expense|categor|money|budget|where)/i.test(t);
+}
+
+const CHIPS = ["Show my spending", "Spent 200 on lunch", "How much did I spend this month?", "How much can I spend?", "What's my net worth?"];
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 let msgSeq = 0;
@@ -72,12 +79,38 @@ export function RenChat({
     say(text);
   }
 
+  /** Build this month's spending-by-category chart from the live data. */
+  function spendingChart(): RenChartData | null {
+    const { start, end } = monthRange();
+    const m = new Map<string, number>();
+    for (const t of ctx.transactions) {
+      if (t.type === "expense" && t.date >= start && t.date < end) m.set(t.category, (m.get(t.category) ?? 0) + t.amount);
+    }
+    const rows = [...m.entries()].map(([category, amount]) => ({ category, amount })).sort((a, b) => b.amount - a.amount).slice(0, 6);
+    return rows.length ? { title: "Your spending this month", currency: ctx.currency, rows } : null;
+  }
+
   async function handle(raw: string) {
     const text = raw.trim();
     if (!text) return;
     const history = msgs.slice(-10).map((m) => ({ role: m.role, text: m.text }));
     push({ role: "user", text });
     setInput("");
+
+    // A visual request — draw the chart from real data (the "Jarvis" moment).
+    if (wantsChart(text)) {
+      const chart = spendingChart();
+      if (chart) {
+        const total = chart.rows.reduce((s, r) => s + r.amount, 0);
+        const line = `Here's your spending this month — ${money(total, ctx.currency)} across your top categories.`;
+        push({ role: "ren", text: line, chart });
+        say(line);
+        return;
+      }
+      respond("You have no spending recorded this month yet — add a few and I'll chart it for you.");
+      return;
+    }
+
     setThinking(true);
     try {
       const res = await ask(text, history);
@@ -156,7 +189,7 @@ export function RenChat({
                   <motion.div key="chat" className="space-y-3 py-2" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                     {msgs.map((m) => (
                       <motion.div key={m.id} initial={{ opacity: 0, y: 10, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.32, ease: EASE }}
-                        className={cn("flex", m.role === "user" ? "justify-end" : "justify-start")}>
+                        className={cn("flex flex-col gap-2", m.role === "user" ? "items-end" : "items-start")}>
                         <div className={cn("max-w-[86%] rounded-3xl px-4 py-2.5 text-sm leading-relaxed",
                           m.role === "user"
                             ? "rounded-br-lg bg-gradient-to-br from-[var(--color-gold-300)] to-[var(--color-gold-500)] text-[var(--text-onGold)]"
@@ -166,6 +199,7 @@ export function RenChat({
                             <span className={cn("mt-1 block text-2xl font-light tabular-nums", m.role === "user" ? "text-[var(--text-onGold)]" : "text-strong")}>{money(m.amount, m.currency ?? ctx.currency)}</span>
                           )}
                         </div>
+                        {m.chart && <div className="w-[92%]"><RenChart data={m.chart} /></div>}
                       </motion.div>
                     ))}
                     {thinking && (
