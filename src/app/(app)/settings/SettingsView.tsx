@@ -27,8 +27,7 @@ import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } fr
 import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
 import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
 import { isPasskeySupported } from "@/lib/auth/passkey-client";
-import { speak, speechOutputSupported } from "@/lib/voice";
-import { REN_VOICES, DEFAULT_REN_VOICE, renVoiceSpeakOpts } from "@/lib/ren-voices";
+import { speechOutputSupported } from "@/lib/voice";
 import { RETENTION_OPTIONS } from "@/lib/retention";
 import { RenChat } from "@/components/finance/RenChat";
 import { useRenContext } from "@/hooks/useRenContext";
@@ -334,27 +333,11 @@ function RenControl({ uid }: { uid: string }) {
   const { ctx, uid: ctxUid } = useRenContext();
   const [chatOpen, setChatOpen] = useState(false);
   const autoSpeak = profile?.renAutoSpeak ?? true;
-  const voiceId = profile?.renVoiceURI || DEFAULT_REN_VOICE;
-  const rate = profile?.renVoiceRate ?? 1;
-  const style = profile?.renStyle ?? "balanced";
-  const personality = profile?.renPersonality ?? "neutral";
   const voiceOut = speechOutputSupported();
-  const [localRate, setLocalRate] = useState(rate);
-
-  const STYLES = [
-    { id: "concise", label: "Concise" },
-    { id: "balanced", label: "Balanced" },
-    { id: "detailed", label: "Detailed" },
-  ] as const;
-  const PERSONAS = [
-    { id: "warm", label: "Warm" },
-    { id: "neutral", label: "Neutral" },
-    { id: "precise", label: "Precise" },
-  ] as const;
 
   return (
     <div className="flex flex-col gap-5">
-      <p className="text-muted text-sm">Ren is your finance assistant. Tap the orb anywhere in Renew and just talk — Ren understands and replies in any language, automatically. Or open the full conversation here to type and scroll back.</p>
+      <p className="text-muted text-sm">Tap the orb anywhere in Renew and just talk — say &ldquo;Hey Ren&rdquo; and ask about your money. Ren understands and replies in your language.</p>
 
       {/* Full conversation — the one place with the complete text chat */}
       <button type="button" onClick={() => setChatOpen(true)}
@@ -368,75 +351,16 @@ function RenControl({ uid }: { uid: string }) {
       </button>
       <RenChat open={chatOpen} onClose={() => setChatOpen(false)} ctx={ctx} uid={ctxUid} />
 
-      {/* Speak aloud */}
-      <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
-        <span className="min-w-0">
-          <span className="text-body block text-sm font-medium">Speak answers aloud</span>
-          <span className="text-muted block text-xs">Ren reads its replies out. You can mute it in the chat any time.</span>
-        </span>
-        <Switch checked={autoSpeak} onChange={(on) => { updateRenPrefs(uid, { renAutoSpeak: on }).catch(() => {}); }} label="Speak answers aloud" />
-      </div>
-
-      {/* Ren's voice — four named voices, Siri-simple */}
+      {/* Spoken responses — the single Siri-style control */}
       {voiceOut && (
-        <div>
-          <p className="text-body text-sm font-medium">Ren&apos;s voice</p>
-          <p className="text-muted mb-2 text-xs">Four voices. Tap one to hear it.</p>
-          <div className="grid grid-cols-2 gap-2.5">
-            {REN_VOICES.map((v) => {
-              const on = voiceId === v.id;
-              return (
-                <button key={v.id} type="button"
-                  onClick={() => { updateRenPrefs(uid, { renVoiceURI: v.id }).catch(() => {}); speak(`Hi, I'm ${v.name}. I'm here to help with your money.`, { ...renVoiceSpeakOpts(v.id), rate: localRate }); }}
-                  aria-pressed={on}
-                  className={cn("flex items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition-all",
-                    on ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
-                  <span aria-hidden className={cn("grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold text-white", v.gender === "female" ? "bg-gradient-to-br from-[#c05cff] to-[#ff9d6c]" : "bg-gradient-to-br from-[#37e6ff] to-[#4a7bff]")}>{v.name[0]}</span>
-                  <span className="min-w-0">
-                    <span className="text-strong block text-sm font-medium">{v.name}</span>
-                    <span className="text-muted block truncate text-xs">{v.tagline}</span>
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <label className="text-muted mt-4 block text-xs">Speaking speed — {localRate.toFixed(2)}×</label>
-          <input type="range" min={0.75} max={1.5} step={0.05} value={localRate}
-            onChange={(e) => setLocalRate(Number(e.target.value))}
-            onPointerUp={() => updateRenPrefs(uid, { renVoiceRate: localRate }).catch(() => {})}
-            onBlur={() => updateRenPrefs(uid, { renVoiceRate: localRate }).catch(() => {})}
-            className="mt-1 w-full accent-[var(--color-gold-500)]" aria-label="Speaking speed" />
+        <div className="flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
+          <span className="min-w-0">
+            <span className="text-body block text-sm font-medium">Spoken responses</span>
+            <span className="text-muted block text-xs">Ren reads its answers aloud in its voice.</span>
+          </span>
+          <Switch checked={autoSpeak} onChange={(on) => { updateRenPrefs(uid, { renAutoSpeak: on }).catch(() => {}); }} label="Spoken responses" />
         </div>
       )}
-
-      {/* Reply length / style */}
-      <div>
-        <p className="text-body text-sm font-medium">Reply style</p>
-        <p className="text-muted mb-2 text-xs">How much detail Ren gives in its answers.</p>
-        <div className="inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
-          {STYLES.map((s) => (
-            <button key={s.id} type="button" onClick={() => updateRenPrefs(uid, { renStyle: s.id }).catch(() => {})} aria-pressed={style === s.id}
-              className={cn("rounded-full px-3.5 py-1.5 transition-colors", style === s.id ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]")}>
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Personality / tone */}
-      <div>
-        <p className="text-body text-sm font-medium">Personality</p>
-        <p className="text-muted mb-2 text-xs">The tone Ren speaks in.</p>
-        <div className="inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
-          {PERSONAS.map((p) => (
-            <button key={p.id} type="button" onClick={() => updateRenPrefs(uid, { renPersonality: p.id }).catch(() => {})} aria-pressed={personality === p.id}
-              className={cn("rounded-full px-3.5 py-1.5 transition-colors", personality === p.id ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)] hover:text-[var(--text-strong)]")}>
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
     </div>
   );
 }
