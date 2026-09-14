@@ -28,7 +28,7 @@ const googleVerification = (process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? 
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Renew — your personal finance companion",
+    default: "Renew",
     template: "%s · Renew",
   },
   alternates: { canonical: "/" },

@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/Input";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
 import { AVATARS } from "@/lib/avatars";
+import { APP_UPDATE_NAME } from "@/lib/setup-version";
 import { updateDisplayName, updateAvatar } from "@/lib/firestore/profile";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -134,10 +135,13 @@ export function AccountView() {
         <LogOut className="size-4" /> Sign out
       </AnimatedButton>
 
-      <footer className="flex items-center justify-center gap-4 pb-2 text-xs text-[var(--text-muted)]">
-        <Link href="/privacy" className="hover:text-[var(--text-strong)]">Privacy</Link>
-        <span aria-hidden="true">·</span>
-        <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
+      <footer className="flex flex-col items-center gap-1.5 pb-2 text-xs text-[var(--text-muted)]">
+        <div className="flex items-center gap-4">
+          <Link href="/privacy" className="hover:text-[var(--text-strong)]">Privacy</Link>
+          <span aria-hidden="true">·</span>
+          <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
+        </div>
+        <span className="opacity-70">Renew · {APP_UPDATE_NAME}</span>
       </footer>
 
       {/* Edit profile sheet */}

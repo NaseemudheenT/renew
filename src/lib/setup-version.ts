@@ -21,5 +21,14 @@
  *       runs it once so every account is protected.
  *   6 — Leaner still: removed the "what matters most" focus step; richer
  *       Apple-style avatar picker. Name → country → avatar → lock → notify.
+ *   7 — "pat3" update: expanded premium avatar set, brand-forward naming.
+ *       Everyone re-runs the refreshed setup once.
  */
-export const CURRENT_SETUP_VERSION = 6;
+export const CURRENT_SETUP_VERSION = 7;
+
+/**
+ * The user-facing name for the current software update, Apple-style. Shown in
+ * settings/account so people know which release they're on. Future updates step
+ * this up (pat4, pat5, … toward pat27).
+ */
+export const APP_UPDATE_NAME = "pat3";

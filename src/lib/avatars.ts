@@ -20,6 +20,16 @@ export const AVATARS: AvatarPreset[] = [
   { id: "plum", css: "linear-gradient(140deg,#4a3a5a,#271d33)" },
   { id: "indigo", css: "linear-gradient(140deg,#3b4079,#20234a)" },
   { id: "stone", css: "linear-gradient(140deg,#6a6862,#38362f)" },
+  { id: "ocean", css: "linear-gradient(140deg,#1c6f8c,#0d3a4c)" },
+  { id: "burgundy", css: "linear-gradient(140deg,#7a3345,#3f1b26)" },
+  { id: "teal", css: "linear-gradient(140deg,#2f7d72,#163d38)" },
+  { id: "bronze", css: "linear-gradient(140deg,#a86b3c,#5c3a20)" },
+  { id: "sky", css: "linear-gradient(140deg,#4b7fb0,#274a68)" },
+  { id: "olive", css: "linear-gradient(140deg,#5b6236,#31351d)" },
+  { id: "aubergine", css: "linear-gradient(140deg,#5a3a63,#2f1e35)" },
+  { id: "steel", css: "linear-gradient(140deg,#4a5568,#262c38)" },
+  { id: "rosegold", css: "linear-gradient(140deg,#c08a7d,#7a5149)" },
+  { id: "midnight", css: "linear-gradient(140deg,#2b2f52,#14162b)" },
 ];
 
 export function avatarGradient(id?: string | null): string | null {
