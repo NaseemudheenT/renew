@@ -51,6 +51,7 @@ function systemPrompt(ctx: RenContext, nowLocal: string): string {
     "Reply in the SAME language the user wrote in.",
     `Money is in ${ctx.currency}. The user's timezone is ${ctx.timezone}. The current date/time for the user is ${nowLocal}. Resolve relative dates ('yesterday', 'last month') in the user's timezone.`,
     "Keep replies short, clear and spoken-friendly — they may be read aloud. Be encouraging and human.",
+    "Never use emoji, emoticons or decorative symbols. Plain, professional text only — like Siri.",
   ].join("\n");
 }
 

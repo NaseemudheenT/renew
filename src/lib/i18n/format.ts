@@ -10,9 +10,11 @@
 
 import type { LocalePrefs } from "./config";
 
-/** BCP-47 tag from prefs, e.g. "en-US", used for all Intl constructors. */
+/** BCP-47 tag from prefs, e.g. "en-US", used for all Intl constructors. Guards
+ *  a missing region so grouping/decimals stay logical (never "en-undefined"). */
 function localeTag(prefs: LocalePrefs): string {
-  return `${prefs.language}-${prefs.region}`;
+  const lang = prefs.language || "en";
+  return prefs.region ? `${lang}-${prefs.region}` : lang;
 }
 
 /** Locale-aware currency. Whole amounts drop the decimals for calm display. */

@@ -190,10 +190,27 @@ export function onVoicesReady(cb: () => void): () => void {
  * the user's Ren settings; falls back to a voice matching the language. No-op
  * when synthesis isn't available.
  */
+// Chrome/Safari silently pause speechSynthesis after ~15s, cutting Ren off
+// mid-sentence. A gentle pause/resume tick keeps it alive until the utterance
+// finishes; cleared as soon as speaking stops.
+let keepAlive: ReturnType<typeof setInterval> | undefined;
+function stopKeepAlive() { if (keepAlive) { clearInterval(keepAlive); keepAlive = undefined; } }
+function startKeepAlive() {
+  stopKeepAlive();
+  keepAlive = setInterval(() => {
+    try {
+      if (!window.speechSynthesis.speaking) { stopKeepAlive(); return; }
+      window.speechSynthesis.pause();
+      window.speechSynthesis.resume();
+    } catch { stopKeepAlive(); }
+  }, 10_000);
+}
+
 export function speak(text: string, opts: { lang?: string; voiceURI?: string; rate?: number; onEnd?: () => void } = {}): void {
   if (!speechOutputSupported() || !text) { opts.onEnd?.(); return; }
   try {
     window.speechSynthesis.cancel(); // never overlap
+    stopKeepAlive();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = opts.lang || (typeof navigator !== "undefined" ? navigator.language : "en-US") || "en-US";
     u.rate = opts.rate && opts.rate > 0 ? opts.rate : 1;
@@ -202,11 +219,14 @@ export function speak(text: string, opts: { lang?: string; voiceURI?: string; ra
     const chosen = opts.voiceURI ? voices.find((v) => v.voiceURI === opts.voiceURI) : undefined;
     const match = chosen ?? voices.find((v) => v.lang?.startsWith(u.lang.slice(0, 2)));
     if (match) u.voice = match;
-    if (opts.onEnd) { u.onend = () => opts.onEnd?.(); u.onerror = () => opts.onEnd?.(); }
+    u.onend = () => { stopKeepAlive(); opts.onEnd?.(); };
+    u.onerror = () => { stopKeepAlive(); opts.onEnd?.(); };
     window.speechSynthesis.speak(u);
-  } catch { opts.onEnd?.(); /* speech is a nicety — never throw */ }
+    startKeepAlive();
+  } catch { stopKeepAlive(); opts.onEnd?.(); /* speech is a nicety — never throw */ }
 }
 
 export function stopSpeaking(): void {
+  stopKeepAlive();
   if (speechOutputSupported()) { try { window.speechSynthesis.cancel(); } catch { /* ignore */ } }
 }
