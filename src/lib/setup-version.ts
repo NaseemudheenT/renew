@@ -24,12 +24,14 @@
  *   7 — "pat3" update: expanded premium avatar set, brand-forward naming.
  *   8 — "pat4" update: real-name fix (profile name everywhere), cleaner phone
  *       top bar, Ren voice reliability, professional (no-emoji) Ren.
+ *   9 — "pat5" update: Apple-style coloured icons, Software Update screen,
+ *       on-brand champagne focus (no more stray blue box), swipe sheets.
  */
-export const CURRENT_SETUP_VERSION = 8;
+export const CURRENT_SETUP_VERSION = 9;
 
 /**
  * The user-facing name for the current software update, Apple-style. Shown in
  * settings/account so people know which release they're on. Future updates step
  * this up (pat5, pat6, … toward pat27).
  */
-export const APP_UPDATE_NAME = "pat4";
+export const APP_UPDATE_NAME = "pat5";

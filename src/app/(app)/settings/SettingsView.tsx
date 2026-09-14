@@ -148,10 +148,11 @@ export function SettingsView() {
 function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const whatsNew = [
-    "Apple-style setup — with Meet Ren and Accessibility steps",
-    "Cleaner phone layout, swipe-to-dismiss sheets, coloured icons",
+    "Apple-style colours across Settings and your profile",
+    "This Software Update screen",
+    "On-brand champagne focus — no more stray blue box on inputs",
+    "Cleaner phone layout with swipe-to-dismiss sheets",
     "Ren: clearer voice that no longer cuts off, professional replies",
-    "Your real name and avatar everywhere",
   ];
   async function check() {
     setChecking(true);

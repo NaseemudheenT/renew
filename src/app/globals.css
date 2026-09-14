@@ -69,7 +69,8 @@
 
   --field-bg: rgba(14, 20, 44, 0.5);
   --field-border: rgba(180, 205, 255, 0.18);
-  --focus-ring: rgba(122, 158, 255, 0.6);
+  /* Champagne focus, on-brand (was blue — the stray "blue box" on inputs). */
+  --focus-ring: rgba(212, 175, 110, 0.6);
 
   --mark-gold-1: #bcd2ff;
   --mark-gold-2: #8fadff;
@@ -128,7 +129,8 @@
 
   --field-bg: rgba(246, 250, 255, 0.62);
   --field-border: rgba(52, 72, 132, 0.34);
-  --focus-ring: rgba(74, 118, 240, 0.62);
+  /* Champagne focus, on-brand (was blue — the stray "blue box" on inputs). */
+  --focus-ring: rgba(184, 134, 46, 0.55);
 
   /* Light theme: the logo is a rich MIDNIGHT-BLUE, and the mark and the RENEW
      wordmark share the exact same gradient so they read as one colour. Dark
