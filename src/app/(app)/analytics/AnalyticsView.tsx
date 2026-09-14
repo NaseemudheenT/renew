@@ -100,7 +100,11 @@ export function AnalyticsView() {
               className="grid size-9 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)]">
               <ChevronLeft className="size-5" />
             </button>
-            <span className="text-strong text-sm font-medium">{monthYearFmt.format(ref)}{offset === 0 && <span className="text-muted"> · this month</span>}</span>
+            <button type="button" onClick={() => setOffset(0)} disabled={offset === 0}
+              className="rounded-full px-3 py-1 text-sm font-medium text-[var(--text-strong)] transition-colors enabled:hover:bg-[var(--glass-bg-soft)] disabled:cursor-default"
+              aria-label="Jump to this month" title={offset === 0 ? undefined : "Tap to jump to this month"}>
+              {monthYearFmt.format(ref)}{offset === 0 && <span className="text-muted"> · this month</span>}
+            </button>
             <button type="button" onClick={() => setOffset((o) => Math.max(0, o - 1))} disabled={offset === 0} aria-label="Next month"
               className="grid size-9 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] disabled:opacity-30">
               <ChevronRight className="size-5" />
