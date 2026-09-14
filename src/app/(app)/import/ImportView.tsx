@@ -280,8 +280,25 @@ export function ImportView() {
             </div>
           </GlassCard>
 
-          <div className="flex items-center justify-between px-1 text-sm">
-            <span className="text-body"><span className="text-strong font-medium">{included.length}</span> to import{dupCount > 0 && <span className="text-muted"> · {dupCount} duplicate{dupCount === 1 ? "" : "s"} skipped</span>}</span>
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 px-1 text-sm">
+            <span className="text-body">
+              <span className="text-strong font-medium">{included.length}</span> to import
+              {dupCount > 0 && <span className="text-muted"> · {dupCount} duplicate{dupCount === 1 ? "" : "s"} skipped</span>}
+              {(() => {
+                const inT = included.filter((d) => d.type === "income").reduce((s, d) => s + d.amount, 0);
+                const outT = included.filter((d) => d.type === "expense").reduce((s, d) => s + d.amount, 0);
+                return (
+                  <span className="text-muted">
+                    {inT > 0 && <> · <span className="text-emerald-500">+{money(inT, prefs.currency)}</span></>}
+                    {outT > 0 && <> · <span className="text-rose-500">−{money(outT, prefs.currency)}</span></>}
+                  </span>
+                );
+              })()}
+            </span>
+            <button type="button" onClick={() => { const anyOff = drafts.some((d) => !d.include); setDrafts((ds) => ds.map((d) => ({ ...d, include: anyOff }))); }}
+              className="text-muted text-xs font-medium hover:text-[var(--text-strong)]">
+              {drafts.some((d) => !d.include) ? "Select all" : "Deselect all"}
+            </button>
           </div>
 
           <div className="flex flex-col gap-2">

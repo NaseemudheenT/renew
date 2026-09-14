@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { orderBy, where, limit } from "firebase/firestore";
 import {
-  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, ReceiptText, Plus, ChevronRight, Wallet, ShieldCheck, Mic, Sparkles,
+  ArrowLeftRight, ArrowDownLeft, ArrowUpRight, PiggyBank, ReceiptText, Plus, ChevronRight, Wallet, ShieldCheck,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
@@ -16,13 +16,12 @@ import { TransactionForm } from "@/components/finance/TransactionForm";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
 import { Advisor } from "@/components/finance/Advisor";
 import { CashFlowForecast } from "@/components/finance/CashFlowForecast";
-import { RenChat } from "@/components/finance/RenChat";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange } from "@/lib/finance";
-import { computeAccountBalance, accountTypeMeta, subscriptionMonthly } from "@/lib/accounts";
+import { computeAccountBalance, accountTypeMeta } from "@/lib/accounts";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { isOverdue } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
@@ -75,7 +74,6 @@ export function Dashboard({ name }: { name: string }) {
   const budgets = useScopedUserCollection<Budget>("budgets");
 
   const [modalOpen, setModalOpen] = useState(false);
-  const [renOpen, setRenOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   const loading = txAll.loading || savings.loading || bills.loading || accounts.loading || transfers.loading;
@@ -95,10 +93,6 @@ export function Dashboard({ name }: { name: string }) {
   const netWorth = totals.balance + savingsTotal;
   const upcomingBills = useMemo(() => [...bills.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 4), [bills.data]);
   const comingTotal = useMemo(() => bills.data.reduce((s, b) => s + b.amount, 0), [bills.data]);
-  const recurring = useMemo(() => {
-    const active = subscriptions.data.filter((s) => s.status === "active");
-    return { monthly: active.reduce((sum, s) => sum + subscriptionMonthly(s), 0), count: active.length };
-  }, [subscriptions.data]);
   const activeAccounts = useMemo(() => accounts.data.filter((a) => a.status === "active"), [accounts.data]);
   const accountBalances = useMemo(() => {
     const m = new Map<string, number>();
@@ -210,23 +204,6 @@ export function Dashboard({ name }: { name: string }) {
             )}
 
             <StaggerItem>
-              <GlassCard padded className="relative overflow-hidden">
-                <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-[radial-gradient(circle,var(--bokeh-2),transparent_72%)] blur-2xl opacity-70" />
-                <div className="flex items-center gap-2.5">
-                  <span className="grid size-9 place-items-center rounded-xl bg-[var(--glass-bg-strong)]"><Sparkles className="size-4.5 text-[var(--color-gold-500)]" /></span>
-                  <div className="min-w-0 flex-1">
-                    <h2 className="text-strong text-sm font-medium">Ren · your finance assistant</h2>
-                    <p className="text-muted text-xs">Say what you spent, or ask anything — by text or voice.</p>
-                  </div>
-                </div>
-                <button type="button" onClick={() => setRenOpen(true)} className="mt-4 flex w-full items-center gap-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] py-2.5 ps-4 pe-2 text-start transition-colors hover:border-[var(--focus-ring)]/50">
-                  <span className="text-muted min-w-0 flex-1 truncate text-sm">Spent 500 on groceries · How much can I spend?</span>
-                  <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[var(--glass-bg-strong)] text-[var(--color-gold-500)]"><Mic className="size-4" /></span>
-                </button>
-              </GlassCard>
-            </StaggerItem>
-
-            <StaggerItem>
               <SpendingBreakdown transactions={txAll.data} currency={currency} />
             </StaggerItem>
 
@@ -314,14 +291,6 @@ export function Dashboard({ name }: { name: string }) {
       <AnimatedModal open={modalOpen} onClose={() => setModalOpen(false)} title="Add transaction">
         <TransactionForm defaultCurrency={currency} submitting={submitting} onSubmit={async (i) => { if (await addTransaction(i)) setModalOpen(false); }} onCancel={() => setModalOpen(false)} />
       </AnimatedModal>
-
-      <RenChat
-        open={renOpen}
-        onClose={() => setRenOpen(false)}
-        uid={txAll.uid}
-        ctx={{ transactions: txAll.data, netWorth, monthlySubs: recurring.monthly, activeSubs: recurring.count, upcomingBillsTotal: comingTotal, currency }}
-      />
-
     </div>
   );
 }

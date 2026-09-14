@@ -12,6 +12,7 @@ import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
+import { SpendingRing } from "@/components/finance/SpendingRing";
 import { subscriptionTotals } from "@/lib/accounts";
 import { monthRange } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
@@ -191,9 +192,11 @@ export function AnalyticsView() {
           <GlassCard padded>
             <h2 className="text-strong mb-4 text-sm font-medium">Spending by category</h2>
             {byCategory.length === 0 ? (
-              <EmptyState compact icon={BarChart3} title="No spending yet this month" />
+              <EmptyState compact icon={BarChart3} title={`No spending recorded for ${monthYearFmt.format(ref)}`} />
             ) : (
-              <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-5">
+                <SpendingRing rows={byCategory} currency={currency} />
+                <div className="flex flex-col gap-3">
                 {byCategory.map((d, i) => {
                   const meta = resolve(d.category);
                   const Icon = meta.icon;
@@ -207,6 +210,7 @@ export function AnalyticsView() {
                     </div>
                   );
                 })}
+                </div>
               </div>
             )}
           </GlassCard>

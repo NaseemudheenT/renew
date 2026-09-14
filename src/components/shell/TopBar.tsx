@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { PanelLeft } from "lucide-react";
 import { RenewMark } from "@/components/brand/RenewMark";
+import { MobileMenu } from "./MobileMenu";
 import { toggleSidebar } from "./sidebar-store";
 import { NotificationBell } from "./NotificationBell";
 import { GlobalSearch } from "./GlobalSearch";
@@ -42,6 +43,7 @@ export function TopBar({ user }: { user: ShellUser }) {
           className="hidden size-9 shrink-0 place-items-center rounded-full text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)] lg:grid">
           <PanelLeft className="size-5" />
         </button>
+        <MobileMenu user={user} />
         <Link href="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Renew home">
           <RenewMark size={30} />
         </Link>

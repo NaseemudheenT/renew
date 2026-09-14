@@ -75,24 +75,34 @@ function initialOf(row: OwnerUserRow): string {
 const REFRESH_MS = 30_000; // Live refresh cadence while the tab is visible.
 
 /**
- * Step-up security for the owner console. Even though the server already gates
- * /owner to the single owner email, this requires the owner to re-verify with
- * their passcode or Face ID before any user data is shown — a second lock on the
- * most sensitive screen. Verification lasts the browser session.
+ * Step-up security for the owner console — the most sensitive screen. On top of
+ * the server-side owner-email gate, the owner must clear BOTH factors before any
+ * user data shows: their passcode AND Face ID (in sequence). If only one factor
+ * is set up, that one is required. Verification lasts the browser session.
  */
 function OwnerSecurityGate({ onUnlock }: { onUnlock: () => void }) {
   const { profile } = useUserProfile();
   const security = profile?.security ?? null;
+  const hasPin = !!security && !security.faceOnly;
+  const bio = !!(security?.biometricEnabled || security?.faceOnly) && isPasskeySupported();
+
+  const [stage, setStage] = useState<"pin" | "face">(hasPin ? "pin" : "face");
   const [entry, setEntry] = useState("");
   const [shake, setShake] = useState(0);
   const [bioBusy, setBioBusy] = useState(false);
 
+  // Passcode is factor one. Clear it, then require Face ID if it's set up.
   const verify = useCallback(async (code: string) => {
     if (!security) return;
-    if (await verifyPasscode(code, security)) { onUnlock(); return; }
+    if (await verifyPasscode(code, security)) {
+      if (bio) { setStage("face"); setEntry(""); return; }
+      onUnlock();
+      return;
+    }
     setEntry(""); setShake((s) => s + 1);
-  }, [security, onUnlock]);
+  }, [security, bio, onUnlock]);
 
+  // Face ID is factor two (or the only factor when there's no passcode).
   async function faceId() {
     setBioBusy(true);
     try { await signInWithPasskey(); onUnlock(); }
@@ -100,21 +110,30 @@ function OwnerSecurityGate({ onUnlock }: { onUnlock: () => void }) {
     finally { setBioBusy(false); }
   }
 
-  const bio = (security?.biometricEnabled || security?.faceOnly) && isPasskeySupported();
+  const twoFactor = hasPin && bio;
 
   return (
     <div className="mx-auto flex max-w-sm flex-col items-center px-6 py-16 text-center">
       <RenewMark size={48} idSuffix="ownergate" />
       <h1 className="text-strong mt-6 text-lg font-medium">Owner verification</h1>
-      <p className="text-muted mt-1 text-sm">Confirm it&apos;s you to open the console.</p>
-      {security && !security.faceOnly && (
+      <p className="text-muted mt-1 text-sm">
+        {twoFactor ? (stage === "pin" ? "Step 1 of 2 — enter your passcode." : "Step 2 of 2 — confirm with Face ID.") : "Confirm it's you to open the console."}
+      </p>
+
+      {stage === "pin" && hasPin && (
         <div className="mt-8"><PinPad value={entry} onChange={setEntry} onComplete={(c) => void verify(c)} shakeSignal={shake} /></div>
       )}
-      {bio && (
-        <button type="button" onClick={faceId} disabled={bioBusy} className="text-body mt-8 inline-flex items-center gap-2 text-sm font-medium disabled:opacity-50">
-          <Fingerprint className="size-5 text-[var(--color-gold-500)]" />{bioBusy ? "Verifying…" : "Use Face ID"}
+
+      {stage === "face" && bio && (
+        <button type="button" onClick={faceId} disabled={bioBusy}
+          className="mt-10 grid size-24 place-items-center rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] transition-all active:scale-95 disabled:opacity-50">
+          <Fingerprint className="size-11 text-[var(--color-gold-500)]" />
         </button>
       )}
+      {stage === "face" && bio && (
+        <p className="text-muted mt-4 text-sm">{bioBusy ? "Verifying…" : "Tap to confirm with Face ID"}</p>
+      )}
+
       {!security && (
         <p className="text-muted mt-8 max-w-xs text-xs">Set a passcode in Settings › Security to lock this console.</p>
       )}
