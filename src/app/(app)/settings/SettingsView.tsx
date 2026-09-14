@@ -29,6 +29,8 @@ import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
 import { isPasskeySupported } from "@/lib/auth/passkey-client";
 import { speechOutputSupported } from "@/lib/voice";
 import { RETENTION_OPTIONS } from "@/lib/retention";
+import { APP_UPDATE_NAME } from "@/lib/setup-version";
+import { RenewMark } from "@/components/brand/RenewMark";
 import { RenChat } from "@/components/finance/RenChat";
 import { useRenContext } from "@/hooks/useRenContext";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
@@ -49,16 +51,18 @@ export function SettingsView() {
   const [active, setActive] = useState<string | null>(null);
 
   // Each category is a row you tap into (Apple-style), never everything at once.
+  // `tone` gives each a distinct coloured icon tile, like iOS Settings.
   const categories = [
-    { id: "account", icon: Briefcase, title: "How you use Renew", sub: "Personal or business", render: () => (uid ? <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} /> : null) },
-    { id: "ren", icon: Sparkles, title: "Ren", sub: "Your assistant — voice, speed & style", render: () => (uid ? <RenControl uid={uid} /> : null) },
-    { id: "appearance", icon: Palette, title: "Appearance", sub: "Light or dark theme", render: () => <AppearanceControl /> },
-    { id: "region", icon: Globe, title: t("settings.region.title"), sub: "Language, region & currency", render: () => (uid ? <RegionLanguageControl uid={uid} /> : null) },
-    { id: "notifications", icon: Bell, title: "Notifications", sub: "Reminders and nudges", render: () => <>{uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}<BrowserNotifyControl /></> },
-    { id: "billing", icon: CreditCard, title: "Plan & billing", sub: "Free & Premium", render: () => <PlanControl /> },
-    { id: "data", icon: Database, title: "Data", sub: "Import, export & delete", render: () => <DataControl /> },
-    { id: "accessibility", icon: Accessibility, title: "Accessibility", sub: "Text, contrast, motion & more", render: () => <AccessibilityControl /> },
-    { id: "security", icon: ShieldCheck, title: "Security", sub: "Sign out & delete account", render: () => <SecurityControl /> },
+    { id: "account", icon: Briefcase, tone: "#5b6cff", title: "How you use Renew", sub: "Personal or business", render: () => (uid ? <AccountTypeControl uid={uid} current={profile?.accountType ?? "personal"} /> : null) },
+    { id: "ren", icon: Sparkles, tone: "#a15cff", title: "Ren", sub: "Your assistant — voice & spoken replies", render: () => (uid ? <RenControl uid={uid} /> : null) },
+    { id: "appearance", icon: Palette, tone: "#f5a623", title: "Appearance", sub: "Light or dark theme", render: () => <AppearanceControl /> },
+    { id: "region", icon: Globe, tone: "#14b8a6", title: t("settings.region.title"), sub: "Language, region & currency", render: () => (uid ? <RegionLanguageControl uid={uid} /> : null) },
+    { id: "notifications", icon: Bell, tone: "#ff5e8a", title: "Notifications", sub: "Reminders and nudges", render: () => <>{uid && <NotificationPrefsControl uid={uid} prefs={{ ...DEFAULT_NOTIFICATION_PREFS, ...(profile?.notificationPrefs ?? {}) }} />}<BrowserNotifyControl /></> },
+    { id: "billing", icon: CreditCard, tone: "#d4a24a", title: "Plan & billing", sub: "Free & Premium", render: () => <PlanControl /> },
+    { id: "data", icon: Database, tone: "#4a7bff", title: "Data", sub: "Import, export & delete", render: () => <DataControl /> },
+    { id: "accessibility", icon: Accessibility, tone: "#34c759", title: "Accessibility", sub: "Text, contrast, motion & more", render: () => <AccessibilityControl /> },
+    { id: "security", icon: ShieldCheck, tone: "#8a8f98", title: "Security", sub: "Sign out & delete account", render: () => <SecurityControl /> },
+    { id: "software", icon: Download, tone: "#0aa3ff", title: "Software update", sub: `Renew · ${APP_UPDATE_NAME}`, render: () => <SoftwareUpdateControl /> },
   ] as const;
 
   // Deep links like /settings#billing open that category directly.
@@ -79,7 +83,7 @@ export function SettingsView() {
           <ChevronLeft className="size-4" />{t("settings.title")}
         </button>
         <div className="flex items-center gap-2.5 px-1">
-          <Icon className="size-5 text-[var(--color-gold-500)]" />
+          <span className="grid size-8 shrink-0 place-items-center rounded-[0.65rem] shadow-sm" style={{ background: current.tone }}><Icon className="size-4.5 text-white" /></span>
           <h1 className="text-strong text-xl font-medium">{current.title}</h1>
         </div>
         <GlassCard padded>
@@ -121,7 +125,7 @@ export function SettingsView() {
           const Icon = c.icon;
           return (
             <button key={c.id} type="button" onClick={() => setActive(c.id)} className="flex items-center gap-4 p-4 text-left transition-colors hover:bg-[var(--glass-bg-soft)]">
-              <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-soft)]"><Icon className="size-4.5 text-[var(--color-gold-500)]" /></span>
+              <span className="grid size-9 shrink-0 place-items-center rounded-[0.7rem] shadow-sm" style={{ background: c.tone }}><Icon className="size-4.5 text-white" /></span>
               <span className="min-w-0 flex-1">
                 <span className="text-strong block text-sm font-medium">{c.title}</span>
                 <span className="text-muted block truncate text-xs">{c.sub}</span>
@@ -137,6 +141,56 @@ export function SettingsView() {
         <span aria-hidden="true">·</span>
         <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
       </footer>
+    </div>
+  );
+}
+
+function SoftwareUpdateControl() {
+  const [checking, setChecking] = useState(false);
+  const whatsNew = [
+    "Apple-style setup — with Meet Ren and Accessibility steps",
+    "Cleaner phone layout, swipe-to-dismiss sheets, coloured icons",
+    "Ren: clearer voice that no longer cuts off, professional replies",
+    "Your real name and avatar everywhere",
+  ];
+  async function check() {
+    setChecking(true);
+    try {
+      const reg = typeof navigator !== "undefined" && "serviceWorker" in navigator
+        ? await navigator.serviceWorker.getRegistration()
+        : null;
+      await reg?.update();
+      toast({ title: "Renew is up to date", description: `You're on ${APP_UPDATE_NAME}.`, variant: "success" });
+    } catch {
+      toast({ title: "Couldn't check right now", variant: "error" });
+    } finally {
+      setChecking(false);
+    }
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-5 text-center">
+        <RenewMark size={44} idSuffix="update" />
+        <div>
+          <p className="text-strong text-base font-medium">Renew</p>
+          <p className="text-muted text-sm">Version {APP_UPDATE_NAME}</p>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/12 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
+          <Check className="size-3.5" strokeWidth={3} />Renew is up to date
+        </span>
+        <p className="text-muted max-w-xs text-xs">Renew updates itself automatically — new versions install the next time you open it. No download needed.</p>
+      </div>
+      <div>
+        <p className="text-body mb-2 text-sm font-medium">What&apos;s new in {APP_UPDATE_NAME}</p>
+        <ul className="flex flex-col gap-1.5">
+          {whatsNew.map((w) => (
+            <li key={w} className="text-body flex items-start gap-2 text-sm">
+              <Check className="mt-0.5 size-4 shrink-0 text-[var(--color-gold-500)]" strokeWidth={3} />{w}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <AnimatedButton variant="glass" fullWidth loading={checking} onClick={check}>Check for updates</AnimatedButton>
     </div>
   );
 }

@@ -106,30 +106,30 @@ export function AccountView() {
 
       {/* Membership */}
       <Group title="Membership">
-        <Row icon={isPremiumPlan ? Crown : Sparkles} title="Plan & billing" desc={isPremiumPlan ? "You're on Renew Premium" : "Free plan · see Premium"} href="/settings#billing" />
-        <Row icon={RefreshCw} title="Subscriptions" desc={`${activeCount} active · renewals`} href="/payments#subscriptions" />
-        <Row icon={ReceiptText} title="Bills" desc="Upcoming and paid" href="/payments" />
+        <Row icon={isPremiumPlan ? Crown : Sparkles} tone="#d4a24a" title="Plan & billing" desc={isPremiumPlan ? "You're on Renew Premium" : "Free plan · see Premium"} href="/settings#billing" />
+        <Row icon={RefreshCw} tone="#5b6cff" title="Subscriptions" desc={`${activeCount} active · renewals`} href="/payments#subscriptions" />
+        <Row icon={ReceiptText} tone="#ff5e8a" title="Bills" desc="Upcoming and paid" href="/payments" />
       </Group>
 
       {/* Security & sign-in */}
       {passkeySupported && (
         <Group title="Security & sign-in">
-          <RowButton icon={Fingerprint} title="Add a passkey" desc="Unlock with Face ID or Touch ID" onClick={onAddPasskey} loading={addingPasskey} />
+          <RowButton icon={Fingerprint} tone="#34c759" title="Add a passkey" desc="Unlock with Face ID or Touch ID" onClick={onAddPasskey} loading={addingPasskey} />
         </Group>
       )}
 
       {/* Preferences */}
       <Group title="Preferences">
-        <Row icon={Globe} title="Language & region" desc="Currency, timezone, week start" href="/settings#region" />
-        <Row icon={Palette} title="Appearance" desc="Light or dark" href="/settings#appearance" />
-        <Row icon={Bell} title="Notifications" desc="Bills, budgets & savings alerts" href="/settings#notifications" />
-        <Row icon={Accessibility} title="Accessibility" desc="Text size, contrast, motion" href="/settings#accessibility" />
+        <Row icon={Globe} tone="#14b8a6" title="Language & region" desc="Currency, timezone, week start" href="/settings#region" />
+        <Row icon={Palette} tone="#f5a623" title="Appearance" desc="Light or dark" href="/settings#appearance" />
+        <Row icon={Bell} tone="#ff9f0a" title="Notifications" desc="Bills, budgets & savings alerts" href="/settings#notifications" />
+        <Row icon={Accessibility} tone="#34c759" title="Accessibility" desc="Text size, contrast, motion" href="/settings#accessibility" />
       </Group>
 
       {/* Data */}
       <Group title="Your data">
-        <Row icon={Upload} title="Add money data" desc="Scan a receipt or import a statement" href="/import" />
-        <Row icon={Database} title="Download & manage data" desc="Export or delete your data" href="/settings#data" />
+        <Row icon={Upload} tone="#4a7bff" title="Add money data" desc="Scan a receipt or import a statement" href="/import" />
+        <Row icon={Database} tone="#8a8f98" title="Download & manage data" desc="Export or delete your data" href="/settings#data" />
       </Group>
 
       <AnimatedButton variant="glass" fullWidth onClick={onSignOut}>
@@ -186,12 +186,12 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
 }
 
 const rowInner = "group flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--glass-bg-soft)]";
-const rowIcon = "grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-strong)]";
+const rowIcon = "grid size-9 shrink-0 place-items-center rounded-[0.7rem] shadow-sm";
 
-function Row({ icon: Icon, title, desc, href }: { icon: typeof Sparkles; title: string; desc: string; href: string }) {
+function Row({ icon: Icon, tone, title, desc, href }: { icon: typeof Sparkles; tone: string; title: string; desc: string; href: string }) {
   return (
     <Link href={href} className={rowInner}>
-      <span className={rowIcon}><Icon className="size-4.5 text-[var(--color-gold-500)]" /></span>
+      <span className={rowIcon} style={{ background: tone }}><Icon className="size-4.5 text-white" /></span>
       <span className="min-w-0 flex-1">
         <span className="text-strong block text-sm font-medium">{title}</span>
         <span className="text-muted block truncate text-xs">{desc}</span>
@@ -201,10 +201,10 @@ function Row({ icon: Icon, title, desc, href }: { icon: typeof Sparkles; title: 
   );
 }
 
-function RowButton({ icon: Icon, title, desc, onClick, loading }: { icon: typeof Sparkles; title: string; desc: string; onClick: () => void; loading?: boolean }) {
+function RowButton({ icon: Icon, tone, title, desc, onClick, loading }: { icon: typeof Sparkles; tone: string; title: string; desc: string; onClick: () => void; loading?: boolean }) {
   return (
     <button type="button" onClick={onClick} disabled={loading} className={cn(rowInner, "disabled:opacity-60")}>
-      <span className={rowIcon}><Icon className="size-4.5 text-[var(--color-gold-500)]" /></span>
+      <span className={rowIcon} style={{ background: tone }}><Icon className="size-4.5 text-white" /></span>
       <span className="min-w-0 flex-1">
         <span className="text-strong block text-sm font-medium">{loading ? "Setting up…" : title}</span>
         <span className="text-muted block truncate text-xs">{desc}</span>
