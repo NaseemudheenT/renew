@@ -2,11 +2,11 @@
 
 import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
-import { MobileNav } from "./MobileNav";
 import { TopBar } from "./TopBar";
 import { NotificationSync } from "./NotificationSync";
 import { RetentionCleanup } from "@/components/providers/RetentionCleanup";
 import { RenLauncher } from "@/components/finance/RenLauncher";
+import { QuickAddFab } from "@/components/finance/QuickAddFab";
 import { AppLock } from "@/components/security/AppLock";
 import { ReauthProvider } from "@/components/security/ReauthProvider";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
@@ -43,7 +43,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
                 {children}
               </main>
             </div>
-            <MobileNav />
+            <QuickAddFab />
             <RenLauncher />
             <AppLock />
           </PrivacyProvider>

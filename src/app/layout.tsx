@@ -23,12 +23,16 @@ const jost = Jost({
 
 const appUrl = publicEnv.appUrl;
 
+const googleVerification = (process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION ?? "").trim();
+
 export const metadata: Metadata = {
   metadataBase: new URL(appUrl),
   title: {
-    default: "Renew",
+    default: "Renew — your personal finance companion",
     template: "%s · Renew",
   },
+  alternates: { canonical: "/" },
+  ...(googleVerification ? { verification: { google: googleVerification } } : {}),
   description:
     "Renew is a calm, premium personal finance companion — see what you have, where it's going, and what's coming next. Accounts, transactions, budgets, savings, investments, bills and subscriptions in one private place.",
   applicationName: "Renew",

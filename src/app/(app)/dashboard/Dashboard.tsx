@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedButton, AnimatedModal, StaggerContainer, StaggerItem } from "@/components/motion";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { TransactionForm } from "@/components/finance/TransactionForm";
+import { NetWorthTrend } from "@/components/finance/NetWorthTrend";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
 import { Advisor } from "@/components/finance/Advisor";
 import { CashFlowForecast } from "@/components/finance/CashFlowForecast";
@@ -159,6 +160,7 @@ export function Dashboard({ name }: { name: string }) {
                 <div className="pointer-events-none absolute -bottom-16 -left-12 size-44 rounded-full bg-[radial-gradient(circle,var(--bokeh-3),transparent_72%)] blur-3xl opacity-70" />
                 <p className="text-muted text-sm">{isBusiness ? "Business net worth" : "Net worth"}</p>
                 <AnimatedAmount value={netWorth} currency={currency} className="mt-1 block bg-gradient-to-br from-[var(--text-strong)] to-[var(--text-body)] bg-clip-text text-4xl font-light tabular-nums text-transparent sm:text-5xl" />
+                <NetWorthTrend transactions={txAll.data} netWorth={netWorth} />
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <Mini label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
                   <Mini label={isBusiness ? "Expenses (mo)" : "This month out"} icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
