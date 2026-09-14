@@ -9,6 +9,7 @@ import { createTransaction, type TransactionInput } from "@/lib/firestore/transa
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { toast } from "@/components/ui/toast-store";
+import { haptic, HAPTIC_SUCCESS } from "@/lib/haptics";
 
 /**
  * Add money from anywhere — a phone-first floating button. Most people log an
@@ -27,6 +28,7 @@ export function QuickAddFab() {
     setSubmitting(true);
     try {
       await createTransaction(uid, input);
+      haptic(HAPTIC_SUCCESS);
       toast({ title: "Added", variant: "success" });
       return true;
     } catch {
@@ -41,7 +43,7 @@ export function QuickAddFab() {
     <>
       <motion.button
         type="button"
-        onClick={() => setOpen(true)}
+        onClick={() => { haptic(12); setOpen(true); }}
         aria-label="Add expense or income"
         className="fixed end-4 bottom-5 z-40 grid size-14 place-items-center rounded-full bg-gradient-to-br from-[var(--color-gold-300)] to-[var(--color-gold-500)] text-[var(--text-onGold)] lg:hidden"
         style={{ boxShadow: "0 12px 30px -8px var(--color-gold-500)" }}

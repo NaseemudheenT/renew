@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, useAnimationControls } from "framer-motion";
 import { Delete } from "lucide-react";
+import { haptic } from "@/lib/haptics";
 import { cn } from "@/lib/utils";
 
 const LENGTH = 4;
@@ -44,6 +45,7 @@ export function PinPad({
 
   function press(d: string) {
     if (value.length >= LENGTH) return;
+    haptic(8);
     const next = value + d;
     const idx = next.length - 1;
     setReveal(idx);
