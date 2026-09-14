@@ -21,7 +21,7 @@ export function RenLauncher() {
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Open Ren, your finance assistant"
-        className="fixed end-4 bottom-24 z-40 grid size-14 place-items-center rounded-full lg:bottom-6 lg:end-6"
+        className="fixed start-4 bottom-5 z-40 grid size-14 place-items-center rounded-full lg:bottom-6 lg:end-6 lg:start-auto"
         style={{ boxShadow: "0 10px 30px -6px var(--color-gold-500)" }}
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}

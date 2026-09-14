@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, useDragControls } from "framer-motion";
 import {
   useCallback,
   useEffect,
@@ -38,6 +38,7 @@ export function AnimatedModal({
 }: AnimatedModalProps) {
   const reduced = useReducedMotion();
   const isMobile = useIsMobile();
+  const dragControls = useDragControls();
   const panelRef = useRef<HTMLDivElement>(null);
   const lastFocused = useRef<HTMLElement | null>(null);
   const labelId = useId();
@@ -126,9 +127,21 @@ export function AnimatedModal({
             initial="hidden"
             animate="show"
             exit="exit"
+            // Swipe the sheet down (from the grab handle) to dismiss — native
+            // feel, and drag starts ONLY on the handle so content still scrolls.
+            drag={isMobile && dismissible ? "y" : false}
+            dragListener={false}
+            dragControls={dragControls}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.6 }}
+            onDragEnd={(_e, info) => { if (info.offset.y > 120 || info.velocity.y > 500) close(); }}
           >
-            {/* Grab handle — the native-sheet affordance (mobile only). */}
-            <div className="mx-auto mb-3 h-1.5 w-10 rounded-full bg-[var(--text-muted)]/30 sm:hidden" aria-hidden="true" />
+            {/* Grab handle — drag it down to dismiss (mobile only). */}
+            <div
+              className="mx-auto mb-3 h-1.5 w-10 shrink-0 touch-none rounded-full bg-[var(--text-muted)]/30 sm:hidden"
+              onPointerDown={(e) => { if (isMobile && dismissible) dragControls.start(e); }}
+              aria-hidden="true"
+            />
             {!hideClose && dismissible && (
               <button
                 type="button"

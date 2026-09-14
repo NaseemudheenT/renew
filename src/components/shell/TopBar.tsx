@@ -2,14 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import Link from "next/link";
 import { PanelLeft } from "lucide-react";
-import { RenewMark } from "@/components/brand/RenewMark";
 import { MobileMenu } from "./MobileMenu";
 import { toggleSidebar } from "./sidebar-store";
 import { NotificationBell } from "./NotificationBell";
 import { InstallRenew } from "@/components/pwa/InstallRenew";
-import { AccountMenu } from "./AccountMenu";
 import { WorkspaceSwitch } from "./WorkspaceSwitch";
 import type { ShellUser } from "./shell-types";
 import { titleKeyForPath } from "@/lib/nav";
@@ -43,18 +40,14 @@ export function TopBar({ user }: { user: ShellUser }) {
           <PanelLeft className="size-5" />
         </button>
         <MobileMenu user={user} />
-        <Link href="/dashboard" className="flex items-center gap-2 lg:hidden" aria-label="Renew home">
-          <RenewMark size={30} />
-        </Link>
-        <h1 className="text-strong hidden text-lg font-medium lg:block">{title}</h1>
+        {/* Brand + account live in the menu panel (and desktop sidebar), so the
+            top bar just shows the current page — no duplicate logo/avatar. */}
+        <h1 className="text-strong truncate text-lg font-medium">{title}</h1>
         <WorkspaceSwitch />
       </div>
       <div className="flex items-center gap-2 sm:gap-3">
         <InstallRenew />
         <NotificationBell />
-        <div className="lg:hidden">
-          <AccountMenu user={user} />
-        </div>
       </div>
     </header>
   );

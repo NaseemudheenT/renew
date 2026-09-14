@@ -44,6 +44,10 @@ export function MobileMenu({ user }: { user: ShellUser }) {
               className="glass fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col !rounded-none !rounded-e-glass-lg p-4 lg:hidden"
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 38 }}
+              drag="x"
+              dragConstraints={{ left: 0, right: 0 }}
+              dragElastic={{ left: 0.6, right: 0 }}
+              onDragEnd={(_e, info) => { if (info.offset.x < -70 || info.velocity.x < -500) setOpen(false); }}
               role="dialog" aria-label="Menu"
             >
               <div className="mb-6 flex items-center justify-between">
