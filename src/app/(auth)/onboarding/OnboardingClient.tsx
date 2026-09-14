@@ -5,10 +5,11 @@ import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
   Wallet, AlertCircle, Check,
-  Bell, ShieldCheck, ArrowRight, Lock, Fingerprint,
+  Bell, ShieldCheck, ArrowRight, Lock, Fingerprint, Accessibility, Volume2,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { RenewMark } from "@/components/brand/RenewMark";
+import { RenLogo } from "@/components/brand/RenLogo";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
@@ -20,7 +21,8 @@ import { PinPad } from "@/components/security/PinPad";
 import { requestBrowserNotify } from "@/lib/notify";
 import { registerPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
 import { makePasscodeRecord, faceOnlyRecord } from "@/lib/security/passcode";
-import { setSecurity } from "@/lib/firestore/profile";
+import { setSecurity, updateRenPrefs } from "@/lib/firestore/profile";
+import { setTextSize, setReduceMotion, type TextSize } from "@/lib/a11y";
 import { setActiveWorkspace } from "@/lib/workspace";
 import { AVATARS } from "@/lib/avatars";
 import {
@@ -39,7 +41,7 @@ const slide = {
   transition: { duration: 0.32, ease: [0.22, 1, 0.36, 1] as const },
 };
 
-const STEPS = 5;
+const STEPS = 7;
 
 export function OnboardingClient({ uid, defaultName }: { uid: string; defaultName: string }) {
   const detected = useMemo(() => detectPrefs(), []);
@@ -57,6 +59,10 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   // we no longer ask at setup. Personal is just the initial active workspace.
   const accountType: AccountType = "personal";
   const [avatar, setAvatar] = useState<string>(AVATARS[0]!.id);
+  // Ren + Accessibility (Apple-style setup captures these once).
+  const [renAutoSpeak, setRenAutoSpeak] = useState(true);
+  const [textSize, setTextSizeState] = useState<TextSize>("normal");
+  const [reduceMotion, setReduceMotionState] = useState(false);
   // Security — MANDATORY. Either a 4-digit passcode or Face ID only.
   const [lockMethod, setLockMethod] = useState<LockMethod>("pin");
   const [pin, setPin] = useState("");
@@ -107,8 +113,8 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
     switch (s) {
       case 0: return name.trim().length > 0;
       case 1: return Boolean(region && currency && language);
-      case 3: return lockReady;
-      case 4: return acceptedLegal;
+      case 5: return lockReady;
+      case 6: return acceptedLegal;
       default: return true;
     }
   }
@@ -116,7 +122,7 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   function next() {
     if (step === 0 && !name.trim()) return setError("Please tell us your name.");
     if (step === 1 && !stepValid(1)) return setError("Please choose your language, region and currency.");
-    if (step === 3 && !lockReady) return setError(lockMethod === "pin" ? "Please set and confirm your 4-digit passcode." : "Please set up Face ID to continue.");
+    if (step === 5 && !lockReady) return setError(lockMethod === "pin" ? "Please set and confirm your 4-digit passcode." : "Please set up Face ID to continue.");
     if (!stepValid(step)) return;
     setError(null);
     setStep((s) => Math.min(s + 1, STEPS - 1));
@@ -125,9 +131,11 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   async function finish() {
     setError(null);
     if (!acceptedLegal) return setError("Please accept the Privacy Policy and Terms to continue.");
-    if (!lockReady) { setStep(3); return setError("Please set your passcode or Face ID — it's required."); }
+    if (!lockReady) { setStep(5); return setError("Please set your passcode or Face ID — it's required."); }
     setSubmitting(true);
     try {
+      // Save the Ren voice preference chosen in setup (non-blocking).
+      updateRenPrefs(uid, { renAutoSpeak }).catch(() => {});
       // Save the mandatory app lock FIRST — it's required, so a failure here must
       // stop us (the raw PIN is hashed on-device and never leaves the browser).
       const record = lockMethod === "pin"
@@ -232,7 +240,43 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
         )}
 
         {step === 3 && (
-          <motion.div key="s3" {...slide}>
+          <motion.div key="s3ren" {...slide}>
+            <div className="flex flex-col items-center text-center">
+              <RenLogo size={64} idSuffix="setup" />
+              <h1 className="text-strong mt-4 text-xl font-medium">Meet Ren</h1>
+              <p className="text-muted mt-1 max-w-sm text-sm">Ren is your finance assistant. Tap the orb anywhere and just talk — say &ldquo;Hey Ren&rdquo; and ask about your money, or add an expense by voice. Ren answers from your own data, privately.</p>
+            </div>
+            <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
+              <span className="text-strong flex items-center gap-2 text-sm font-medium"><Volume2 className="size-4.5 text-[var(--color-gold-500)]" />Speak answers aloud</span>
+              <Switch checked={renAutoSpeak} onChange={setRenAutoSpeak} label="Speak answers aloud" />
+            </div>
+          </motion.div>
+        )}
+
+        {step === 4 && (
+          <motion.div key="s4a11y" {...slide}>
+            <StepHead icon={Accessibility} title="Comfortable to use" sub="Set how Renew looks and moves — you can fine-tune more in Settings › Accessibility anytime." />
+            <div className="mt-6">
+              <p className="text-body mb-2 text-sm font-medium">Text size</p>
+              <div className="inline-flex rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
+                {([["normal", "Default"], ["large", "Large"], ["larger", "Larger"]] as [TextSize, string][]).map(([val, lbl]) => (
+                  <button key={val} type="button" onClick={() => { setTextSizeState(val); setTextSize(val); }} aria-pressed={textSize === val}
+                    className={cn("rounded-full px-4 py-1.5 transition-colors", textSize === val ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-muted)]")}>{lbl}</button>
+                ))}
+              </div>
+            </div>
+            <div className="mt-5 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
+              <span className="min-w-0">
+                <span className="text-body block text-sm font-medium">Reduce motion</span>
+                <span className="text-muted block text-xs">Calmer transitions and animations.</span>
+              </span>
+              <Switch checked={reduceMotion} onChange={(on) => { setReduceMotionState(on); setReduceMotion(on); }} label="Reduce motion" />
+            </div>
+          </motion.div>
+        )}
+
+        {step === 5 && (
+          <motion.div key="s5" {...slide}>
             <StepHead icon={Lock} title="Lock Renew" sub="A passcode is asked every time you open Renew — a private lock over your money. This step is required; you can change it later in Settings." />
 
             {/* Method choice */}
@@ -276,8 +320,8 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
           </motion.div>
         )}
 
-        {step === 4 && (
-          <motion.div key="s4" {...slide}>
+        {step === 6 && (
+          <motion.div key="s6" {...slide}>
             <StepHead icon={Bell} title="Stay in the loop, privately" sub="A couple of choices — you're always in control." />
             <div className="mt-6 flex items-center justify-between rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3">
               <span className="min-w-0">
