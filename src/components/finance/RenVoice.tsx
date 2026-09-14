@@ -99,16 +99,22 @@ export function RenVoice({
   useEffect(() => {
     if (!open) { stopMic(); stopSpeaking(); return; }
     historyRef.current = [];
+    // Where the browser can't listen (e.g. iPhone Safari/PWA have no Web Speech
+    // recognition), go straight to typing so Ren always works. Otherwise start a
+    // Siri-style listening moment once the sheet settles.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setTyping(false);
-    const t = setTimeout(() => startListening(), 300); // let the sheet settle first
+    setTyping(!voiceIn); // no-voice devices (e.g. iPhone) go straight to typing
+    if (!voiceIn) return;
+    const t = setTimeout(() => startListening(), 300);
     return () => { clearTimeout(t); stopMic(); stopSpeaking(); };
-  }, [open, startListening, stopMic]);
+  }, [open, voiceIn, startListening, stopMic]);
 
   useEffect(() => { if (typing) inputRef.current?.focus(); }, [typing]);
 
-  // Tapping the orb is the whole control: talk / stop.
+  // Tapping the orb is the whole control: talk / stop (or focus the field where
+  // there's no voice recognition).
   function tapOrb() {
+    if (!voiceIn) { inputRef.current?.focus(); return; }
     if (phase === "listening") { stopMic(); setPhase("idle"); return; }
     if (phase === "speaking") { stopSpeaking(); setPhase("idle"); return; }
     if (typing) setTyping(false);
@@ -119,7 +125,7 @@ export function RenVoice({
     phase === "listening" ? "Listening…" :
     phase === "thinking" ? "Thinking…" :
     phase === "speaking" ? "Ren" :
-    reply ? "Ren" : "Tap to speak";
+    reply ? "Ren" : voiceIn ? "Tap to speak" : "Type to Ren";
 
   const firstName = (profile?.displayName ?? "").trim().split(/\s+/)[0] ?? "";
   const greeting = firstName ? `Hi ${firstName}, I’m Ren.` : "Hi, I’m Ren.";

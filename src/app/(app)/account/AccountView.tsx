@@ -1,68 +1,47 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   RefreshCw, ReceiptText, Sparkles, Fingerprint,
   Globe, Palette, Bell, Accessibility, Upload, Database,
-  ChevronRight, LogOut, Crown,
+  ChevronRight, LogOut, Crown, Pencil, Check,
 } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { Avatar } from "@/components/shell/Avatar";
 import { Input } from "@/components/ui/Input";
-import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
-import { AnimatedButton } from "@/components/motion";
+import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
 import { AVATARS } from "@/lib/avatars";
 import { updateDisplayName, updateAvatar } from "@/lib/firestore/profile";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
-import { useLocale } from "@/components/providers/LocaleProvider";
-import { subscriptionTotals } from "@/lib/accounts";
 import { signOutUser, AuthError } from "@/lib/auth/client";
 import { registerPasskey, usePasskeySupport } from "@/lib/auth/passkey-client";
 import type { Subscription } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 /**
- * "Your Renew Account" — one premium, branded home for the whole account:
- * identity, plan, subscriptions and security at a glance, with calm routes into
- * every management area. Passwordless by design (Google / Passkey / QR). Real
- * data only; deeper controls live on their own pages, linked from here.
+ * "Your Renew Account" — a clean, Apple-style profile: a centred identity with
+ * edit-in-a-sheet, then calm iOS-grouped lists into every management area. Only
+ * the essentials live here; deeper controls are on their own pages. Passwordless
+ * by design. Real data only.
  */
 export function AccountView() {
   const router = useRouter();
   const { user } = useAuth();
   const { profile, uid } = useUserProfile();
   const isPremiumPlan = profile?.plan === "premium";
-  const { prefs } = useLocale();
   const { data: subs } = useScopedUserCollection<Subscription>("subscriptions");
   const passkeySupported = usePasskeySupport();
   const [addingPasskey, setAddingPasskey] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState(user?.displayName ?? "");
   const [savingName, setSavingName] = useState(false);
-  const dirtyName = name.trim().length > 0 && name.trim() !== (user?.displayName ?? "").trim();
 
-  async function saveName() {
-    if (!uid || !dirtyName) return;
-    setSavingName(true);
-    try {
-      await updateDisplayName(uid, name.trim());
-      toast({ title: "Profile updated", variant: "success" });
-      router.refresh();
-    } catch {
-      toast({ title: "Couldn't save", variant: "error" });
-    } finally {
-      setSavingName(false);
-    }
-  }
-  async function pickAvatar(id: string) {
-    if (!uid) return;
-    try { await updateAvatar(uid, id); } catch { toast({ title: "Couldn't update", variant: "error" }); }
-  }
-
+  const activeCount = subs.filter((s) => s.status === "active").length;
   const shellUser = {
     uid: user?.uid ?? "",
     email: user?.email ?? null,
@@ -70,21 +49,31 @@ export function AccountView() {
     photoURL: user?.photoURL ?? null,
   };
 
-  const active = useMemo(() => subs.filter((s) => s.status === "active"), [subs]);
-  const totals = useMemo(() => subscriptionTotals(subs, prefs.currency), [subs, prefs.currency]);
-  const nextUp = useMemo(() => {
-    const upcoming = active
-      .filter((s) => Number.isFinite(s.nextBillingAt))
-      .sort((a, b) => a.nextBillingAt - b.nextBillingAt);
-    return upcoming[0] ?? null;
-  }, [active]);
-
+  async function saveProfile() {
+    const trimmed = name.trim();
+    if (uid && trimmed && trimmed !== (user?.displayName ?? "").trim()) {
+      setSavingName(true);
+      try {
+        await updateDisplayName(uid, trimmed);
+        toast({ title: "Profile updated", variant: "success" });
+        router.refresh();
+      } catch {
+        toast({ title: "Couldn't save", variant: "error" });
+      } finally {
+        setSavingName(false);
+      }
+    }
+    setEditOpen(false);
+  }
+  function pickAvatar(id: string) {
+    if (!uid) return;
+    updateAvatar(uid, id).catch(() => toast({ title: "Couldn't update", variant: "error" }));
+  }
 
   async function onSignOut() {
     await signOutUser();
     router.replace("/sign-in");
   }
-
   async function onAddPasskey() {
     setAddingPasskey(true);
     try {
@@ -98,89 +87,49 @@ export function AccountView() {
   }
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      {/* Identity hero */}
-      <GlassCard padded>
-        <div className="flex items-center gap-4">
-          <Avatar user={shellUser} size={64} />
-          <div className="min-w-0 flex-1">
-            <h1 className="text-strong truncate text-xl font-semibold">{user?.displayName || "Your account"}</h1>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Chip icon={isPremiumPlan ? Crown : Sparkles} tone="gold">{isPremiumPlan ? "Premium" : "Free plan"}</Chip>
-            </div>
-          </div>
-        </div>
-      </GlassCard>
-
-      {/* Profile — name + avatar, in its own space (not buried in Settings) */}
-      <GlassCard padded>
-        <div className="flex items-end gap-3">
-          <Input label="Your name" value={name} onChange={(e) => setName(e.target.value)} />
-          <AnimatedButton onClick={saveName} loading={savingName} disabled={!dirtyName}>Save</AnimatedButton>
-        </div>
-        <p className="text-muted mb-2 mt-4 text-sm font-medium">Your look</p>
-        <div className="-mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1">
-          {AVATARS.map((a) => (
-            <button
-              key={a.id}
-              type="button"
-              onClick={() => pickAvatar(a.id)}
-              aria-label={a.id}
-              aria-pressed={profile?.avatar === a.id}
-              className={cn(
-                "size-10 shrink-0 rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all",
-                profile?.avatar === a.id ? "ring-[var(--focus-ring)]" : "ring-transparent hover:ring-[var(--field-border)]",
-              )}
-              style={{ background: a.css }}
-            />
-          ))}
-        </div>
-      </GlassCard>
-
-      {/* Quick stats */}
-      <div className="grid grid-cols-3 gap-3">
-        <Stat label="Subscriptions" value={String(active.length)} hint="active" />
-        <Stat
-          label="Monthly on subs"
-          value={<AnimatedAmount value={totals.monthly} currency={prefs.currency} />}
-          hint="active plans"
-        />
-        <Stat
-          label="Next renewal"
-          value={nextUp ? relativeDays(nextUp.nextBillingAt) : "—"}
-          hint={nextUp ? nextUp.name : "nothing due"}
-        />
+    <div className="mx-auto flex max-w-2xl flex-col gap-6">
+      {/* Identity — centred, tap to edit (Apple-style) */}
+      <div className="flex flex-col items-center pt-3 text-center">
+        <button type="button" onClick={() => { setName(user?.displayName ?? ""); setEditOpen(true); }} aria-label="Edit profile" className="relative rounded-full outline-none transition-transform active:scale-95">
+          <Avatar user={shellUser} size={92} />
+          <span className="absolute -bottom-0.5 -right-0.5 grid size-7 place-items-center rounded-full bg-[var(--glass-bg-strong)] text-[var(--text-strong)] shadow ring-2 ring-[var(--bg-base)]">
+            <Pencil className="size-3.5" />
+          </span>
+        </button>
+        <h1 className="text-strong mt-4 text-2xl font-semibold">{user?.displayName || "Your account"}</h1>
+        <span className={cn("mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", isPremiumPlan ? "bg-[var(--color-gold-500)]/12 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--text-body)]")}>
+          {isPremiumPlan ? <Crown className="size-3.5" /> : <Sparkles className="size-3.5" />}{isPremiumPlan ? "Premium" : "Free plan"}
+        </span>
       </div>
 
       {/* Membership */}
       <Group title="Membership">
-        <Row icon={isPremiumPlan ? Crown : Sparkles} title="Plan & billing" desc={isPremiumPlan ? "You're on Renew Premium" : "You're on the free plan"} href="/settings#billing" />
-        <Row icon={RefreshCw} title="Subscriptions" desc={`${active.length} active · manage & track renewals`} href="/payments#subscriptions" />
-        <Row icon={ReceiptText} title="Bills" desc="Upcoming and paid bills" href="/payments" />
+        <Row icon={isPremiumPlan ? Crown : Sparkles} title="Plan & billing" desc={isPremiumPlan ? "You're on Renew Premium" : "Free plan · see Premium"} href="/settings#billing" />
+        <Row icon={RefreshCw} title="Subscriptions" desc={`${activeCount} active · renewals`} href="/payments#subscriptions" />
+        <Row icon={ReceiptText} title="Bills" desc="Upcoming and paid" href="/payments" />
       </Group>
 
       {/* Security & sign-in */}
       {passkeySupported && (
         <Group title="Security & sign-in">
-          <RowButton icon={Fingerprint} title="Add a passkey" desc="Sign in instantly with Face ID or Touch ID" onClick={onAddPasskey} loading={addingPasskey} />
+          <RowButton icon={Fingerprint} title="Add a passkey" desc="Unlock with Face ID or Touch ID" onClick={onAddPasskey} loading={addingPasskey} />
         </Group>
       )}
 
       {/* Preferences */}
       <Group title="Preferences">
         <Row icon={Globe} title="Language & region" desc="Currency, timezone, week start" href="/settings#region" />
-        <Row icon={Palette} title="Appearance" desc="Light or dark world" href="/settings#appearance" />
-        <Row icon={Bell} title="Notifications" desc="Bills, budgets and savings alerts" href="/settings#notifications" />
+        <Row icon={Palette} title="Appearance" desc="Light or dark" href="/settings#appearance" />
+        <Row icon={Bell} title="Notifications" desc="Bills, budgets & savings alerts" href="/settings#notifications" />
         <Row icon={Accessibility} title="Accessibility" desc="Text size, contrast, motion" href="/settings#accessibility" />
       </Group>
 
       {/* Data */}
       <Group title="Your data">
         <Row icon={Upload} title="Add money data" desc="Scan a receipt or import a statement" href="/import" />
-        <Row icon={Database} title="Download & manage data" desc="Your private copy — export or delete" href="/settings#data" />
+        <Row icon={Database} title="Download & manage data" desc="Export or delete your data" href="/settings#data" />
       </Group>
 
-      {/* Sign out */}
       <AnimatedButton variant="glass" fullWidth onClick={onSignOut}>
         <LogOut className="size-4" /> Sign out
       </AnimatedButton>
@@ -190,34 +139,35 @@ export function AccountView() {
         <span aria-hidden="true">·</span>
         <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
       </footer>
+
+      {/* Edit profile sheet */}
+      <AnimatedModal open={editOpen} onClose={() => setEditOpen(false)} title="Edit profile">
+        <div className="flex flex-col gap-5">
+          <div className="flex justify-center">
+            <Avatar user={{ ...shellUser, displayName: name || shellUser.displayName }} size={72} />
+          </div>
+          <Input label="Your name" value={name} autoFocus onChange={(e) => setName(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") void saveProfile(); }} placeholder="e.g. Alex" />
+          <div>
+            <p className="text-body mb-2 text-sm font-medium">Your look</p>
+            <div className="grid grid-cols-8 gap-2.5">
+              {AVATARS.map((a) => (
+                <button key={a.id} type="button" onClick={() => pickAvatar(a.id)} aria-label={a.id} aria-pressed={profile?.avatar === a.id}
+                  className={cn("relative grid aspect-square place-items-center rounded-full ring-2 ring-offset-2 ring-offset-[var(--bg-base)] transition-all active:scale-90",
+                    profile?.avatar === a.id ? "ring-[var(--focus-ring)]" : "ring-transparent hover:ring-[var(--field-border)]")}
+                  style={{ background: a.css }}>
+                  {profile?.avatar === a.id && <Check className="size-4 text-white drop-shadow" strokeWidth={3} />}
+                </button>
+              ))}
+            </div>
+          </div>
+          <AnimatedButton size="lg" fullWidth loading={savingName} onClick={saveProfile}>Done</AnimatedButton>
+        </div>
+      </AnimatedModal>
     </div>
   );
 }
 
-/* ---- pieces --------------------------------------------------------------- */
-
-function Chip({ icon: Icon, tone, children }: { icon: typeof Sparkles; tone: "gold" | "calm" | "muted"; children: React.ReactNode }) {
-  const tones = {
-    gold: "bg-[var(--color-gold-500)]/12 text-[var(--color-gold-600)]",
-    calm: "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]",
-    muted: "bg-[var(--field-bg)] text-[var(--text-muted)]",
-  } as const;
-  return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", tones[tone])}>
-      <Icon className="size-3.5" />{children}
-    </span>
-  );
-}
-
-function Stat({ label, value, hint }: { label: string; value: React.ReactNode; hint: string }) {
-  return (
-    <div className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-3 text-center">
-      <p className="text-strong truncate text-base font-semibold tabular-nums">{value}</p>
-      <p className="text-muted mt-0.5 truncate text-[0.7rem]">{label}</p>
-      <p className="text-muted truncate text-[0.65rem] opacity-70">{hint}</p>
-    </div>
-  );
-}
+/* ---- iOS-style grouped list pieces --------------------------------------- */
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -230,10 +180,8 @@ function Group({ title, children }: { title: string; children: React.ReactNode }
   );
 }
 
-const rowInner =
-  "group flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--glass-bg-soft)]";
-const rowIcon =
-  "grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-strong)]";
+const rowInner = "group flex w-full items-center gap-3 px-4 py-3.5 text-left transition-colors hover:bg-[var(--glass-bg-soft)]";
+const rowIcon = "grid size-9 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-strong)]";
 
 function Row({ icon: Icon, title, desc, href }: { icon: typeof Sparkles; title: string; desc: string; href: string }) {
   return (
@@ -259,14 +207,4 @@ function RowButton({ icon: Icon, title, desc, onClick, loading }: { icon: typeof
       <ChevronRight className="size-4 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5" />
     </button>
   );
-}
-
-
-function relativeDays(at: number): string {
-  const days = Math.round((at - Date.now()) / 86_400_000);
-  if (days <= 0) return "due";
-  if (days === 1) return "1 day";
-  if (days < 30) return `${days} days`;
-  const months = Math.round(days / 30);
-  return months === 1 ? "1 month" : `${months} months`;
 }
