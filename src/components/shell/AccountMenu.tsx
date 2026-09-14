@@ -7,6 +7,7 @@ import { motion } from "framer-motion";
 import { Settings, LogOut, ChevronDown, CircleUserRound } from "lucide-react";
 import { Avatar } from "./Avatar";
 import type { ShellUser } from "./shell-types";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { signOutUser } from "@/lib/auth/client";
 import { PopoverPortal } from "@/components/ui/PopoverPortal";
 import { cn } from "@/lib/utils";
@@ -15,6 +16,8 @@ import { cn } from "@/lib/utils";
  *  in Settings › your account; theme lives in Settings.) */
 export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?: "left" | "right" }) {
   const router = useRouter();
+  const { profile } = useUserProfile();
+  const displayName = profile?.displayName || user.displayName || "Your account";
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
 
@@ -52,7 +55,7 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
             className="flex items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[var(--glass-bg-soft)]"
           >
             <Avatar user={user} size={40} />
-            <p className="text-strong min-w-0 truncate text-sm font-medium">{user.displayName || "Your account"}</p>
+            <p className="text-strong min-w-0 truncate text-sm font-medium">{displayName}</p>
           </Link>
           <div className="my-1 h-px bg-[var(--glass-border)]" />
           <Link

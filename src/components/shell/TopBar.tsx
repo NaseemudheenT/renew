@@ -8,7 +8,6 @@ import { RenewMark } from "@/components/brand/RenewMark";
 import { MobileMenu } from "./MobileMenu";
 import { toggleSidebar } from "./sidebar-store";
 import { NotificationBell } from "./NotificationBell";
-import { GlobalSearch } from "./GlobalSearch";
 import { InstallRenew } from "@/components/pwa/InstallRenew";
 import { AccountMenu } from "./AccountMenu";
 import { WorkspaceSwitch } from "./WorkspaceSwitch";
@@ -52,7 +51,6 @@ export function TopBar({ user }: { user: ShellUser }) {
       </div>
       <div className="flex items-center gap-2 sm:gap-3">
         <InstallRenew />
-        <GlobalSearch />
         <NotificationBell />
         <div className="lg:hidden">
           <AccountMenu user={user} />

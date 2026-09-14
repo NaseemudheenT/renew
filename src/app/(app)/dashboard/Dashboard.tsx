@@ -125,7 +125,7 @@ export function Dashboard({ name }: { name: string }) {
           <div className="flex flex-wrap items-end justify-between gap-3 pt-2">
             <div>
               <p className="text-muted text-sm capitalize">{date(new Date(), { weekday: "long", day: "numeric", month: "long" })}</p>
-              <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {name}.</h1>
+              <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {profile?.displayName || name || "there"}.</h1>
             </div>
             <div className="flex items-center gap-2">
               <AnimatedButton onClick={() => setModalOpen(true)}><Plus className="size-4" />Add</AnimatedButton>

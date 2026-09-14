@@ -15,6 +15,9 @@ const DEFAULT_AVATAR = AVATARS[0]!.css; // clean graphite when none chosen
 export function Avatar({ user, size = 36, className }: { user: ShellUser; size?: number; className?: string }) {
   const { profile } = useUserProfile();
   const background = avatarGradient(profile?.avatar) ?? DEFAULT_AVATAR;
+  // Prefer the profile name (set at onboarding) over the auth user's, so the
+  // initial is real — never a stray "R" when only the profile has the name.
+  const initials = initialsOf(profile?.displayName ? { ...user, displayName: profile.displayName } : user);
   return (
     <span
       className={cn(
@@ -26,7 +29,7 @@ export function Avatar({ user, size = 36, className }: { user: ShellUser; size?:
     >
       {/* A whisper of top-light — refined, not glossy. */}
       <span className="pointer-events-none absolute inset-0 rounded-full bg-[radial-gradient(circle_at_34%_26%,rgba(255,255,255,0.22),transparent_60%)]" />
-      <span className="relative">{initialsOf(user)}</span>
+      <span className="relative">{initials}</span>
     </span>
   );
 }

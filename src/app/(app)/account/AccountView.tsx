@@ -43,6 +43,7 @@ export function AccountView() {
   const [savingName, setSavingName] = useState(false);
 
   const activeCount = subs.filter((s) => s.status === "active").length;
+  const fullName = profile?.displayName || user?.displayName || "";
   const shellUser = {
     uid: user?.uid ?? "",
     email: user?.email ?? null,
@@ -52,7 +53,7 @@ export function AccountView() {
 
   async function saveProfile() {
     const trimmed = name.trim();
-    if (uid && trimmed && trimmed !== (user?.displayName ?? "").trim()) {
+    if (uid && trimmed && trimmed !== fullName.trim()) {
       setSavingName(true);
       try {
         await updateDisplayName(uid, trimmed);
@@ -91,13 +92,13 @@ export function AccountView() {
     <div className="mx-auto flex max-w-2xl flex-col gap-6">
       {/* Identity — centred, tap to edit (Apple-style) */}
       <div className="flex flex-col items-center pt-3 text-center">
-        <button type="button" onClick={() => { setName(user?.displayName ?? ""); setEditOpen(true); }} aria-label="Edit profile" className="relative rounded-full outline-none transition-transform active:scale-95">
+        <button type="button" onClick={() => { setName(fullName); setEditOpen(true); }} aria-label="Edit profile" className="relative rounded-full outline-none transition-transform active:scale-95">
           <Avatar user={shellUser} size={92} />
           <span className="absolute -bottom-0.5 -right-0.5 grid size-7 place-items-center rounded-full bg-[var(--glass-bg-strong)] text-[var(--text-strong)] shadow ring-2 ring-[var(--bg-base)]">
             <Pencil className="size-3.5" />
           </span>
         </button>
-        <h1 className="text-strong mt-4 text-2xl font-semibold">{user?.displayName || "Your account"}</h1>
+        <h1 className="text-strong mt-4 text-2xl font-semibold">{fullName || "Your account"}</h1>
         <span className={cn("mt-2 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium", isPremiumPlan ? "bg-[var(--color-gold-500)]/12 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--text-body)]")}>
           {isPremiumPlan ? <Crown className="size-3.5" /> : <Sparkles className="size-3.5" />}{isPremiumPlan ? "Premium" : "Free plan"}
         </span>
