@@ -54,7 +54,7 @@ export function useRenBrain(ctx: Omit<AskContext, "now">, uid: string | null) {
           const res = await fetch("/api/ren", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message: text, history: h, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode, style: profile?.renStyle, personality: profile?.renPersonality }),
+            body: JSON.stringify({ message: text, history: h, now: nowMs(), timezone: prefs.timezone, currency: ctx.currency, workspace: mode, style: profile?.renStyle, personality: profile?.renPersonality, name: profile?.displayName ?? undefined, region: profile?.region ?? prefs.region }),
           });
           if (res.ok) {
             const data = (await res.json()) as { mode?: string; text?: string };
@@ -94,7 +94,7 @@ export function useRenBrain(ctx: Omit<AskContext, "now">, uid: string | null) {
       // 4) Didn't understand.
       return { text: "I can add money — say “spent 500 on groceries” — or answer things like “how much did I spend this month?”" };
     },
-    [ctx, uid, money, prefs.timezone, mode, profile, resolve],
+    [ctx, uid, money, prefs.timezone, prefs.region, mode, profile, resolve],
   );
 
   return { ask };

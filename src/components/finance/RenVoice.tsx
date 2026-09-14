@@ -121,9 +121,11 @@ export function RenVoice({
     phase === "speaking" ? "Ren" :
     reply ? "Ren" : "Tap to speak";
 
+  const firstName = (profile?.displayName ?? "").trim().split(/\s+/)[0] ?? "";
+  const greeting = firstName ? `Hi ${firstName}, I’m Ren.` : "Hi, I’m Ren.";
   const caption = phase === "listening"
     ? heard
-    : (reply || (phase === "idle" ? "Hi, I’m Ren." : ""));
+    : (reply || (phase === "idle" ? greeting : ""));
 
   return (
     <AnimatePresence>
@@ -160,15 +162,6 @@ export function RenVoice({
               transition={{ type: "spring", stiffness: 200, damping: 22 }}
               whileTap={{ scale: 0.97 }}
             >
-              {/* Rings ripple outward only while listening / speaking */}
-              {(phase === "listening" || phase === "speaking") && [0, 1, 2].map((i) => (
-                <motion.span key={i} aria-hidden className="absolute rounded-full"
-                  style={{ width: 150, height: 150, border: "1.5px solid rgba(127,208,255,0.6)" }}
-                  initial={{ scale: 0.8, opacity: 0.5 }}
-                  animate={{ scale: 2, opacity: 0 }}
-                  transition={{ duration: phase === "listening" ? 2.4 : 1.6, delay: i * (phase === "listening" ? 0.8 : 0.5), repeat: Infinity, ease: "easeOut" }}
-                />
-              ))}
               <motion.span
                 className="relative block"
                 animate={
