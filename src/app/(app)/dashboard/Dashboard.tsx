@@ -16,7 +16,6 @@ import { TransactionForm } from "@/components/finance/TransactionForm";
 import { NetWorthTrend } from "@/components/finance/NetWorthTrend";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
 import { Advisor } from "@/components/finance/Advisor";
-import { CashFlowForecast } from "@/components/finance/CashFlowForecast";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -180,10 +179,6 @@ export function Dashboard({ name }: { name: string }) {
                 currency={currency}
                 max={5}
               />
-            </StaggerItem>
-
-            <StaggerItem>
-              <CashFlowForecast transactions={txAll.data} currentBalance={netWorth} upcomingBillsTotal={comingTotal} currency={currency} />
             </StaggerItem>
 
             {focus.length > 0 && (

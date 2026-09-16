@@ -40,19 +40,31 @@ export interface PlanPrice {
   oneTimeReport: number;
 }
 
-const INR: PlanPrice = { currency: "INR", symbol: "₹", monthly: 199, yearly: 1499, oneTimeReport: 99 };
+// FIXED regional price table — deliberately NOT a live FX conversion of one base
+// price (that produces awkward numbers and breaks trust). Clean local price
+// points per region, updated by hand a few times a year. Annual ≈ 2 months free.
+const INR: PlanPrice = { currency: "INR", symbol: "₹", monthly: 149, yearly: 1199, oneTimeReport: 99 };
 const USD: PlanPrice = { currency: "USD", symbol: "$", monthly: 4.99, yearly: 39.99, oneTimeReport: 1.99 };
 const EUR: PlanPrice = { currency: "EUR", symbol: "€", monthly: 4.99, yearly: 39.99, oneTimeReport: 1.99 };
+const GBP: PlanPrice = { currency: "GBP", symbol: "£", monthly: 3.99, yearly: 31.99, oneTimeReport: 1.99 };
 
-/** The price sheet for a user, chosen from their display currency. */
+/**
+ * The price sheet for a user, selected by their display currency — which is
+ * itself derived from the same region-detection used for number/date formatting
+ * (Settings choice → OS locale → region fallback → USD). One detection path, so
+ * the price shown always matches the currency the rest of the app formats in.
+ * New markets get a clean local row here, never a raw FX fallback.
+ */
 export function planPricing(currency?: string | null): PlanPrice {
   switch ((currency ?? "").toUpperCase()) {
     case "INR":
       return INR;
     case "EUR":
       return EUR;
+    case "GBP":
+      return GBP;
     default:
-      return USD;
+      return USD; // United States + rest of world
   }
 }
 

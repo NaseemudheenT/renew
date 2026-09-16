@@ -26,19 +26,19 @@
   --font-display:
     var(--font-space-grotesk), var(--font-inter), ui-sans-serif, sans-serif;
 
-  /* Signal ramp — the one luminous accent (cyan-teal). Kept under the legacy
-     `gold-*` names so every existing accent inherits the new colour with no
-     component churn. 500 is the true --signal (#00E5D6). */
-  --color-gold-50: #e6fffb;
-  --color-gold-100: #b9fff6;
-  --color-gold-200: #7dfaee;
-  --color-gold-300: #33f0e0;
-  --color-gold-400: #06e2d2;
-  --color-gold-500: #00e5d6;
-  --color-gold-600: #00bfb2;
-  --color-gold-700: #00938a;
-  --color-gold-800: #0a6f68;
-  --color-gold-900: #0c5651;
+  /* Champagne-gold ramp — the one brand accent. Gold + midnight blue own the
+     whole app. 400 (#d4af6a) is the signature champagne; 200 is the bright
+     highlight, 600 the deep press/contrast tone. */
+  --color-gold-50: #fbf6ea;
+  --color-gold-100: #f5e9c8;
+  --color-gold-200: #ecd199;
+  --color-gold-300: #e0bd78;
+  --color-gold-400: #d4af6a;
+  --color-gold-500: #c99f52;
+  --color-gold-600: #b08a3e;
+  --color-gold-700: #8f6f30;
+  --color-gold-800: #6b5324;
+  --color-gold-900: #4a3917;
 
   /* Cards sit at a 16–20px radius per the spec. */
   --radius-glass: 1.15rem;
@@ -53,29 +53,30 @@
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  /* Signature palette (spec §1) — also referenced directly by components. */
+  /* Signature palette — champagne gold on midnight blue. --signal is the brand
+     accent (gold); referenced directly by components too. */
   --void: #0b1220;
   --surface: #131d33;
   --surface-raised: #17223c;
-  --signal: #00e5d6;
-  --pulse-amber: #ffb020;
+  --signal: #d4af6a;
+  --pulse-amber: #f0b429;
   --pulse-coral: #ff5c6c;
-  --mist: #e8edf2;
-  --graphite: #6b7684;
-  --hairline: rgba(232, 237, 242, 0.08);
+  --mist: #eef2fb;
+  --graphite: #8792ad;
+  --hairline: rgba(216, 226, 245, 0.09);
 
-  /* Plain, professional midnight blue — a calm, static deep-navy ground (not a
-     busy field, not black). Cards sit a touch lighter above it. */
+  /* Professional midnight blue, with a soft golden fog for a premium,
+     atmospheric depth — calm and static (no live motion). */
   --bg-base: #0b1220;
   --bg-tint-1: #0d1626;
   --bg-tint-2: #0a101d;
   --bg-tint-3: #0e1830;
-  /* Very subtle blue depth glows — professional, never a splash of colour. */
-  --bokeh-1: rgba(42, 74, 142, 0.16);
-  --bokeh-2: rgba(28, 52, 110, 0.12);
-  --bokeh-3: rgba(60, 96, 170, 0.08);
+  /* Warm gold depth glows drifting through the navy — the "foggy" premium look. */
+  --bokeh-1: rgba(212, 175, 110, 0.14);
+  --bokeh-2: rgba(176, 138, 62, 0.12);
+  --bokeh-3: rgba(236, 209, 153, 0.08);
   --grain-opacity: 0.04;
-  --vignette: rgba(3, 7, 16, 0.6);
+  --vignette: rgba(3, 7, 16, 0.62);
 
   --text-strong: var(--mist);
   --text-body: #c2cad2;
@@ -91,29 +92,29 @@
   --glass-border: var(--hairline);
   --glass-edge: rgba(232, 237, 242, 0.14);
   --glass-inner-shadow: rgba(0, 0, 0, 0.4);
-  /* Highlight = a faint signal sheen, not white specular. */
-  --glass-highlight: rgba(0, 229, 214, 0.14);
+  /* Highlight = a faint gold sheen. */
+  --glass-highlight: rgba(212, 175, 110, 0.16);
   --glass-shadow:
     0 1px 0 rgba(232, 237, 242, 0.03), 0 10px 30px rgba(3, 7, 16, 0.5);
   --glass-blur: 12px;
-  --glass-saturate: 118%;
+  --glass-saturate: 120%;
 
   --field-bg: rgba(26, 39, 68, 0.6);
   --field-border: rgba(232, 237, 242, 0.1);
-  /* Focus = the signal accent (spec: visible focus ring in --signal). */
-  --focus-ring: rgba(0, 229, 214, 0.62);
+  /* Focus = the gold accent. */
+  --focus-ring: rgba(212, 175, 110, 0.6);
 
-  /* Brand mark glows in the signal family so it reads on the void ground. */
-  --mark-gold-1: #7dfaee;
-  --mark-gold-2: #33f0e0;
-  --mark-gold-3: #00e5d6;
-  --mark-gold-4: #00bfb2;
-  --wordmark-from: #b9fff6;
-  --wordmark-to: #00c3b6;
+  /* Brand mark in champagne gold on the midnight ground. */
+  --mark-gold-1: #f5e9c8;
+  --mark-gold-2: #ecd199;
+  --mark-gold-3: #d4af6a;
+  --mark-gold-4: #b08a3e;
+  --wordmark-from: #f5e9c8;
+  --wordmark-to: #c99f52;
 
-  --glass-gold-hi: rgba(0, 229, 214, 0.24);
-  --glass-gold-lo: rgba(0, 229, 214, 0.12);
-  --btn-gold-text: #05121a;
+  --glass-gold-hi: rgba(212, 175, 110, 0.26);
+  --glass-gold-lo: rgba(176, 138, 62, 0.14);
+  --btn-gold-text: #241a07;
 
   /* Floating menus / popovers — near-opaque surface so content is always
      legible over any background (pickers, dropdowns, command menus). */
@@ -125,35 +126,33 @@
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* The daytime twin of the deep-space world: cool near-white surfaces, the
-     same signal accent, graphite text. Calm and precise, never washed-out. */
-  --void: #eef2f4;
+  /* The daylight twin — warm near-white surfaces, champagne-gold accent, deep
+     midnight-blue text. Gold + midnight blue, in daylight. */
+  --void: #f3f1ec;
   --surface: #ffffff;
-  --surface-raised: #f6f9fa;
-  --signal: #00b3a6;
-  --pulse-amber: #d98600;
+  --surface-raised: #faf8f3;
+  --signal: #a67c2e;
+  --pulse-amber: #c07d00;
   --pulse-coral: #e0455a;
-  --mist: #0d1117;
-  --graphite: #5b6570;
-  --hairline: rgba(13, 17, 23, 0.08);
+  --mist: #141c30;
+  --graphite: #5a6070;
+  --hairline: rgba(30, 26, 15, 0.1);
 
   --bg-base: var(--void);
-  --bg-tint-1: #f4f7f8;
-  --bg-tint-2: #e6edee;
-  --bg-tint-3: #eef4f4;
-  --bokeh-1: rgba(0, 179, 166, 0.14);
-  --bokeh-2: rgba(0, 150, 160, 0.12);
-  --bokeh-3: rgba(120, 170, 175, 0.1);
-  --grain-opacity: 0.035;
-  --vignette: rgba(20, 40, 44, 0.12);
-  /* Scroll-Tide — a whisper-faint teal field on the daylight ground. */
-  --tide-dot: rgba(0, 150, 140, 0.07);
-  --tide-line: rgba(0, 150, 140, 0.05);
+  --bg-tint-1: #f6f4ef;
+  --bg-tint-2: #ece7dc;
+  --bg-tint-3: #f2eee5;
+  /* Warm gold fog on the daylight ground — the light twin of the premium look. */
+  --bokeh-1: rgba(212, 175, 110, 0.2);
+  --bokeh-2: rgba(176, 138, 62, 0.16);
+  --bokeh-3: rgba(236, 209, 153, 0.14);
+  --grain-opacity: 0.03;
+  --vignette: rgba(60, 48, 20, 0.1);
 
   --text-strong: var(--mist);
-  --text-body: #2b333b;
+  --text-body: #2c3242;
   --text-muted: var(--graphite);
-  --text-onGold: #04201d;
+  --text-onGold: #241a07;
 
   /* Surface cards on daylight — solid, hairline-bordered, minimal blur. */
   --glass-bg: rgba(255, 255, 255, 0.82);
@@ -161,36 +160,36 @@
   --glass-bg-soft: rgba(255, 255, 255, 0.6);
   --glass-border: var(--hairline);
   --glass-edge: rgba(255, 255, 255, 0.9);
-  --glass-inner-shadow: rgba(13, 30, 34, 0.08);
-  --glass-highlight: rgba(0, 179, 166, 0.14);
+  --glass-inner-shadow: rgba(40, 32, 12, 0.08);
+  --glass-highlight: rgba(212, 175, 110, 0.18);
   --glass-shadow:
-    0 1px 0 rgba(13, 17, 23, 0.02), 0 10px 28px rgba(13, 30, 34, 0.08);
+    0 1px 0 rgba(30, 26, 15, 0.02), 0 10px 28px rgba(60, 48, 20, 0.1);
   --glass-blur: 12px;
   --glass-saturate: 130%;
 
-  --field-bg: rgba(255, 255, 255, 0.7);
-  --field-border: rgba(13, 17, 23, 0.12);
-  --focus-ring: rgba(0, 179, 166, 0.55);
+  --field-bg: rgba(255, 255, 255, 0.72);
+  --field-border: rgba(30, 26, 15, 0.14);
+  --focus-ring: rgba(166, 124, 46, 0.55);
 
-  /* On daylight the signal accent is deepened for legible contrast. */
-  --color-gold-400: #00b3a6;
-  --color-gold-500: #009e93;
-  --color-gold-600: #007d74;
+  /* On daylight the gold accent is deepened for legible contrast. */
+  --color-gold-400: #b08a3e;
+  --color-gold-500: #a67c2e;
+  --color-gold-600: #8f6f30;
 
-  /* Brand mark in deep teal so it reads on the daylight ground. */
-  --mark-gold-1: #00b3a6;
-  --mark-gold-2: #009e93;
-  --mark-gold-3: #007d74;
-  --mark-gold-4: #00544e;
-  --wordmark-from: #009e93;
-  --wordmark-to: #00544e;
+  /* Brand mark in deep gold so it reads on the daylight ground. */
+  --mark-gold-1: #c99f52;
+  --mark-gold-2: #b08a3e;
+  --mark-gold-3: #a67c2e;
+  --mark-gold-4: #6b5324;
+  --wordmark-from: #b08a3e;
+  --wordmark-to: #6b5324;
 
-  --glass-gold-hi: rgba(0, 179, 166, 0.5);
-  --glass-gold-lo: rgba(0, 150, 140, 0.3);
-  --btn-gold-text: #04201d;
+  --glass-gold-hi: rgba(212, 175, 110, 0.5);
+  --glass-gold-lo: rgba(176, 138, 62, 0.3);
+  --btn-gold-text: #241a07;
 
   --menu-bg: rgba(255, 255, 255, 0.98);
-  --menu-border: rgba(13, 17, 23, 0.1);
+  --menu-border: rgba(30, 26, 15, 0.1);
 }
 
 /* ---- Accessibility preferences (Settings › Accessibility) --------------- */

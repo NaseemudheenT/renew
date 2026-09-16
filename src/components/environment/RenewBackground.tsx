@@ -1,11 +1,11 @@
 /**
- * RENEW — the app ground. A plain, professional midnight-blue backdrop: a calm,
- * static deep-navy field with two very subtle depth glows, a soft vignette and
- * the faintest film grain so it never looks like flat plastic. No live fog, no
- * moving field, no animation — deliberately quiet so the content leads.
+ * RENEW — the app ground. Professional midnight blue wrapped in a soft golden
+ * fog: a calm, STATIC atmosphere (no live motion, no moving field) built from a
+ * few large, feathered gold glows over the deep navy, a soft vignette and the
+ * faintest film grain. Gold + midnight blue, premium and quiet, content-first.
  *
  * Fixed behind everything, never intercepts pointers. Fully theme-aware via
- * tokens, so light mode gets its own suitable ground automatically.
+ * tokens, so light mode gets its own warm daylight ground automatically.
  */
 export function RenewBackground() {
   return (
@@ -23,14 +23,18 @@ export function RenewBackground() {
         }}
       />
 
-      {/* Two soft, static depth glows — quiet dimension, never a colour splash. */}
+      {/* Soft, static golden fog — three large feathered glows for premium depth. */}
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(115% 80% at 50% -12%, var(--bokeh-1), transparent 58%)" }}
+        style={{ background: "radial-gradient(120% 85% at 50% -14%, var(--bokeh-1), transparent 60%)" }}
       />
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(90% 70% at 108% 112%, var(--bokeh-2), transparent 60%)" }}
+        style={{ background: "radial-gradient(95% 75% at 110% 112%, var(--bokeh-2), transparent 62%)" }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(80% 70% at -10% 55%, var(--bokeh-3), transparent 64%)" }}
       />
 
       {/* Vignette — settles focus toward the centre. */}

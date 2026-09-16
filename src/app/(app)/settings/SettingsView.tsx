@@ -169,10 +169,10 @@ export function SettingsView() {
 function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const whatsNew = [
-    "A plain, professional midnight-blue background — calm and steady",
-    "The busy moving background is gone; the app is faster and lighter",
-    "Cleaner cards that sit naturally on the deep-navy ground",
-    "Renew Premium — clear monthly & annual plans, priced for your region",
+    "A premium new look — champagne gold on deep midnight blue, with a soft golden glow",
+    "A cleaner Overview: only what matters, nothing to distract you",
+    "Fixed, fair pricing for your region (₹ / $ / € / £) — never awkward conversions",
+    "Everything in your region's currency, number and date format, automatically",
     "Free plan includes 12 receipt scans a month; Premium is unlimited",
   ];
   async function check() {

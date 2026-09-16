@@ -38,9 +38,9 @@ export function MobileMenu({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const { t } = useLocale();
   const { mode } = useWorkspace();
-  // Full menu, in nav order — Settings stays below Analytics as well as being
-  // reachable from the account, so it's always one tap away.
-  const items = navItemsFor(mode);
+  // Settings is reached from the account (below), so it's removed from the menu
+  // panel list to avoid a duplicate row under Analytics.
+  const items = navItemsFor(mode).filter((i) => i.href !== "/settings");
 
   return (
     <>

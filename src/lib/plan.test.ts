@@ -32,9 +32,11 @@ describe("plan", () => {
   it("prices by region, annual is a real discount", () => {
     expect(planPricing("INR").symbol).toBe("₹");
     expect(planPricing("EUR").symbol).toBe("€");
-    expect(planPricing("GBP").currency).toBe("USD"); // fallback
+    expect(planPricing("GBP").symbol).toBe("£");
+    expect(planPricing("INR").monthly).toBe(149); // fixed table, not FX
+    expect(planPricing("JPY").currency).toBe("USD"); // rest-of-world fallback
     expect(planPricing(null).currency).toBe("USD");
-    for (const c of ["INR", "USD", "EUR"]) {
+    for (const c of ["INR", "USD", "EUR", "GBP"]) {
       const p = planPricing(c);
       expect(p.yearly).toBeLessThan(p.monthly * 12); // annual saves money
       expect(yearlySavingPct(p)).toBeGreaterThan(0);
