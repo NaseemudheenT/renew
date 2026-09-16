@@ -58,7 +58,9 @@ export function MobileMenu({ user }: { user: ShellUser }) {
               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
               onClick={() => setOpen(false)} aria-hidden />
             <motion.aside
-              className="glass fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col !rounded-none !rounded-e-glass-lg p-4 lg:hidden"
+              // Respect the phone's notch/status bar and home indicator so the
+              // Renew logo at the top is never hidden under the status bar.
+              className="glass fixed inset-y-0 left-0 z-50 flex w-72 max-w-[82%] flex-col !rounded-none !rounded-e-glass-lg px-4 pb-[calc(env(safe-area-inset-bottom,0px)+1rem)] pt-[calc(env(safe-area-inset-top,0px)+1rem)] lg:hidden"
               initial={{ x: "-100%" }} animate={{ x: 0 }} exit={{ x: "-100%" }}
               transition={{ type: "spring", stiffness: 380, damping: 38 }}
               drag="x"
