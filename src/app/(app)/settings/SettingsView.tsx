@@ -169,11 +169,11 @@ export function SettingsView() {
 function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const whatsNew = [
+    "A calm deep-space ground — the busy moving background is gone",
+    "A whisper-faint data-flow current drifts beneath every screen",
+    "Faster and lighter: the heavy live background was removed entirely",
     "Renew Premium — clear monthly & annual plans, priced for your region",
-    "Free plan now includes 12 receipt scans every month",
-    "Premium unlocks unlimited scanning, auto-import, and unlimited budgets & goals",
-    "Snap a receipt and Renew fills in the amount, date and merchant automatically",
-    "The whole app is faster and steadier — everything tested end to end",
+    "Free plan includes 12 receipt scans a month; Premium is unlimited",
   ];
   async function check() {
     setChecking(true);

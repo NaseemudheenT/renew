@@ -1,65 +1,45 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
-import { motion, useReducedMotion } from "framer-motion";
-import { useEnvironmentTier } from "@/hooks/useEnvironmentTier";
-import { useTheme } from "@/hooks/useTheme";
+import { useEffect, useRef, useSyncExternalStore } from "react";
+import { useReducedMotion } from "framer-motion";
 import { subscribeA11y, getReduceMotion } from "@/lib/a11y";
-import AnimatedGradient, {
-  type GradientCustomConfig,
-} from "@/components/ui/animated-gradient";
+import { cn } from "@/lib/utils";
 
 /**
- * RENEW — the one, fixed cinematic environment. A slow, liquid midnight-blue fog
- * (WebGL) with the Renew vignette + film grain on top. It is intentionally a
- * single, constant look (no rotation) — the calm base of the whole product.
- * Falls back to a calm CSS bokeh field under reduced-motion / low-power devices.
- * Fixed behind everything; never intercepts pointers.
+ * RENEW — the Financial-OS ground. No live WebGL fog any more: the app sits on a
+ * calm deep-space **void** (dark) / soft daylight (light), with the spec's faint
+ * "Scroll Tide" — a whisper of a teal data-flow field that drifts very slowly and
+ * parallaxes at ~40% of scroll, so foreground cards feel like they float above a
+ * live current. Text never moves; only this field and its depth glows do.
+ *
+ * Fixed behind everything, never intercepts pointers. Honours reduced-motion
+ * (in-app toggle + OS): the field goes perfectly still.
  */
-
-// The "living current" — a slow teal data-flow drifting under the void, so the
-// whole app feels alive above a signal running through deep space (design spec).
-const DARK: GradientCustomConfig = {
-  color1: "#05070a",
-  color2: "#063f3b",
-  color3: "#00e5d6",
-  rotation: 24,
-  proportion: 40,
-  scale: 0.5,
-  speed: 8,
-  distortion: 4,
-  swirl: 52,
-  swirlIterations: 7,
-  softness: 100,
-  shape: "Edge",
-  shapeSize: 42,
-};
-
-const LIGHT: GradientCustomConfig = {
-  color1: "#e7eeed",
-  color2: "#8fd8d0",
-  color3: "#d7f5f1",
-  rotation: 24,
-  proportion: 46,
-  scale: 0.5,
-  speed: 7,
-  distortion: 4,
-  swirl: 46,
-  swirlIterations: 7,
-  softness: 100,
-  shape: "Edge",
-  shapeSize: 44,
-};
-
 export function RenewBackground() {
-  const reduced = useReducedMotion();
+  const osReduced = useReducedMotion();
   const a11yReduced = useSyncExternalStore(subscribeA11y, getReduceMotion, () => false);
-  const tier = useEnvironmentTier();
-  const { theme } = useTheme();
-  const softOnly = reduced || a11yReduced || tier === "soft2d";
-  const live = !softOnly; // show the live WebGL gradient (full3d or lite3d)
-  const heavy = live && tier === "full3d"; // animated aurora blur — capable devices only
-  const config = theme === "light" ? LIGHT : DARK;
+  const still = Boolean(osReduced) || a11yReduced;
+  const tideRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (still || typeof window === "undefined") return;
+    let raf = 0;
+    const apply = () => {
+      raf = 0;
+      const y = window.scrollY || 0;
+      // Field rises at 40% of scroll — true parallax depth (spec §2).
+      if (tideRef.current) tideRef.current.style.transform = `translate3d(0, ${(-y * 0.4).toFixed(1)}px, 0)`;
+    };
+    const onScroll = () => {
+      if (!raf) raf = requestAnimationFrame(apply);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    apply();
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [still]);
 
   return (
     <div
@@ -67,72 +47,37 @@ export function RenewBackground() {
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       style={{ background: "var(--bg-base)" }}
     >
+      {/* Calm depth — two soft, static signal glows anchoring the space. */}
       <div
         className="absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(160deg, var(--bg-tint-1) 0%, var(--bg-tint-2) 55%, var(--bg-tint-3) 100%)",
-        }}
+        style={{ background: "radial-gradient(120% 85% at 50% -12%, var(--bokeh-1), transparent 58%)" }}
+      />
+      <div
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(95% 70% at 108% 112%, var(--bokeh-2), transparent 60%)" }}
       />
 
-      {live && (
-        <AnimatedGradient
-          key={theme}
-          config={config}
-          maxDpr={heavy ? 1.5 : 1.25}
-          className="opacity-90 mix-blend-soft-light"
-          style={{ inset: "-10%" }}
+      {/* Scroll Tide — the faint data-flow field. Outer node carries the
+          scroll parallax transform; inner node carries the slow ambient drift. */}
+      <div ref={tideRef} className="absolute inset-x-0 -inset-y-[55%] will-change-transform">
+        <div
+          className={cn("size-full", !still && "renew-tide-drift")}
+          style={{
+            backgroundImage:
+              "radial-gradient(var(--tide-dot) 1px, transparent 1.7px), linear-gradient(var(--tide-line) 1px, transparent 1px)",
+            backgroundSize: "38px 38px, 100% 220px",
+            backgroundPosition: "0 0, 0 0",
+          }}
         />
-      )}
+      </div>
 
-      {/* Static glow field — the whole background on soft2d, and a cheap depth
-          layer under the live gradient on lite3d (no per-frame blur repaint). */}
-      {!heavy && (
-        <>
-          <div
-            className="absolute -left-[10%] -top-[15%] h-[55vmax] w-[55vmax] rounded-full blur-[80px]"
-            style={{ background: "radial-gradient(circle, var(--bokeh-1), transparent 65%)" }}
-          />
-          <div
-            className="absolute right-[-15%] top-[10%] h-[50vmax] w-[50vmax] rounded-full blur-[90px]"
-            style={{ background: "radial-gradient(circle, var(--bokeh-2), transparent 65%)" }}
-          />
-        </>
-      )}
-
-      {heavy && (
-        <>
-          {/* Aurora I — the primary midnight glow, breathing top-left. */}
-          <motion.div
-            className="absolute -left-[12%] -top-[18%] h-[62vmax] w-[62vmax] rounded-full blur-[120px]"
-            style={{ background: "radial-gradient(circle, var(--bokeh-1), transparent 64%)" }}
-            animate={{ x: [0, 70, -30, 0], y: [0, 46, 14, 0], scale: [1, 1.14, 1], opacity: [0.5, 0.82, 0.5] }}
-            transition={{ duration: 46, repeat: Infinity, ease: "easeInOut" }}
-          />
-          {/* Aurora II — a deeper counter-drift, bottom-right. */}
-          <motion.div
-            className="absolute right-[-16%] bottom-[-18%] h-[58vmax] w-[58vmax] rounded-full blur-[140px]"
-            style={{ background: "radial-gradient(circle, var(--bokeh-3), transparent 66%)" }}
-            animate={{ x: [0, -60, 20, 0], y: [0, -40, -10, 0], scale: [1.06, 0.9, 1.06], opacity: [0.45, 0.85, 0.45] }}
-            transition={{ duration: 60, repeat: Infinity, ease: "easeInOut" }}
-          />
-          {/* Aurora III — a bright accent ribbon slowly sweeping the middle. */}
-          <motion.div
-            className="absolute left-1/2 top-[34%] h-[46vmax] w-[74vmax] -translate-x-1/2 rounded-[46%] blur-[130px]"
-            style={{ background: "radial-gradient(ellipse at center, var(--bokeh-2), transparent 60%)" }}
-            animate={{ x: [-50, 50, -50], y: [0, -26, 0], rotate: [-9, 9, -9], opacity: [0.3, 0.58, 0.3] }}
-            transition={{ duration: 42, repeat: Infinity, ease: "easeInOut" }}
-          />
-        </>
-      )}
-
+      {/* Vignette — pulls focus to the centre, deepens the space at the edges. */}
       <div
         className="absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(120% 120% at 50% 30%, transparent 55%, var(--vignette) 100%)",
-        }}
+        style={{ background: "radial-gradient(125% 120% at 50% 28%, transparent 52%, var(--vignette) 100%)" }}
       />
+
+      {/* Fine film grain so the flat void never looks like dead plastic. */}
       <div
         className="absolute inset-0 mix-blend-soft-light"
         style={{

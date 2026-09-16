@@ -24,6 +24,7 @@ const NAV_TONE: Record<string, string> = {
   "/income": "#2fbf71",
   "/payments": "#ff5e8a",
   "/analytics": "#a15cff",
+  "/settings": "#6b7684",
 };
 
 /**
@@ -37,8 +38,9 @@ export function MobileMenu({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const { t } = useLocale();
   const { mode } = useWorkspace();
-  // Settings is reached from the account (below) — no duplicate row in the menu.
-  const items = navItemsFor(mode).filter((i) => i.href !== "/settings");
+  // Full menu, in nav order — Settings stays below Analytics as well as being
+  // reachable from the account, so it's always one tap away.
+  const items = navItemsFor(mode);
 
   return (
     <>
