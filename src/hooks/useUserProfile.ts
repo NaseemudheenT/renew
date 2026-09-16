@@ -84,6 +84,10 @@ export interface ProfileDoc {
   planSince?: number;
   /** The person asked to be told when Premium checkout launches. */
   premiumInterest?: boolean;
+  /** Chosen billing period when they enrol in Premium early access. */
+  premiumPeriodInterest?: "monthly" | "yearly";
+  /** Monthly receipt-scan usage for the free-tier allowance (see lib/plan). */
+  scanUsage?: { month: string; count: number };
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

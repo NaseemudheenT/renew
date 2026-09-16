@@ -45,9 +45,28 @@ export async function setPlan(uid: string, plan: "free" | "premium"): Promise<vo
   });
 }
 
-/** Record that the person wants to be notified when Premium checkout launches. */
-export async function setPremiumInterest(uid: string, interested: boolean): Promise<void> {
-  await updateDoc(profileRef(uid), { premiumInterest: interested, updatedAt: serverTimestamp() });
+/** Record that the person wants to be notified when Premium checkout launches,
+ *  optionally with the billing period they were looking at. */
+export async function setPremiumInterest(
+  uid: string,
+  interested: boolean,
+  period?: "monthly" | "yearly",
+): Promise<void> {
+  await updateDoc(profileRef(uid), {
+    premiumInterest: interested,
+    ...(period ? { premiumPeriodInterest: period } : {}),
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/** Persist one more receipt scan against the free-tier monthly allowance.
+ *  `next` is computed with lib/plan's nextScanUsage so month rollover is
+ *  handled in one place. Premium users are unlimited and never call this. */
+export async function recordScanUsage(
+  uid: string,
+  next: { month: string; count: number },
+): Promise<void> {
+  await updateDoc(profileRef(uid), { scanUsage: next, updatedAt: serverTimestamp() });
 }
 
 /** Set (or update) the app-lock passcode + biometric record. */

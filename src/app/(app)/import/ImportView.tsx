@@ -16,6 +16,10 @@ import { extractPdfText, PdfPasswordError } from "@/lib/pdf";
 import { importTransactions, type TransactionInput } from "@/lib/firestore/transactions";
 import { categoriesFor } from "@/lib/finance";
 import { toDateInput } from "@/lib/dates";
+import { usePremium } from "@/hooks/usePremium";
+import { useUserProfile } from "@/hooks/useUserProfile";
+import { recordScanUsage } from "@/lib/firestore/profile";
+import { scanQuota, nextScanUsage, FREE_LIMITS } from "@/lib/plan";
 import type { Transaction, TxType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +27,11 @@ export function ImportView() {
   const router = useRouter();
   const { prefs, money } = useLocale();
   const { data: existing, uid } = useScopedUserCollection<Transaction>("transactions");
+  const { premium } = usePremium();
+  const { profile } = useUserProfile();
+  // Stable "now" for the month key (impure calls stay out of render).
+  const [now] = useState(() => Date.now());
+  const quota = scanQuota(premium, profile?.scanUsage, now);
   const fileRef = useRef<HTMLInputElement>(null);
   const cameraRef = useRef<HTMLInputElement>(null);
   const photoRef = useRef<HTMLInputElement>(null);
@@ -118,11 +127,26 @@ export function ImportView() {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
+    // Free-tier allowance: a generous number of scans a month; Premium is
+    // unlimited. This is the concrete paid line — honest and non-destructive
+    // (manual entry and CSV import stay free and unlimited).
+    if (!quota.unlimited && quota.remaining <= 0) {
+      toast({
+        title: `You've used your ${FREE_LIMITS.scansPerMonth} free scans this month`,
+        description: "Renew Premium unlocks unlimited scanning. You can still add transactions by hand or import a CSV/PDF. See Settings › Plan & billing.",
+        variant: "error",
+      });
+      return;
+    }
     setFileName(file.name || "Photo");
     setScanPct(0);
     setParsing(true);
     try {
       const text = await getOcrEngine().recognize(file, (p) => setScanPct(Math.round(p * 100)));
+      // A scan actually ran — count it against the free allowance.
+      if (!premium && uid) {
+        void recordScanUsage(uid, nextScanUsage(profile?.scanUsage, Date.now())).catch(() => {});
+      }
       // A receipt/bill first (one total); if that finds nothing, try reading it
       // as a photographed statement (many rows). Both go through review.
       let parsed = parseReceipt(text);
@@ -240,6 +264,18 @@ export function ImportView() {
                 <ImageUp className="size-4" /> Choose a photo
               </AnimatedButton>
             </div>
+            {!quota.unlimited && (
+              <button
+                type="button"
+                onClick={() => router.push("/settings#billing")}
+                className="mt-3 flex w-full items-center justify-center gap-1.5 text-center text-xs"
+              >
+                <span className={cn("tabular-nums font-medium", quota.remaining === 0 ? "text-rose-500" : "text-[var(--text-muted)]")}>
+                  {quota.remaining} of {quota.limit} free scans left this month
+                </span>
+                <span className="text-[var(--color-gold-600)] font-medium">· Go unlimited</span>
+              </button>
+            )}
           </GlassCard>
 
           {/* Statement path — CSV / PDF export. */}
