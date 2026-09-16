@@ -1,17 +1,16 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { RenLogo } from "@/components/brand/RenLogo";
 import { RenVoice } from "@/components/finance/RenVoice";
 import { useRenContext } from "@/hooks/useRenContext";
 import { REN_OPEN_EVENT } from "@/lib/ren-open";
 
 /**
- * Ren, everywhere. A floating champagne orb present on every signed-in screen —
- * tap it and Ren opens the Siri-style voice moment (RenVoice), already knowing
- * your money. The full text conversation lives in Settings › Ren. Other places
- * (the menu panel) open Ren by dispatching REN_OPEN_EVENT.
+ * Ren's host. There's no floating orb any more — Ren is opened from the menu
+ * panel ("Ask Ren") via REN_OPEN_EVENT, which this component listens for and
+ * uses to open the Siri-style voice moment (RenVoice). Kept mounted on every
+ * signed-in screen so Ren is always one tap away from the menu, without adding
+ * a floating button over the content.
  */
 export function RenLauncher() {
   const [open, setOpen] = useState(false);
@@ -23,25 +22,5 @@ export function RenLauncher() {
     return () => window.removeEventListener(REN_OPEN_EVENT, openRen);
   }, []);
 
-  return (
-    <>
-      <motion.button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open Ren, your finance assistant"
-        className="fixed start-4 bottom-5 z-40 grid size-14 place-items-center rounded-full lg:bottom-6 lg:end-6 lg:start-auto"
-        style={{ boxShadow: "0 10px 30px -6px var(--color-gold-500)" }}
-        initial={{ scale: 0, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        transition={{ type: "spring", stiffness: 380, damping: 24, delay: 0.2 }}
-        whileHover={{ scale: 1.06, y: -2 }}
-        whileTap={{ scale: 0.94 }}
-      >
-        <span aria-hidden className="absolute inset-0 animate-ping rounded-full bg-[var(--color-gold-400)]/30" style={{ animationDuration: "3s" }} />
-        <RenLogo size={56} idSuffix="fab" className="relative" />
-      </motion.button>
-
-      <RenVoice open={open} onClose={() => setOpen(false)} uid={uid} ctx={ctx} />
-    </>
-  );
+  return <RenVoice open={open} onClose={() => setOpen(false)} uid={uid} ctx={ctx} />;
 }

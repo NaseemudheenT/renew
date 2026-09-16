@@ -396,23 +396,29 @@ button:active,
     z-index: 2;
   }
 
-  /* Primary action — filled signal (spec §4), dark text, no shadow. The single
-     lead action per screen; the press ripple lives in .btn-ripple. */
+  /* Primary action — a refined LIGHT-GOLD metallic finish: a pale champagne
+     highlight at the top easing into gold, with a bright hairline rim and dark
+     text. Elegant, not heavy. The press ripple lives in .btn-ripple. */
   .glass-primary {
     background: linear-gradient(
-      to bottom,
-      var(--signal),
-      color-mix(in srgb, var(--signal) 84%, #000)
+      180deg,
+      color-mix(in srgb, var(--signal) 52%, #ffffff) 0%,
+      var(--signal) 50%,
+      color-mix(in srgb, var(--signal) 90%, #000) 100%
     );
     color: var(--btn-gold-text);
-    border-color: transparent;
+    border: 1px solid color-mix(in srgb, #ffffff 45%, var(--signal));
+    box-shadow:
+      inset 0 1px 0 color-mix(in srgb, #ffffff 55%, transparent),
+      0 4px 14px -4px color-mix(in srgb, var(--signal) 45%, transparent);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   @media (hover: hover) {
     .glass-primary:hover {
-      box-shadow: 0 0 0 1px color-mix(in srgb, var(--signal) 40%, transparent),
-        0 6px 22px color-mix(in srgb, var(--signal) 22%, transparent);
+      box-shadow:
+        inset 0 1px 0 color-mix(in srgb, #ffffff 60%, transparent),
+        0 6px 20px -4px color-mix(in srgb, var(--signal) 42%, transparent);
     }
   }
 }

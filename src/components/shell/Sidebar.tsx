@@ -20,7 +20,9 @@ export function Sidebar({ user }: { user: ShellUser }) {
   const { t } = useLocale();
   const { mode } = useWorkspace();
   const collapsed = useSidebarCollapsed();
-  const items = navItemsFor(mode);
+  // Settings lives in the account menu (below) — no duplicate nav row under
+  // Analytics, so there's exactly one Settings in the panel.
+  const items = navItemsFor(mode).filter((i) => i.href !== "/settings");
   return (
     <motion.aside
       className="glass hidden h-full shrink-0 flex-col overflow-hidden !rounded-none !rounded-e-glass-lg lg:flex"

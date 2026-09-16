@@ -170,11 +170,11 @@ function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const [storage, setStorage] = useState<string | null>(null);
   const whatsNew = [
-    "Light and dark now match — a light-blue day and a midnight-blue night, gold throughout",
-    "Ask Ren right from the menu — with a calm, Siri-style conversation view",
-    "A gentle first-month nudge to set up your income, so you see what you really save",
-    "Refined buttons and a soft light sweep across icons and actions",
-    "Renew now updates itself automatically — you never have to reinstall",
+    "Refined light-gold buttons — a cleaner, more premium finish",
+    "Ask Ren from the menu — the floating orb is gone, the screen stays clean",
+    "One tidy Settings, reached from your account — no duplicate in the menu",
+    "Light and dark match — a light-blue day and a midnight-blue night, gold throughout",
+    "Renew updates itself automatically — you never have to reinstall",
   ];
   // Real on-device footprint (not a made-up number) via the Storage API.
   useEffect(() => {

@@ -30,9 +30,7 @@ const sizes: Record<Size, string> = {
 };
 
 const variants: Record<Variant, string> = {
-  primary:
-    "glass glass-primary !rounded-full font-semibold hover:brightness-[1.06] " +
-    "shadow-[0_6px_22px_-6px_color-mix(in_srgb,var(--signal)_55%,transparent)]",
+  primary: "glass-primary !rounded-full font-semibold hover:brightness-[1.04]",
   glass: "glass !rounded-full text-[var(--text-strong)]",
   ghost:
     "text-[var(--text-body)] hover:text-[var(--text-strong)] hover:bg-[var(--glass-bg-soft)]",
