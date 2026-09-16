@@ -1,83 +1,45 @@
-"use client";
-
-import { useEffect, useRef, useSyncExternalStore } from "react";
-import { useReducedMotion } from "framer-motion";
-import { subscribeA11y, getReduceMotion } from "@/lib/a11y";
-import { cn } from "@/lib/utils";
-
 /**
- * RENEW — the Financial-OS ground. No live WebGL fog any more: the app sits on a
- * calm deep-space **void** (dark) / soft daylight (light), with the spec's faint
- * "Scroll Tide" — a whisper of a teal data-flow field that drifts very slowly and
- * parallaxes at ~40% of scroll, so foreground cards feel like they float above a
- * live current. Text never moves; only this field and its depth glows do.
+ * RENEW — the app ground. A plain, professional midnight-blue backdrop: a calm,
+ * static deep-navy field with two very subtle depth glows, a soft vignette and
+ * the faintest film grain so it never looks like flat plastic. No live fog, no
+ * moving field, no animation — deliberately quiet so the content leads.
  *
- * Fixed behind everything, never intercepts pointers. Honours reduced-motion
- * (in-app toggle + OS): the field goes perfectly still.
+ * Fixed behind everything, never intercepts pointers. Fully theme-aware via
+ * tokens, so light mode gets its own suitable ground automatically.
  */
 export function RenewBackground() {
-  const osReduced = useReducedMotion();
-  const a11yReduced = useSyncExternalStore(subscribeA11y, getReduceMotion, () => false);
-  const still = Boolean(osReduced) || a11yReduced;
-  const tideRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (still || typeof window === "undefined") return;
-    let raf = 0;
-    const apply = () => {
-      raf = 0;
-      const y = window.scrollY || 0;
-      // Field rises at 40% of scroll — true parallax depth (spec §2).
-      if (tideRef.current) tideRef.current.style.transform = `translate3d(0, ${(-y * 0.4).toFixed(1)}px, 0)`;
-    };
-    const onScroll = () => {
-      if (!raf) raf = requestAnimationFrame(apply);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    apply();
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      if (raf) cancelAnimationFrame(raf);
-    };
-  }, [still]);
-
   return (
     <div
       aria-hidden="true"
       className="pointer-events-none fixed inset-0 -z-10 overflow-hidden"
       style={{ background: "var(--bg-base)" }}
     >
-      {/* Calm depth — two soft, static signal glows anchoring the space. */}
+      {/* A gentle top-to-bottom deepening across the midnight ground. */}
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(120% 85% at 50% -12%, var(--bokeh-1), transparent 58%)" }}
+        style={{
+          background:
+            "linear-gradient(165deg, var(--bg-tint-1) 0%, var(--bg-tint-2) 55%, var(--bg-tint-3) 100%)",
+        }}
+      />
+
+      {/* Two soft, static depth glows — quiet dimension, never a colour splash. */}
+      <div
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(115% 80% at 50% -12%, var(--bokeh-1), transparent 58%)" }}
       />
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(95% 70% at 108% 112%, var(--bokeh-2), transparent 60%)" }}
+        style={{ background: "radial-gradient(90% 70% at 108% 112%, var(--bokeh-2), transparent 60%)" }}
       />
 
-      {/* Scroll Tide — the faint data-flow field. Outer node carries the
-          scroll parallax transform; inner node carries the slow ambient drift. */}
-      <div ref={tideRef} className="absolute inset-x-0 -inset-y-[55%] will-change-transform">
-        <div
-          className={cn("size-full", !still && "renew-tide-drift")}
-          style={{
-            backgroundImage:
-              "radial-gradient(var(--tide-dot) 1px, transparent 1.7px), linear-gradient(var(--tide-line) 1px, transparent 1px)",
-            backgroundSize: "38px 38px, 100% 220px",
-            backgroundPosition: "0 0, 0 0",
-          }}
-        />
-      </div>
-
-      {/* Vignette — pulls focus to the centre, deepens the space at the edges. */}
+      {/* Vignette — settles focus toward the centre. */}
       <div
         className="absolute inset-0"
-        style={{ background: "radial-gradient(125% 120% at 50% 28%, transparent 52%, var(--vignette) 100%)" }}
+        style={{ background: "radial-gradient(125% 120% at 50% 30%, transparent 55%, var(--vignette) 100%)" }}
       />
 
-      {/* Fine film grain so the flat void never looks like dead plastic. */}
+      {/* Fine film grain so the flat ground reads as a rich material. */}
       <div
         className="absolute inset-0 mix-blend-soft-light"
         style={{

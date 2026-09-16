@@ -54,9 +54,9 @@
   color-scheme: dark;
 
   /* Signature palette (spec §1) — also referenced directly by components. */
-  --void: #05070a;
-  --surface: #0d1117;
-  --surface-raised: #131a22;
+  --void: #0b1220;
+  --surface: #131d33;
+  --surface-raised: #17223c;
   --signal: #00e5d6;
   --pulse-amber: #ffb020;
   --pulse-coral: #ff5c6c;
@@ -64,19 +64,18 @@
   --graphite: #6b7684;
   --hairline: rgba(232, 237, 242, 0.08);
 
-  --bg-base: var(--void);
-  --bg-tint-1: #0a1013;
-  --bg-tint-2: #05080b;
-  --bg-tint-3: #0b1418;
-  /* A faint teal "current" in the depths — data flowing under the surface. */
-  --bokeh-1: rgba(0, 229, 214, 0.08);
-  --bokeh-2: rgba(0, 160, 170, 0.06);
-  --bokeh-3: rgba(120, 160, 175, 0.05);
-  --grain-opacity: 0.045;
-  --vignette: rgba(2, 4, 7, 0.66);
-  /* Scroll-Tide — the faint data-flow field drifting under everything. */
-  --tide-dot: rgba(0, 229, 214, 0.05);
-  --tide-line: rgba(0, 229, 214, 0.035);
+  /* Plain, professional midnight blue — a calm, static deep-navy ground (not a
+     busy field, not black). Cards sit a touch lighter above it. */
+  --bg-base: #0b1220;
+  --bg-tint-1: #0d1626;
+  --bg-tint-2: #0a101d;
+  --bg-tint-3: #0e1830;
+  /* Very subtle blue depth glows — professional, never a splash of colour. */
+  --bokeh-1: rgba(42, 74, 142, 0.16);
+  --bokeh-2: rgba(28, 52, 110, 0.12);
+  --bokeh-3: rgba(60, 96, 170, 0.08);
+  --grain-opacity: 0.04;
+  --vignette: rgba(3, 7, 16, 0.6);
 
   --text-strong: var(--mist);
   --text-body: #c2cad2;
@@ -86,20 +85,20 @@
   /* Surfaces, not "glass everywhere": near-solid space-black cards with a 1px
      hairline and no heavy blur. Blur is reserved for the one deliberate layer
      per screen (top nav / focus sheets) which set .glass-veil. */
-  --glass-bg: rgba(13, 17, 23, 0.72);
-  --glass-bg-strong: rgba(19, 26, 34, 0.86);
-  --glass-bg-soft: rgba(13, 17, 23, 0.5);
+  --glass-bg: rgba(20, 30, 54, 0.72);
+  --glass-bg-strong: rgba(26, 39, 68, 0.86);
+  --glass-bg-soft: rgba(20, 30, 54, 0.5);
   --glass-border: var(--hairline);
   --glass-edge: rgba(232, 237, 242, 0.14);
   --glass-inner-shadow: rgba(0, 0, 0, 0.4);
   /* Highlight = a faint signal sheen, not white specular. */
   --glass-highlight: rgba(0, 229, 214, 0.14);
   --glass-shadow:
-    0 1px 0 rgba(232, 237, 242, 0.03), 0 10px 30px rgba(0, 0, 0, 0.4);
+    0 1px 0 rgba(232, 237, 242, 0.03), 0 10px 30px rgba(3, 7, 16, 0.5);
   --glass-blur: 12px;
   --glass-saturate: 118%;
 
-  --field-bg: rgba(19, 26, 34, 0.62);
+  --field-bg: rgba(26, 39, 68, 0.6);
   --field-border: rgba(232, 237, 242, 0.1);
   /* Focus = the signal accent (spec: visible focus ring in --signal). */
   --focus-ring: rgba(0, 229, 214, 0.62);
@@ -118,7 +117,7 @@
 
   /* Floating menus / popovers — near-opaque surface so content is always
      legible over any background (pickers, dropdowns, command menus). */
-  --menu-bg: rgba(11, 15, 20, 0.96);
+  --menu-bg: rgba(15, 23, 42, 0.97);
   --menu-border: rgba(232, 237, 242, 0.1);
 }
 

@@ -169,9 +169,9 @@ export function SettingsView() {
 function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const whatsNew = [
-    "A calm deep-space ground — the busy moving background is gone",
-    "A whisper-faint data-flow current drifts beneath every screen",
-    "Faster and lighter: the heavy live background was removed entirely",
+    "A plain, professional midnight-blue background — calm and steady",
+    "The busy moving background is gone; the app is faster and lighter",
+    "Cleaner cards that sit naturally on the deep-navy ground",
     "Renew Premium — clear monthly & annual plans, priced for your region",
     "Free plan includes 12 receipt scans a month; Premium is unlimited",
   ];
