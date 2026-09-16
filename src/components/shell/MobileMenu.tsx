@@ -77,15 +77,15 @@ export function MobileMenu({ user }: { user: ShellUser }) {
               </div>
 
               <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain" aria-label="Primary">
-                {items.map(({ href, msgKey, icon: Icon }) => {
+                {items.map(({ href, msgKey, icon: Icon }, i) => {
                   const active = pathname === href || pathname.startsWith(href + "/");
                   return (
                     <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex items-center gap-3 rounded-2xl py-2 pe-3 ps-2 text-sm font-medium transition-colors",
+                        "group flex items-center gap-3 rounded-2xl py-2 pe-3 ps-2 text-sm font-medium transition-colors",
                         active ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-body)] hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]",
                       )}>
-                      <span className="grid size-8 shrink-0 place-items-center rounded-[0.6rem] shadow-sm" style={{ background: NAV_TONE[href] ?? "#6b7280" }}>
+                      <span className="tile-sheen grid size-8 shrink-0 place-items-center rounded-[0.6rem] shadow-sm transition-transform duration-300 group-hover:scale-[1.08] group-active:scale-95" style={{ background: NAV_TONE[href] ?? "#6b7280", ["--sheen-delay" as string]: `${i * 0.45}s` }}>
                         <Icon className="size-4.5 text-white" />
                       </span>
                       {t(msgKey)}

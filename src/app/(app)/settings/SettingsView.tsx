@@ -136,15 +136,15 @@ export function SettingsView() {
         <section key={sec.title}>
           <h2 className="text-muted mb-2 px-1 text-xs font-medium uppercase tracking-wide">{sec.title}</h2>
           <div className="glass flex flex-col divide-y divide-[var(--glass-border)] overflow-hidden !p-0">
-            {sec.ids.map((id) => {
+            {sec.ids.map((id, i) => {
               const c = categories.find((x) => x.id === id);
               if (!c) return null;
               const Icon = c.icon;
               return (
-                <button key={c.id} type="button" onClick={() => setActive(c.id)} className="flex items-center gap-4 p-4 text-left transition-colors hover:bg-[var(--glass-bg-soft)] active:bg-[var(--glass-bg-strong)]">
+                <button key={c.id} type="button" onClick={() => setActive(c.id)} className="group flex items-center gap-4 p-4 text-left transition-colors hover:bg-[var(--glass-bg-soft)] active:bg-[var(--glass-bg-strong)]">
                   {c.id === "ren"
                     ? <RenLogo size={36} idSuffix="setrow" className="shrink-0" />
-                    : <span className="grid size-9 shrink-0 place-items-center rounded-[0.7rem] shadow-sm" style={{ background: c.tone }}><Icon className="size-4.5 text-white" /></span>}
+                    : <span className="tile-sheen grid size-9 shrink-0 place-items-center rounded-[0.7rem] shadow-sm transition-transform duration-300 group-hover:scale-[1.06] group-active:scale-95" style={{ background: c.tone, ["--sheen-delay" as string]: `${i * 0.5}s` }}><Icon className="size-4.5 text-white" /></span>}
                   <span className="min-w-0 flex-1">
                     <span className="text-strong block text-sm font-medium">{c.title}</span>
                     <span className="text-muted block truncate text-xs">{c.sub}</span>
@@ -168,13 +168,22 @@ export function SettingsView() {
 
 function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
+  const [storage, setStorage] = useState<string | null>(null);
   const whatsNew = [
     "A premium new look — champagne gold on deep midnight blue, with a soft golden glow",
+    "Refined buttons and a gentle light sweep across icons and actions",
     "A cleaner Overview: only what matters, nothing to distract you",
     "Fixed, fair pricing for your region (₹ / $ / € / £) — never awkward conversions",
-    "Everything in your region's currency, number and date format, automatically",
-    "Free plan includes 12 receipt scans a month; Premium is unlimited",
+    "Renew now updates itself automatically — you never have to reinstall",
   ];
+  // Real on-device footprint (not a made-up number) via the Storage API.
+  useEffect(() => {
+    if (typeof navigator === "undefined" || !navigator.storage?.estimate) return;
+    navigator.storage.estimate().then((est) => {
+      const mb = (est.usage ?? 0) / (1024 * 1024);
+      setStorage(mb < 0.1 ? "under 0.1 MB" : `${mb.toFixed(1)} MB`);
+    }).catch(() => {});
+  }, []);
   async function check() {
     setChecking(true);
     try {
@@ -182,7 +191,12 @@ function SoftwareUpdateControl() {
         ? await navigator.serviceWorker.getRegistration()
         : null;
       await reg?.update();
-      toast({ title: "Renew is up to date", description: `You're on ${APP_UPDATE_NAME}.`, variant: "success" });
+      const pending = reg?.installing || reg?.waiting;
+      if (pending) {
+        toast({ title: "Updating Renew…", description: "The newest version is installing — the app will refresh in a moment.", variant: "success" });
+      } else {
+        toast({ title: "Renew is up to date", description: `You're on ${APP_UPDATE_NAME}.`, variant: "success" });
+      }
     } catch {
       toast({ title: "Couldn't check right now", variant: "error" });
     } finally {
@@ -200,7 +214,8 @@ function SoftwareUpdateControl() {
         <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/12 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-300">
           <Check className="size-3.5" strokeWidth={3} />Renew is up to date
         </span>
-        <p className="text-muted max-w-xs text-xs">Renew updates itself automatically — new versions install the next time you open it. No download needed.</p>
+        <p className="text-muted max-w-xs text-xs">Renew updates itself automatically — new versions install the next time you open it. No download, no reinstall.</p>
+        {storage && <p className="text-muted text-xs tabular-nums">Using {storage} on this device</p>}
       </div>
       <div>
         <p className="text-body mb-2 text-sm font-medium">What&apos;s new in {APP_UPDATE_NAME}</p>

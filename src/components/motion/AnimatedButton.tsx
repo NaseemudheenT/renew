@@ -30,7 +30,9 @@ const sizes: Record<Size, string> = {
 };
 
 const variants: Record<Variant, string> = {
-  primary: "glass glass-primary !rounded-full font-semibold hover:brightness-[1.07]",
+  primary:
+    "glass glass-primary !rounded-full font-semibold hover:brightness-[1.06] " +
+    "shadow-[0_6px_22px_-6px_color-mix(in_srgb,var(--signal)_55%,transparent)]",
   glass: "glass !rounded-full text-[var(--text-strong)]",
   ghost:
     "text-[var(--text-body)] hover:text-[var(--text-strong)] hover:bg-[var(--glass-bg-soft)]",
@@ -94,6 +96,10 @@ export const AnimatedButton = forwardRef<HTMLButtonElement, AnimatedButtonProps>
         {...motionProps}
         {...props}
       >
+        {/* Signature light sweep on the primary action (stilled by reduced-motion). */}
+        {variant === "primary" && !reduced && !disabled && !loading && (
+          <span aria-hidden="true" className="btn-sheen" />
+        )}
         {ripples.map((rp) => (
           <span
             key={rp.id}

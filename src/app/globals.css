@@ -524,6 +524,76 @@ h1,
   font-weight: 600;
 }
 
+/* ---- "Light" animations — premium moving sheen ------------------------- */
+/* A band of light that sweeps across a control — the signature light motion. */
+@keyframes renew-sheen {
+  0% {
+    transform: translateX(-160%) skewX(-18deg);
+  }
+  60%,
+  100% {
+    transform: translateX(280%) skewX(-18deg);
+  }
+}
+/* On the primary button: a slow periodic light sweep so the lead action feels
+   alive without any layout motion. */
+.btn-sheen {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 42%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.38),
+    transparent
+  );
+  transform: translateX(-160%) skewX(-18deg);
+  animation: renew-sheen 5s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Icon tiles: a gentle light travelling across the icon. Stagger with
+   `--sheen-delay` so a row of icons ripples with light rather than blinking as
+   one. Kept subtle; disabled under reduced-motion by the global rule. */
+@keyframes tile-sheen {
+  0% {
+    transform: translateX(-170%) skewX(-16deg);
+    opacity: 0;
+  }
+  8% {
+    opacity: 0.5;
+  }
+  46% {
+    transform: translateX(240%) skewX(-16deg);
+    opacity: 0;
+  }
+  100% {
+    transform: translateX(240%) skewX(-16deg);
+    opacity: 0;
+  }
+}
+.tile-sheen {
+  position: relative;
+  overflow: hidden;
+}
+.tile-sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 40%,
+    rgba(255, 255, 255, 0.5) 50%,
+    transparent 60%
+  );
+  transform: translateX(-170%) skewX(-16deg);
+  animation: tile-sheen 7s ease-in-out infinite;
+  animation-delay: var(--sheen-delay, 0s);
+  pointer-events: none;
+}
+
 /* ---- Button ripple (light-glass wave from the touch point) -------------- */
 .btn-ripple {
   position: absolute;

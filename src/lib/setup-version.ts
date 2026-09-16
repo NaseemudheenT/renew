@@ -27,10 +27,10 @@
  *   9 — "pat5" update: coloured icons, Software Update screen, on-brand focus
  *       (no more stray blue box), swipe sheets.
  *
- * NOTE: "pat6"–"pat9" (restyle, concrete plans, midnight-blue ground, the gold
- * + midnight-blue premium look) capture no new setup data, so
- * CURRENT_SETUP_VERSION stays at 9 and nobody is sent back through onboarding.
- * Only APP_UPDATE_NAME moves.
+ * NOTE: "pat6"–"pat10" (restyle, concrete plans, gold + midnight-blue look,
+ * refined buttons + light animations, real auto-update) capture no new setup
+ * data, so CURRENT_SETUP_VERSION stays at 9 and nobody is sent back through
+ * onboarding. Only APP_UPDATE_NAME moves.
  */
 export const CURRENT_SETUP_VERSION = 9;
 
@@ -39,4 +39,4 @@ export const CURRENT_SETUP_VERSION = 9;
  * settings/account so people know which release they're on. Future updates step
  * this up (pat5, pat6, … toward pat27).
  */
-export const APP_UPDATE_NAME = "pat9";
+export const APP_UPDATE_NAME = "pat10";
