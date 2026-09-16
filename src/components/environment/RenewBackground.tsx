@@ -17,14 +17,16 @@ import AnimatedGradient, {
  * Fixed behind everything; never intercepts pointers.
  */
 
+// The "living current" — a slow teal data-flow drifting under the void, so the
+// whole app feels alive above a signal running through deep space (design spec).
 const DARK: GradientCustomConfig = {
-  color1: "#05081a",
-  color2: "#1f3c86",
-  color3: "#5f8ef5",
+  color1: "#05070a",
+  color2: "#063f3b",
+  color3: "#00e5d6",
   rotation: 24,
-  proportion: 44,
+  proportion: 40,
   scale: 0.5,
-  speed: 9,
+  speed: 8,
   distortion: 4,
   swirl: 52,
   swirlIterations: 7,
@@ -34,9 +36,9 @@ const DARK: GradientCustomConfig = {
 };
 
 const LIGHT: GradientCustomConfig = {
-  color1: "#aac1ef",
-  color2: "#6f9aec",
-  color3: "#dbe8fc",
+  color1: "#e7eeed",
+  color2: "#8fd8d0",
+  color3: "#d7f5f1",
   rotation: 24,
   proportion: 46,
   scale: 0.5,

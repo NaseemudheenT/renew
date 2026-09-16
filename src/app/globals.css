@@ -1,153 +1,191 @@
 @import "tailwindcss";
 
 /* ============================================================================
-   RENEW — Liquid-glass design system.
-   A deep champagne-gold / warm-charcoal world (dark) and a warm champagne
-   daylight (light). Real material glass: blur, refraction, specular light,
-   internal highlights, depth. Every token is theme-aware.
+   RENEW — Financial OS design system ("living financial nervous system").
+   Money as signal, flow and pulse. Deep-space surfaces, a single luminous
+   signal accent (cyan-teal), amber/coral pulses for attention and risk. The
+   instrument-panel typography carries tabular figures. Every token is
+   theme-aware; the whole app inherits its look from this one layer.
+
+   Signature tokens (also usable directly in components):
+     --signal        primary accent, "healthy money" cyan-teal
+     --pulse-amber   attention / budget warnings
+     --pulse-coral   overspend / risk / destructive
+     --void/surface/surface-raised   space-black surfaces
+     --mist/graphite  primary / muted text
+     --hairline      borders & dividers (never solid grey)
    ========================================================================== */
 
 @theme {
   --font-sans:
     var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  /* Wordmark keeps its own brand face. */
   --font-brand: var(--font-jost), var(--font-inter), ui-sans-serif, sans-serif;
+  /* Instrument-panel font — geometric technical sans with tabular figures,
+     used for numbers, balances and headlines. */
+  --font-display:
+    var(--font-space-grotesk), var(--font-inter), ui-sans-serif, sans-serif;
 
-  /* Night-sky midnight blue — brand/primary/active accent (bright, luminous). */
-  --color-gold-50: #eef3ff;
-  --color-gold-100: #dbe6ff;
-  --color-gold-200: #b7ccff;
-  --color-gold-300: #8fadff;
-  --color-gold-400: #6a8dfb;
-  --color-gold-500: #5a86f5;
-  --color-gold-600: #436bd6;
-  --color-gold-700: #3352a8;
-  --color-gold-800: #263d78;
-  --color-gold-900: #1a2a52;
+  /* Signal ramp — the one luminous accent (cyan-teal). Kept under the legacy
+     `gold-*` names so every existing accent inherits the new colour with no
+     component churn. 500 is the true --signal (#00E5D6). */
+  --color-gold-50: #e6fffb;
+  --color-gold-100: #b9fff6;
+  --color-gold-200: #7dfaee;
+  --color-gold-300: #33f0e0;
+  --color-gold-400: #06e2d2;
+  --color-gold-500: #00e5d6;
+  --color-gold-600: #00bfb2;
+  --color-gold-700: #00938a;
+  --color-gold-800: #0a6f68;
+  --color-gold-900: #0c5651;
 
-  --radius-glass: 1.25rem;
-  --radius-glass-lg: 1.75rem;
+  /* Cards sit at a 16–20px radius per the spec. */
+  --radius-glass: 1.15rem;
+  --radius-glass-lg: 1.6rem;
 
   --ease-calm: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-glass: cubic-bezier(0.175, 0.885, 0.32, 1.4);
 }
 
-/* ---- DARK (default): bright midnight-blue night sky ---------------------- */
+/* ---- DARK (default): deep-space Financial OS ---------------------------- */
 :root,
 :root[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg-base: #04060f;
-  --bg-tint-1: #0b1128;
-  --bg-tint-2: #070c1e;
-  --bg-tint-3: #0e1736;
-  --bokeh-1: rgba(90, 134, 245, 0.3);
-  --bokeh-2: rgba(60, 100, 210, 0.24);
-  --bokeh-3: rgba(150, 185, 255, 0.18);
-  --grain-opacity: 0.05;
-  --vignette: rgba(2, 5, 16, 0.55);
+  /* Signature palette (spec §1) — also referenced directly by components. */
+  --void: #05070a;
+  --surface: #0d1117;
+  --surface-raised: #131a22;
+  --signal: #00e5d6;
+  --pulse-amber: #ffb020;
+  --pulse-coral: #ff5c6c;
+  --mist: #e8edf2;
+  --graphite: #6b7684;
+  --hairline: rgba(232, 237, 242, 0.08);
 
-  --text-strong: #eaf0ff;
-  --text-body: #c7d2ee;
-  --text-muted: #8792b5;
-  --text-onGold: #08122e;
+  --bg-base: var(--void);
+  --bg-tint-1: #0a1013;
+  --bg-tint-2: #05080b;
+  --bg-tint-3: #0b1418;
+  /* A faint teal "current" in the depths — data flowing under the surface. */
+  --bokeh-1: rgba(0, 229, 214, 0.1);
+  --bokeh-2: rgba(0, 160, 170, 0.08);
+  --bokeh-3: rgba(120, 160, 175, 0.05);
+  --grain-opacity: 0.045;
+  --vignette: rgba(2, 4, 7, 0.6);
 
-  /* Liquid glass — cool midnight-blue translucency. Kept lighter so the living
-     fog behind mildly shows through cards & buttons, while backdrop-blur keeps
-     everything on top readable. */
-  --glass-bg: rgba(20, 30, 60, 0.3);
-  --glass-bg-strong: rgba(26, 38, 74, 0.46);
-  --glass-bg-soft: rgba(20, 30, 60, 0.16);
-  --glass-border: rgba(180, 205, 255, 0.16);
-  --glass-edge: rgba(200, 220, 255, 0.32);
-  --glass-inner-shadow: rgba(0, 0, 0, 0.32);
-  --glass-highlight: rgba(190, 215, 255, 0.5);
+  --text-strong: var(--mist);
+  --text-body: #c2cad2;
+  --text-muted: var(--graphite);
+  --text-onGold: var(--void);
+
+  /* Surfaces, not "glass everywhere": near-solid space-black cards with a 1px
+     hairline and no heavy blur. Blur is reserved for the one deliberate layer
+     per screen (top nav / focus sheets) which set .glass-veil. */
+  --glass-bg: rgba(13, 17, 23, 0.72);
+  --glass-bg-strong: rgba(19, 26, 34, 0.86);
+  --glass-bg-soft: rgba(13, 17, 23, 0.5);
+  --glass-border: var(--hairline);
+  --glass-edge: rgba(232, 237, 242, 0.14);
+  --glass-inner-shadow: rgba(0, 0, 0, 0.4);
+  /* Highlight = a faint signal sheen, not white specular. */
+  --glass-highlight: rgba(0, 229, 214, 0.14);
   --glass-shadow:
-    0 1px 1px rgba(2, 5, 16, 0.24), 0 12px 34px rgba(2, 5, 16, 0.44),
-    0 30px 70px rgba(2, 5, 16, 0.5);
-  --glass-blur: 20px;
-  --glass-saturate: 150%;
+    0 1px 0 rgba(232, 237, 242, 0.03), 0 10px 30px rgba(0, 0, 0, 0.4);
+  --glass-blur: 12px;
+  --glass-saturate: 118%;
 
-  --field-bg: rgba(14, 20, 44, 0.5);
-  --field-border: rgba(180, 205, 255, 0.18);
-  /* Champagne focus, on-brand (was blue — the stray "blue box" on inputs). */
-  --focus-ring: rgba(212, 175, 110, 0.6);
+  --field-bg: rgba(19, 26, 34, 0.62);
+  --field-border: rgba(232, 237, 242, 0.1);
+  /* Focus = the signal accent (spec: visible focus ring in --signal). */
+  --focus-ring: rgba(0, 229, 214, 0.62);
 
-  --mark-gold-1: #bcd2ff;
-  --mark-gold-2: #8fadff;
-  --mark-gold-3: #5a86f5;
-  --mark-gold-4: #3352a8;
-  --wordmark-from: #dbe6ff;
-  --wordmark-to: #6a8dfb;
+  /* Brand mark glows in the signal family so it reads on the void ground. */
+  --mark-gold-1: #7dfaee;
+  --mark-gold-2: #33f0e0;
+  --mark-gold-3: #00e5d6;
+  --mark-gold-4: #00bfb2;
+  --wordmark-from: #b9fff6;
+  --wordmark-to: #00c3b6;
 
-  --glass-gold-hi: rgba(120, 160, 255, 0.2);
-  --glass-gold-lo: rgba(70, 110, 220, 0.12);
-  --btn-gold-text: #dfe8ff;
+  --glass-gold-hi: rgba(0, 229, 214, 0.24);
+  --glass-gold-lo: rgba(0, 229, 214, 0.12);
+  --btn-gold-text: #05121a;
 
-  /* Floating menus / popovers — near-opaque so content is always legible over
-     any background (pickers, dropdowns, command menus). */
-  --menu-bg: rgba(15, 22, 46, 0.95);
-  --menu-border: rgba(180, 205, 255, 0.22);
+  /* Floating menus / popovers — near-opaque surface so content is always
+     legible over any background (pickers, dropdowns, command menus). */
+  --menu-bg: rgba(11, 15, 20, 0.96);
+  --menu-border: rgba(232, 237, 242, 0.1);
 }
 
-/* ---- LIGHT: frosted champagne-blue daylight ------------------------------ */
+/* ---- LIGHT: daylight instrument surface --------------------------------- */
 :root[data-theme="light"] {
   color-scheme: light;
 
-  /* A real daytime sky with depth — deep enough that the living fog and the
-     frosted glass both read against it, never a washed-out white. This is the
-     daylight twin of the midnight world: same material, same premium feel. */
-  --bg-base: #9fb2d4;
-  --bg-tint-1: #b3c5e8;
-  --bg-tint-2: #8aa4d0;
-  --bg-tint-3: #a1b6e0;
-  --bokeh-1: rgba(64, 106, 208, 0.4);
-  --bokeh-2: rgba(112, 152, 232, 0.42);
-  --bokeh-3: rgba(86, 130, 222, 0.36);
-  --grain-opacity: 0.05;
-  --vignette: rgba(20, 36, 88, 0.32);
+  /* The daytime twin of the deep-space world: cool near-white surfaces, the
+     same signal accent, graphite text. Calm and precise, never washed-out. */
+  --void: #eef2f4;
+  --surface: #ffffff;
+  --surface-raised: #f6f9fa;
+  --signal: #00b3a6;
+  --pulse-amber: #d98600;
+  --pulse-coral: #e0455a;
+  --mist: #0d1117;
+  --graphite: #5b6570;
+  --hairline: rgba(13, 17, 23, 0.08);
 
-  --text-strong: #131c34;
-  --text-body: #2b3757;
-  --text-muted: #4a5675;
-  --text-onGold: #0a1430;
+  --bg-base: var(--void);
+  --bg-tint-1: #f4f7f8;
+  --bg-tint-2: #e6edee;
+  --bg-tint-3: #eef4f4;
+  --bokeh-1: rgba(0, 179, 166, 0.16);
+  --bokeh-2: rgba(0, 150, 160, 0.14);
+  --bokeh-3: rgba(120, 170, 175, 0.12);
+  --grain-opacity: 0.04;
+  --vignette: rgba(20, 40, 44, 0.14);
 
-  /* Genuine frosted glass — translucent, so the fog drifts through cards and
-     buttons exactly like dark mode. Backdrop-blur + saturation keep everything
-     on top crisp and legible; it is glassy, not see-through-to-uselessness. */
-  --glass-bg: rgba(238, 243, 253, 0.56);
-  --glass-bg-strong: rgba(242, 246, 254, 0.72);
-  --glass-bg-soft: rgba(236, 242, 252, 0.34);
-  --glass-border: rgba(255, 255, 255, 0.66);
-  --glass-edge: rgba(255, 255, 255, 0.92);
-  --glass-inner-shadow: rgba(30, 50, 110, 0.1);
-  --glass-highlight: rgba(255, 255, 255, 0.78);
+  --text-strong: var(--mist);
+  --text-body: #2b333b;
+  --text-muted: var(--graphite);
+  --text-onGold: #04201d;
+
+  /* Surface cards on daylight — solid, hairline-bordered, minimal blur. */
+  --glass-bg: rgba(255, 255, 255, 0.82);
+  --glass-bg-strong: rgba(255, 255, 255, 0.94);
+  --glass-bg-soft: rgba(255, 255, 255, 0.6);
+  --glass-border: var(--hairline);
+  --glass-edge: rgba(255, 255, 255, 0.9);
+  --glass-inner-shadow: rgba(13, 30, 34, 0.08);
+  --glass-highlight: rgba(0, 179, 166, 0.14);
   --glass-shadow:
-    0 1px 1px rgba(28, 44, 92, 0.06), 0 12px 30px rgba(28, 44, 92, 0.14),
-    0 28px 64px rgba(28, 44, 92, 0.16);
-  --glass-blur: 22px;
-  --glass-saturate: 165%;
+    0 1px 0 rgba(13, 17, 23, 0.02), 0 10px 28px rgba(13, 30, 34, 0.08);
+  --glass-blur: 12px;
+  --glass-saturate: 130%;
 
-  --field-bg: rgba(246, 250, 255, 0.62);
-  --field-border: rgba(52, 72, 132, 0.34);
-  /* Champagne focus, on-brand (was blue — the stray "blue box" on inputs). */
-  --focus-ring: rgba(184, 134, 46, 0.55);
+  --field-bg: rgba(255, 255, 255, 0.7);
+  --field-border: rgba(13, 17, 23, 0.12);
+  --focus-ring: rgba(0, 179, 166, 0.55);
 
-  /* Light theme: the logo is a rich MIDNIGHT-BLUE, and the mark and the RENEW
-     wordmark share the exact same gradient so they read as one colour. Dark
-     enough to stand out on the daytime field, never near-black. */
-  --mark-gold-1: #3a4e88;
-  --mark-gold-2: #2b3d70;
-  --mark-gold-3: #21315e;
-  --mark-gold-4: #17244a;
-  --wordmark-from: #2b3d70;
-  --wordmark-to: #17244a;
+  /* On daylight the signal accent is deepened for legible contrast. */
+  --color-gold-400: #00b3a6;
+  --color-gold-500: #009e93;
+  --color-gold-600: #007d74;
 
-  --glass-gold-hi: rgba(120, 158, 250, 0.52);
-  --glass-gold-lo: rgba(74, 118, 232, 0.32);
-  --btn-gold-text: #1c2a63;
+  /* Brand mark in deep teal so it reads on the daylight ground. */
+  --mark-gold-1: #00b3a6;
+  --mark-gold-2: #009e93;
+  --mark-gold-3: #007d74;
+  --mark-gold-4: #00544e;
+  --wordmark-from: #009e93;
+  --wordmark-to: #00544e;
 
-  --menu-bg: rgba(250, 252, 255, 0.97);
-  --menu-border: rgba(64, 84, 146, 0.22);
+  --glass-gold-hi: rgba(0, 179, 166, 0.5);
+  --glass-gold-lo: rgba(0, 150, 140, 0.3);
+  --btn-gold-text: #04201d;
+
+  --menu-bg: rgba(255, 255, 255, 0.98);
+  --menu-border: rgba(13, 17, 23, 0.1);
 }
 
 /* ---- Accessibility preferences (Settings › Accessibility) --------------- */
@@ -211,6 +249,9 @@ body {
   background-color: var(--bg-base);
   color: var(--text-body);
   font-family: var(--font-sans);
+  /* Instrument-panel figures everywhere — tabular numerals so money columns and
+     balances line up perfectly, the way a cockpit readout does. */
+  font-feature-settings: "tnum" 1, "cv01" 1;
   min-height: 100dvh;
   max-width: 100vw;
   overflow-x: hidden;
@@ -283,6 +324,24 @@ button:active,
     border: 1px solid var(--glass-border);
     border-radius: var(--radius-glass);
     box-shadow: var(--glass-shadow);
+    transition:
+      border-color 0.18s var(--ease-calm),
+      box-shadow 0.18s var(--ease-calm);
+  }
+  /* Spec §1: no drop-shadow decoration — instead a 1px inner glow in the signal
+     accent on hover/active only, so a card feels "read" by the interface. */
+  @media (hover: hover) {
+    .glass:hover {
+      border-color: color-mix(in srgb, var(--signal) 30%, var(--hairline));
+      box-shadow:
+        var(--glass-shadow),
+        inset 0 0 0 1px color-mix(in srgb, var(--signal) 12%, transparent);
+    }
+  }
+  /* The one deliberate blurred material per screen (top nav / focus sheets). */
+  .glass-veil {
+    backdrop-filter: blur(24px) saturate(150%);
+    -webkit-backdrop-filter: blur(24px) saturate(150%);
   }
   /* Bright refractive top edge — the liquid light on glass. */
   .glass::before {
@@ -332,13 +391,77 @@ button:active,
     z-index: 2;
   }
 
-  /* Primary action — pure transparent liquid glass with a faint midnight-blue
-     sheen so it still reads as the lead action without a solid fill. */
+  /* Primary action — filled signal (spec §4), dark text, no shadow. The single
+     lead action per screen; the press ripple lives in .btn-ripple. */
   .glass-primary {
-    background:
-      linear-gradient(to bottom, var(--glass-gold-hi), var(--glass-gold-lo)),
-      var(--glass-bg);
+    background: linear-gradient(
+      to bottom,
+      var(--signal),
+      color-mix(in srgb, var(--signal) 84%, #000)
+    );
     color: var(--btn-gold-text);
+    border-color: transparent;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  @media (hover: hover) {
+    .glass-primary:hover {
+      box-shadow: 0 0 0 1px color-mix(in srgb, var(--signal) 40%, transparent),
+        0 6px 22px color-mix(in srgb, var(--signal) 22%, transparent);
+    }
+  }
+}
+
+/* ---- Instrument typography ---------------------------------------------- */
+/* Headlines carry the technical display face + tight tracking (spec §1). */
+h1,
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+/* Large money readouts — the "instrument panel" number treatment. */
+.num,
+.text-instrument {
+  font-family: var(--font-display);
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Signal accents ----------------------------------------------------- */
+.text-signal {
+  color: var(--signal);
+}
+.text-pulse-amber {
+  color: var(--pulse-amber);
+}
+.text-pulse-coral {
+  color: var(--pulse-coral);
+}
+
+/* Money that just changed gets one soft luminous pulse — a brightening, never
+   a bounce or scale (spec §1 motion principle). Add `.data-pulse` when a value
+   updates; it self-clears after one cycle. */
+@keyframes data-pulse {
+  0% {
+    text-shadow: none;
+    filter: none;
+  }
+  30% {
+    text-shadow: 0 0 18px color-mix(in srgb, var(--signal) 70%, transparent);
+    filter: brightness(1.25);
+  }
+  100% {
+    text-shadow: none;
+    filter: none;
+  }
+}
+.data-pulse {
+  animation: data-pulse 0.9s var(--ease-calm);
+}
+@media (prefers-reduced-motion: reduce) {
+  .data-pulse {
+    animation: none;
   }
 }
 

@@ -24,8 +24,12 @@
  *   7 — "pat3" update: expanded premium avatar set, brand-forward naming.
  *   8 — "pat4" update: real-name fix (profile name everywhere), cleaner phone
  *       top bar, Ren voice reliability, professional (no-emoji) Ren.
- *   9 — "pat5" update: Apple-style coloured icons, Software Update screen,
- *       on-brand champagne focus (no more stray blue box), swipe sheets.
+ *   9 — "pat5" update: coloured icons, Software Update screen, on-brand focus
+ *       (no more stray blue box), swipe sheets.
+ *
+ * NOTE: "pat6" is a pure visual restyle (the Financial-OS look) — no new setup
+ * data is captured, so CURRENT_SETUP_VERSION stays at 9 and nobody is sent back
+ * through onboarding. Only APP_UPDATE_NAME moves.
  */
 export const CURRENT_SETUP_VERSION = 9;
 
@@ -34,4 +38,4 @@ export const CURRENT_SETUP_VERSION = 9;
  * settings/account so people know which release they're on. Future updates step
  * this up (pat5, pat6, … toward pat27).
  */
-export const APP_UPDATE_NAME = "pat5";
+export const APP_UPDATE_NAME = "pat6";

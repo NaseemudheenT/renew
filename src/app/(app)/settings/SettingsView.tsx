@@ -169,11 +169,11 @@ export function SettingsView() {
 function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const whatsNew = [
-    "A cleaner, grouped Settings with colourful icons",
-    "This Software Update screen",
-    "Champagne focus throughout — no more stray blue box on inputs",
-    "Cleaner phone layout with swipe-to-dismiss sheets",
-    "Ren: clearer voice that no longer cuts off, professional replies",
+    "A whole new look — deep-space surfaces with a single luminous signal accent",
+    "Money shown as living signal: balances now use a precise instrument typeface",
+    "A calm data-flow current drifts behind every screen",
+    "Cleaner cards — hairline edges that glow only when you touch them",
+    "Same fast, private Renew underneath — nothing you set up has changed",
   ];
   async function check() {
     setChecking(true);

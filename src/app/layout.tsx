@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Jost } from "next/font/google";
+import { Inter, Jost, Space_Grotesk } from "next/font/google";
 import { Providers } from "@/components/providers/Providers";
 import { RenewBackground } from "@/components/environment/RenewBackground";
 import { GlassFilter } from "@/components/ui/GlassFilter";
@@ -18,6 +18,15 @@ const jost = Jost({
   subsets: ["latin"],
   weight: ["300", "400", "500"],
   variable: "--font-jost",
+  display: "swap",
+});
+
+// Instrument-panel display face — geometric technical sans with tabular figures
+// for numbers, balances and headlines (Financial OS design spec §1).
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-space-grotesk",
   display: "swap",
 });
 
@@ -79,8 +88,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#dfe7fb" },
-    { media: "(prefers-color-scheme: dark)", color: "#060a18" },
+    { media: "(prefers-color-scheme: light)", color: "#eef2f4" },
+    { media: "(prefers-color-scheme: dark)", color: "#05070a" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -137,7 +146,7 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: a11yNoFlashScript }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       </head>
-      <body className={`${inter.variable} ${jost.variable} antialiased`}>
+      <body className={`${inter.variable} ${jost.variable} ${spaceGrotesk.variable} antialiased`}>
         <GlassFilter />
         <RenewBackground />
         <Providers>{children}</Providers>
