@@ -14,6 +14,18 @@ import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
 
+/** Colourful icon tile per destination — matches the Settings look. */
+const NAV_TONE: Record<string, string> = {
+  "/dashboard": "#5b6cff",
+  "/accounts": "#14b8a6",
+  "/transactions": "#4a7bff",
+  "/budget": "#ff9f0a",
+  "/savings": "#34c759",
+  "/income": "#2fbf71",
+  "/payments": "#ff5e8a",
+  "/analytics": "#a15cff",
+};
+
 /**
  * The full left menu, on phones. Desktop has the fixed sidebar; on mobile the
  * same menu slides in from the left (tap the hamburger), so the experience
@@ -25,7 +37,8 @@ export function MobileMenu({ user }: { user: ShellUser }) {
   const pathname = usePathname();
   const { t } = useLocale();
   const { mode } = useWorkspace();
-  const items = navItemsFor(mode);
+  // Settings is reached from the account (below) — no duplicate row in the menu.
+  const items = navItemsFor(mode).filter((i) => i.href !== "/settings");
 
   return (
     <>
@@ -67,10 +80,12 @@ export function MobileMenu({ user }: { user: ShellUser }) {
                   return (
                     <Link key={href} href={href} onClick={() => setOpen(false)} aria-current={active ? "page" : undefined}
                       className={cn(
-                        "flex items-center gap-3 rounded-2xl py-2.5 pe-3 ps-4 text-sm font-medium transition-colors",
+                        "flex items-center gap-3 rounded-2xl py-2 pe-3 ps-2 text-sm font-medium transition-colors",
                         active ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "text-[var(--text-body)] hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]",
                       )}>
-                      <Icon className={cn("size-5 shrink-0", active && "text-[var(--color-gold-500)]")} />
+                      <span className="grid size-8 shrink-0 place-items-center rounded-[0.6rem] shadow-sm" style={{ background: NAV_TONE[href] ?? "#6b7280" }}>
+                        <Icon className="size-4.5 text-white" />
+                      </span>
                       {t(msgKey)}
                     </Link>
                   );

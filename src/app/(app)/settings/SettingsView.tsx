@@ -31,6 +31,7 @@ import { speechOutputSupported } from "@/lib/voice";
 import { RETENTION_OPTIONS } from "@/lib/retention";
 import { APP_UPDATE_NAME } from "@/lib/setup-version";
 import { RenewMark } from "@/components/brand/RenewMark";
+import { RenLogo } from "@/components/brand/RenLogo";
 import { RenChat } from "@/components/finance/RenChat";
 import { useRenContext } from "@/hooks/useRenContext";
 import { AccountTypeControl } from "@/components/settings/AccountTypeControl";
@@ -65,6 +66,15 @@ export function SettingsView() {
     { id: "software", icon: Download, tone: "#0aa3ff", title: "Software update", sub: `Renew · ${APP_UPDATE_NAME}`, render: () => <SoftwareUpdateControl /> },
   ] as const;
 
+  // Grouped like a phone's Settings — related rows sit together under a heading.
+  const sections: { title: string; ids: string[] }[] = [
+    { title: "You", ids: ["account", "ren"] },
+    { title: "Preferences", ids: ["appearance", "region", "notifications", "accessibility"] },
+    { title: "Money", ids: ["billing", "data"] },
+    { title: "Privacy & security", ids: ["security"] },
+    { title: "About", ids: ["software"] },
+  ];
+
   // Deep links like /settings#billing open that category directly.
   useEffect(() => {
     const h = typeof window !== "undefined" ? window.location.hash.replace("#", "") : "";
@@ -83,7 +93,9 @@ export function SettingsView() {
           <ChevronLeft className="size-4" />{t("settings.title")}
         </button>
         <div className="flex items-center gap-2.5 px-1">
-          <span className="grid size-8 shrink-0 place-items-center rounded-[0.65rem] shadow-sm" style={{ background: current.tone }}><Icon className="size-4.5 text-white" /></span>
+          {current.id === "ren"
+            ? <RenLogo size={32} idSuffix="sethdr" />
+            : <span className="grid size-8 shrink-0 place-items-center rounded-[0.65rem] shadow-sm" style={{ background: current.tone }}><Icon className="size-4.5 text-white" /></span>}
           <h1 className="text-strong text-xl font-medium">{current.title}</h1>
         </div>
         <GlassCard padded>
@@ -119,22 +131,31 @@ export function SettingsView() {
         </Link>
       )}
 
-      {/* Tap a category to go inside — one clear thing per screen. */}
-      <div className="glass flex flex-col divide-y divide-[var(--glass-border)] overflow-hidden !p-0">
-        {categories.map((c) => {
-          const Icon = c.icon;
-          return (
-            <button key={c.id} type="button" onClick={() => setActive(c.id)} className="flex items-center gap-4 p-4 text-left transition-colors hover:bg-[var(--glass-bg-soft)]">
-              <span className="grid size-9 shrink-0 place-items-center rounded-[0.7rem] shadow-sm" style={{ background: c.tone }}><Icon className="size-4.5 text-white" /></span>
-              <span className="min-w-0 flex-1">
-                <span className="text-strong block text-sm font-medium">{c.title}</span>
-                <span className="text-muted block truncate text-xs">{c.sub}</span>
-              </span>
-              <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
-            </button>
-          );
-        })}
-      </div>
+      {/* Grouped, phone-Settings style — related rows under a quiet heading. */}
+      {sections.map((sec) => (
+        <section key={sec.title}>
+          <h2 className="text-muted mb-2 px-1 text-xs font-medium uppercase tracking-wide">{sec.title}</h2>
+          <div className="glass flex flex-col divide-y divide-[var(--glass-border)] overflow-hidden !p-0">
+            {sec.ids.map((id) => {
+              const c = categories.find((x) => x.id === id);
+              if (!c) return null;
+              const Icon = c.icon;
+              return (
+                <button key={c.id} type="button" onClick={() => setActive(c.id)} className="flex items-center gap-4 p-4 text-left transition-colors hover:bg-[var(--glass-bg-soft)] active:bg-[var(--glass-bg-strong)]">
+                  {c.id === "ren"
+                    ? <RenLogo size={36} idSuffix="setrow" className="shrink-0" />
+                    : <span className="grid size-9 shrink-0 place-items-center rounded-[0.7rem] shadow-sm" style={{ background: c.tone }}><Icon className="size-4.5 text-white" /></span>}
+                  <span className="min-w-0 flex-1">
+                    <span className="text-strong block text-sm font-medium">{c.title}</span>
+                    <span className="text-muted block truncate text-xs">{c.sub}</span>
+                  </span>
+                  <ChevronRight className="size-5 shrink-0 text-[var(--text-muted)]" />
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      ))}
 
       <footer className="flex items-center justify-center gap-4 pt-2 text-xs text-[var(--text-muted)]">
         <Link href="/privacy" className="hover:text-[var(--text-strong)]">Privacy</Link>
@@ -148,9 +169,9 @@ export function SettingsView() {
 function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const whatsNew = [
-    "Apple-style colours across Settings and your profile",
+    "A cleaner, grouped Settings with colourful icons",
     "This Software Update screen",
-    "On-brand champagne focus — no more stray blue box on inputs",
+    "Champagne focus throughout — no more stray blue box on inputs",
     "Cleaner phone layout with swipe-to-dismiss sheets",
     "Ren: clearer voice that no longer cuts off, professional replies",
   ];
