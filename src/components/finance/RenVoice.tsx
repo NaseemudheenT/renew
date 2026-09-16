@@ -129,9 +129,6 @@ export function RenVoice({
 
   const firstName = (profile?.displayName ?? "").trim().split(/\s+/)[0] ?? "";
   const greeting = firstName ? `Hi ${firstName}, I’m Ren.` : "Hi, I’m Ren.";
-  const caption = phase === "listening"
-    ? heard
-    : (reply || (phase === "idle" ? greeting : ""));
 
   return (
     <AnimatePresence>
@@ -143,9 +140,9 @@ export function RenVoice({
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           onClick={onClose}
         >
-          {/* Ambient glow that only breathes while Ren is active */}
+          {/* Ambient golden glow that only breathes while Ren is active */}
           <motion.div aria-hidden className="pointer-events-none absolute left-1/2 top-[38%] size-[52vmax] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[110px]"
-            style={{ background: "radial-gradient(circle, rgba(74,123,255,0.28), rgba(192,92,255,0.14), transparent 66%)" }}
+            style={{ background: "radial-gradient(circle, rgba(212,175,110,0.26), rgba(176,138,62,0.12), transparent 66%)" }}
             animate={active ? { opacity: [0.5, 0.85, 0.5], scale: [1, 1.06, 1] } : { opacity: 0.4, scale: 1 }}
             transition={active ? { duration: 3, repeat: Infinity, ease: "easeInOut" } : { duration: 0.6 }}
           />
@@ -182,7 +179,7 @@ export function RenVoice({
                   phase === "listening" ? { duration: 1.3, repeat: Infinity, ease: "easeInOut" } :
                   { duration: 0.4 }
                 }
-                style={{ filter: "drop-shadow(0 12px 40px rgba(74,123,255,0.45))" }}
+                style={{ filter: "drop-shadow(0 12px 40px rgba(212,175,110,0.42))" }}
               >
                 <RenLogo size={148} idSuffix="voice" />
               </motion.span>
@@ -190,17 +187,35 @@ export function RenVoice({
 
             <p className="text-muted mt-9 text-xs font-medium uppercase tracking-wide">{status}</p>
 
-            {/* Ren's words — below the orb */}
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={caption}
-                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.32, ease: EASE }}
-                className={cn("mt-3 min-h-[3.5rem] max-w-sm text-center text-lg font-light leading-snug",
-                  phase === "listening" && !heard ? "text-muted" : "text-strong")}>
-                {caption}
-              </motion.p>
-            </AnimatePresence>
+            {/* Siri-style structured transcript over the calm blurred backdrop:
+                what you said sits quietly on top, Ren's reply is the clear line
+                below. During listening your live words are the main text. */}
+            <div className="mt-3 flex min-h-[5rem] w-full max-w-sm flex-col items-center gap-1.5 text-center">
+              {phase === "listening" ? (
+                <AnimatePresence mode="wait">
+                  <motion.p key={heard || "listening"}
+                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.28, ease: EASE }}
+                    className={cn("text-lg font-light leading-snug", heard ? "text-strong" : "text-muted")}>
+                    {heard || "I'm listening…"}
+                  </motion.p>
+                </AnimatePresence>
+              ) : (
+                <>
+                  {heard && (
+                    <p className="text-muted line-clamp-2 text-sm font-normal leading-snug">{heard}</p>
+                  )}
+                  <AnimatePresence mode="wait">
+                    <motion.p key={reply || "greeting"}
+                      initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
+                      transition={{ duration: 0.32, ease: EASE }}
+                      className="text-strong max-h-[40vh] overflow-y-auto text-lg font-light leading-relaxed">
+                      {reply || (phase === "thinking" ? "" : greeting)}
+                    </motion.p>
+                  </AnimatePresence>
+                </>
+              )}
+            </div>
 
             {/* Pure voice, like Siri. A quiet text field appears ONLY where the
                 device can't do speech recognition — never a visible toggle. */}
@@ -210,7 +225,7 @@ export function RenVoice({
                 <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Message Ren" aria-label="Message Ren"
                   className="text-strong h-12 min-w-0 flex-1 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-5 text-sm outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--focus-ring)]" />
                 <button type="submit" disabled={!input.trim()} aria-label="Send"
-                  className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#4a7bff] to-[#c05cff] text-white shadow-[0_6px_20px_-6px_#4a7bff] transition-all active:scale-95 disabled:opacity-40">
+                  className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--color-gold-400)] to-[var(--color-gold-600)] text-[var(--btn-gold-text)] shadow-[0_6px_20px_-6px_var(--color-gold-500)] transition-all active:scale-95 disabled:opacity-40">
                   <ArrowUp className="size-5" />
                 </button>
               </form>

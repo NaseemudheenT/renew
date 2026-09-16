@@ -7,9 +7,11 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Menu, X } from "lucide-react";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
+import { RenLogo } from "@/components/brand/RenLogo";
 import { AccountMenu } from "./AccountMenu";
 import type { ShellUser } from "./shell-types";
 import { navItemsFor } from "@/lib/nav";
+import { openRen } from "@/lib/ren-open";
 import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
@@ -77,6 +79,17 @@ export function MobileMenu({ user }: { user: ShellUser }) {
               </div>
 
               <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain" aria-label="Primary">
+                {/* Ren, right in the menu — tap to talk to your finance assistant. */}
+                <button
+                  type="button"
+                  onClick={() => { setOpen(false); openRen(); }}
+                  className="group mb-1 flex items-center gap-3 rounded-2xl py-2 pe-3 ps-2 text-sm font-medium text-[var(--text-body)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
+                >
+                  <span className="grid size-8 shrink-0 place-items-center transition-transform duration-300 group-hover:scale-[1.08] group-active:scale-95">
+                    <RenLogo size={32} idSuffix="menu" />
+                  </span>
+                  Ask Ren
+                </button>
                 {items.map(({ href, msgKey, icon: Icon }, i) => {
                   const active = pathname === href || pathname.startsWith(href + "/");
                   return (

@@ -5,9 +5,11 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
+import { RenLogo } from "@/components/brand/RenLogo";
 import { AccountMenu } from "./AccountMenu";
 import type { ShellUser } from "./shell-types";
 import { navItemsFor } from "@/lib/nav";
+import { openRen } from "@/lib/ren-open";
 import { useWorkspace } from "@/components/providers/WorkspaceProvider";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { useSidebarCollapsed } from "./sidebar-store";
@@ -32,6 +34,17 @@ export function Sidebar({ user }: { user: ShellUser }) {
         <Wordmark sizeClassName="text-lg" />
       </Link>
       <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain" aria-label="Primary">
+        {/* Ren, right in the menu — talk to your finance assistant. */}
+        <button
+          type="button"
+          onClick={() => openRen()}
+          className="group mb-1 flex items-center gap-3 rounded-2xl py-2.5 pe-3 ps-2.5 text-sm font-medium text-[var(--text-body)] transition-colors duration-300 hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
+        >
+          <span className="grid size-6 shrink-0 place-items-center transition-transform duration-300 group-hover:scale-110">
+            <RenLogo size={24} idSuffix="sidebar" />
+          </span>
+          Ask Ren
+        </button>
         {items.map(({ href, msgKey, icon: Icon }) => {
           const active = pathname === href || pathname.startsWith(href + "/");
           return (

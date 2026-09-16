@@ -74,7 +74,9 @@ export function Dashboard({ name }: { name: string }) {
   const budgets = useScopedUserCollection<Budget>("budgets");
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [addType, setAddType] = useState<"income" | "expense">("expense");
   const [submitting, setSubmitting] = useState(false);
+  const openAdd = (t: "income" | "expense") => { setAddType(t); setModalOpen(true); };
 
   const loading = txAll.loading || savings.loading || bills.loading || accounts.loading || transfers.loading;
   const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
@@ -127,7 +129,7 @@ export function Dashboard({ name }: { name: string }) {
               <h1 className="text-strong mt-1 text-2xl font-light sm:text-3xl">{greeting}, {profile?.displayName || name || "there"}.</h1>
             </div>
             <div className="flex items-center gap-2">
-              <AnimatedButton onClick={() => setModalOpen(true)}><Plus className="size-4" />Add</AnimatedButton>
+              <AnimatedButton onClick={() => openAdd("expense")}><Plus className="size-4" />Add</AnimatedButton>
             </div>
           </div>
         </StaggerItem>
@@ -168,6 +170,27 @@ export function Dashboard({ name }: { name: string }) {
                 </div>
               </GlassCard>
             </StaggerItem>
+
+            {/* First-month nudge: help people set up their income so Renew can
+                show income vs spending honestly. Only when nothing's come in
+                yet — a gentle prompt, never a fabricated entry. */}
+            {totals.income === 0 && (
+              <StaggerItem>
+                <GlassCard padded className="relative overflow-hidden">
+                  <div className="pointer-events-none absolute -right-12 -top-12 size-40 rounded-full bg-[radial-gradient(circle,var(--bokeh-1),transparent_70%)] blur-2xl" />
+                  <div className="relative flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-start gap-3">
+                      <span className="grid size-10 shrink-0 place-items-center rounded-2xl bg-[var(--glass-bg-strong)]"><ArrowDownLeft className="size-5 text-emerald-500" /></span>
+                      <div className="min-w-0">
+                        <p className="text-strong text-sm font-medium">Add your income</p>
+                        <p className="text-muted mt-0.5 text-xs">{isBusiness ? "Log your business income so Renew can show what's coming in vs going out." : "Add your salary or other income so Renew can show income vs spending — and what you're really saving."}</p>
+                      </div>
+                    </div>
+                    <AnimatedButton size="sm" className="shrink-0" onClick={() => openAdd("income")}><Plus className="size-4" />Add income</AnimatedButton>
+                  </div>
+                </GlassCard>
+              </StaggerItem>
+            )}
 
             <StaggerItem>
               <Advisor
@@ -285,8 +308,8 @@ export function Dashboard({ name }: { name: string }) {
         )}
       </StaggerContainer>
 
-      <AnimatedModal open={modalOpen} onClose={() => setModalOpen(false)} title="Add transaction">
-        <TransactionForm defaultCurrency={currency} submitting={submitting} onSubmit={async (i) => { if (await addTransaction(i)) setModalOpen(false); }} onCancel={() => setModalOpen(false)} />
+      <AnimatedModal open={modalOpen} onClose={() => setModalOpen(false)} title={addType === "income" ? "Add income" : "Add transaction"}>
+        <TransactionForm defaultCurrency={currency} defaultType={addType} submitting={submitting} onSubmit={async (i) => { if (await addTransaction(i)) setModalOpen(false); }} onCancel={() => setModalOpen(false)} />
       </AnimatedModal>
     </div>
   );

@@ -1,19 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { RenLogo } from "@/components/brand/RenLogo";
 import { RenVoice } from "@/components/finance/RenVoice";
 import { useRenContext } from "@/hooks/useRenContext";
+import { REN_OPEN_EVENT } from "@/lib/ren-open";
 
 /**
  * Ren, everywhere. A floating champagne orb present on every signed-in screen —
  * tap it and Ren opens the Siri-style voice moment (RenVoice), already knowing
- * your money. The full text conversation lives in Settings › Ren.
+ * your money. The full text conversation lives in Settings › Ren. Other places
+ * (the menu panel) open Ren by dispatching REN_OPEN_EVENT.
  */
 export function RenLauncher() {
   const [open, setOpen] = useState(false);
   const { ctx, uid } = useRenContext();
+
+  useEffect(() => {
+    const openRen = () => setOpen(true);
+    window.addEventListener(REN_OPEN_EVENT, openRen);
+    return () => window.removeEventListener(REN_OPEN_EVENT, openRen);
+  }, []);
 
   return (
     <>
