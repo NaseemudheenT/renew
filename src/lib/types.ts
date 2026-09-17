@@ -126,6 +126,44 @@ export interface Payment {
   updatedAt: number;
 }
 
+/* ---- Business / Freelancer: Invoices & Clients --------------------------- */
+
+/** An invoice is either still owed or settled. "Overdue" is derived at read
+ *  time (unpaid + past its due date), never a stored state that can go stale. */
+export type InvoiceStatus = "unpaid" | "paid";
+
+export interface Invoice {
+  id: string;
+  /** Human invoice number/reference, e.g. "INV-014". */
+  number: string;
+  /** Client/company the invoice is billed to (display name). */
+  client: string;
+  /** Optional link to a saved Client record (client tagging, next piece). */
+  clientId?: string;
+  amount: number;
+  currency: string;
+  /** Date the invoice was issued (epoch millis). */
+  issuedAt: number;
+  /** Date payment is due (epoch millis). */
+  dueAt: number;
+  status: InvoiceStatus;
+  /** When it was marked paid (epoch millis), if ever. */
+  paidAt?: number | null;
+  notes?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
+/** A saved client/project to tag invoices and expenses against. */
+export interface Client {
+  id: string;
+  name: string;
+  email?: string;
+  notes?: string;
+  createdAt: number;
+  updatedAt: number;
+}
+
 /* ---- Notifications ------------------------------------------------------- */
 
 export type NotificationType =

@@ -26,6 +26,7 @@ const NAV_TONE: Record<string, string> = {
   "/income": "#2fbf71",
   "/payments": "#ff5e8a",
   "/analytics": "#a15cff",
+  "/invoices": "#c99f52",
   "/settings": "#6b7684",
 };
 

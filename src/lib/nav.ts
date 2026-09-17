@@ -6,6 +6,7 @@ import {
   PiggyBank,
   ReceiptText,
   BarChart3,
+  FileText,
   Settings,
   type LucideIcon,
 } from "lucide-react";
@@ -36,6 +37,7 @@ export const NAV_ITEMS: NavItem[] = [
   { href: "/transactions", label: "Transactions", msgKey: "nav.transactions", icon: ArrowLeftRight, primary: true },
   { href: "/budget", label: "Budget", msgKey: "nav.budget", icon: Target, primary: true },
   { href: "/savings", label: "Savings", msgKey: "nav.savings", icon: PiggyBank, modes: ["personal"] },
+  { href: "/invoices", label: "Invoices", msgKey: "nav.invoices", icon: FileText, modes: ["business"] },
   { href: "/payments", label: "Bills", msgKey: "nav.payments", icon: ReceiptText },
   { href: "/analytics", label: "Analytics", msgKey: "nav.analytics", icon: BarChart3 },
   { href: "/settings", label: "Settings", msgKey: "nav.settings", icon: Settings },

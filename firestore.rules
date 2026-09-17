@@ -18,7 +18,7 @@ service cloud.firestore {
       // All personal data is nested under the owner's document.
       match /{collection}/{docId} {
         allow read, write: if isOwner(uid)
-          && collection in ['reminders', 'tasks', 'documents', 'payments', 'notifications', 'transactions', 'budgets', 'savings', 'investments', 'accounts', 'transfers', 'subscriptions'];
+          && collection in ['reminders', 'tasks', 'documents', 'payments', 'notifications', 'transactions', 'budgets', 'savings', 'investments', 'accounts', 'transfers', 'subscriptions', 'invoices', 'clients'];
       }
 
       // Razorpay order/payment records: created & verified by the server only

@@ -67,6 +67,8 @@ export const EN = {
   "nav.settings": "Settings",
   "nav.accounts": "Accounts",
   "nav.subscriptions": "Subscriptions",
+  "nav.invoices": "Invoices",
+  "nav.clients": "Clients",
   "nav.more": "More",
 
   "accounts.new": "New account",
