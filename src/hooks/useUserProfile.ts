@@ -88,6 +88,9 @@ export interface ProfileDoc {
   premiumPeriodInterest?: "monthly" | "yearly";
   /** Monthly receipt-scan usage for the free-tier allowance (see lib/plan). */
   scanUsage?: { month: string; count: number };
+  /** Per-user learned merchant → category map (see lib/categorize). Grows as the
+   *  user categorizes, so auto-categorization gets smarter with no AI calls. */
+  learnedCategories?: Record<string, string>;
 }
 
 /** Realtime subscription to the signed-in user's profile document. */

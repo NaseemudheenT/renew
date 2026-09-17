@@ -38,27 +38,40 @@ const CATEGORY_HINTS: { id: string; words: string[] }[] = [
   { id: "subscriptions", words: ["subscription", "membership", "prime membership", "google one", "icloud", "microsoft 365", "adobe", "chatgpt", "openai", "notion"] },
 ];
 
-/** Best-effort category from a description. Never invents amounts — labels only. */
-export function guessCategory(text: string, type: TxType): string {
+/**
+ * Keyword category with a hit COUNT — the first-match-wins category plus how
+ * many of its keywords appeared. The count feeds the auto-categorization
+ * confidence score (see lib/categorize §2). Deterministic, no AI.
+ */
+export function keywordCategory(text: string, type: TxType): { category: string; hits: number } {
   const s = (text || "").toLowerCase();
   if (type === "income") {
-    if (/salary|payroll|wages/.test(s)) return "salary";
-    if (/freelance|upwork|fiverr|contract/.test(s)) return "freelance";
-    if (/dividend/.test(s)) return "dividends";
-    if (/interest/.test(s)) return "interest";
-    if (/rent received|rental/.test(s)) return "rental";
-    if (/bonus|incentive/.test(s)) return "bonus";
-    if (/commission/.test(s)) return "commission";
-    if (/pension/.test(s)) return "pension";
-    if (/cashback|cash back|reward/.test(s)) return "cashback";
-    if (/refund|reversal/.test(s)) return "refund";
-    return "other_income";
+    const income: [RegExp, string][] = [
+      [/salary|payroll|wages/, "salary"],
+      [/freelance|upwork|fiverr|contract/, "freelance"],
+      [/dividend/, "dividends"],
+      [/interest/, "interest"],
+      [/rent received|rental/, "rental"],
+      [/bonus|incentive/, "bonus"],
+      [/commission/, "commission"],
+      [/pension/, "pension"],
+      [/cashback|cash back|reward/, "cashback"],
+      [/refund|reversal/, "refund"],
+    ];
+    for (const [re, id] of income) if (re.test(s)) return { category: id, hits: 1 };
+    return { category: "other_income", hits: 0 };
   }
   for (const h of CATEGORY_HINTS) {
     if (h.id === "salary") continue;
-    if (h.words.some((w) => s.includes(w))) return h.id;
+    const hits = h.words.reduce((n, w) => (s.includes(w) ? n + 1 : n), 0);
+    if (hits > 0) return { category: h.id, hits };
   }
-  return "other_expense";
+  return { category: "other_expense", hits: 0 };
+}
+
+/** Best-effort category from a description. Never invents amounts — labels only. */
+export function guessCategory(text: string, type: TxType): string {
+  return keywordCategory(text, type).category;
 }
 
 export interface ColumnMapping {

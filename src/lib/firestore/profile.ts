@@ -59,6 +59,31 @@ export async function setPremiumInterest(
   });
 }
 
+/**
+ * Teach Renew that a description maps to a category (see lib/categorize). Merges
+ * one entry into the user's learned table, capped so it can't grow unbounded —
+ * when full, the oldest-inserted keys are dropped (insertion order preserved by
+ * object key order). No AI, no cost; this is what makes categories self-improve.
+ */
+const LEARNED_CAP = 500;
+export async function learnCategory(
+  uid: string,
+  current: Record<string, string> | undefined,
+  key: string,
+  category: string,
+): Promise<void> {
+  if (!key || !category) return;
+  const base = current ?? {};
+  // No-op if already the same mapping (avoid a pointless write on every save).
+  if (base[key] === category) return;
+  const next: Record<string, string> = { ...base, [key]: category };
+  const keys = Object.keys(next);
+  const trimmed = keys.length > LEARNED_CAP
+    ? Object.fromEntries(keys.slice(keys.length - LEARNED_CAP).map((k) => [k, next[k]!]))
+    : next;
+  await updateDoc(profileRef(uid), { learnedCategories: trimmed, updatedAt: serverTimestamp() });
+}
+
 /** Persist one more receipt scan against the free-tier monthly allowance.
  *  `next` is computed with lib/plan's nextScanUsage so month rollover is
  *  handled in one place. Premium users are unlimited and never call this. */

@@ -7,7 +7,9 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { AnimatedButton } from "@/components/motion";
 import { makeCustomCategoryId } from "@/lib/finance";
-import { guessCategory } from "@/lib/import";
+import { categorize, merchantKey } from "@/lib/categorize";
+import { learnCategory } from "@/lib/firestore/profile";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
@@ -38,6 +40,8 @@ export function TransactionForm({
 }) {
   const { prefs } = useLocale();
   const { user } = useAuth();
+  const { profile } = useUserProfile();
+  const learned = profile?.learnedCategories;
   const { forType, subsFor, resolve } = useCategories();
   const { data: accounts } = useScopedUserCollection<Account>("accounts");
   const activeAccounts = accounts.filter((a) => a.status === "active");
@@ -73,7 +77,7 @@ export function TransactionForm({
   function switchType(t: TxType) {
     setType(t);
     // Re-guess for the new type from the note, unless they've chosen a category.
-    const next = !categoryTouched && note.trim() ? guessCategory(note, t) : forType(t)[0]!.id;
+    const next = !categoryTouched && note.trim() ? categorize(note, t, learned ?? {}).category : forType(t)[0]!.id;
     setCategory(next);
     setSubcategory("");
     resetSubAdd();
@@ -91,7 +95,7 @@ export function TransactionForm({
   function onNoteChange(value: string) {
     setNote(value);
     if (!categoryTouched && value.trim()) {
-      const guess = guessCategory(value, type);
+      const guess = categorize(value, type, learned ?? {}).category;
       if (guess !== category) {
         setCategory(guess);
         setSubcategory("");
@@ -139,6 +143,11 @@ export function TransactionForm({
     // Send "" (not undefined) for cleared optionals so an edit that empties a
     // field actually persists the clear (createTransaction stores "" too).
     onSubmit({ type, amount: amt, currency: effectiveCurrency, category, subcategory: subcategory.trim(), note: note.trim(), date: fromDateTimeInputs(date), accountId });
+    // Teach the on-device categorizer: this description → this category. Next
+    // time the same merchant appears it auto-fills (no AI call, per-user memory).
+    if (user && note.trim()) {
+      void learnCategory(user.uid, learned, merchantKey(note), category);
+    }
   }
 
   const effCurrency = selectedAccount ? selectedAccount.currency : currency;
