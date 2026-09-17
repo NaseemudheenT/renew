@@ -39,4 +39,4 @@ export const CURRENT_SETUP_VERSION = 9;
  * settings/account so people know which release they're on. Future updates step
  * this up (pat5, pat6, … toward pat27).
  */
-export const APP_UPDATE_NAME = "pat12";
+export const APP_UPDATE_NAME = "pat13";

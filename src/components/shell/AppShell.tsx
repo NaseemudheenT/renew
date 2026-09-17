@@ -6,7 +6,6 @@ import { TopBar } from "./TopBar";
 import { NotificationSync } from "./NotificationSync";
 import { RetentionCleanup } from "@/components/providers/RetentionCleanup";
 import { RenLauncher } from "@/components/finance/RenLauncher";
-import { QuickAddFab } from "@/components/finance/QuickAddFab";
 import { AppLock } from "@/components/security/AppLock";
 import { ReauthProvider } from "@/components/security/ReauthProvider";
 import { PrivacyProvider } from "@/components/providers/PrivacyProvider";
@@ -39,11 +38,10 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             {/* The scrolling world lives only here. */}
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <TopBar user={user} />
-              <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-28 pt-1 outline-none sm:px-6 lg:px-8 lg:pb-10">
+              <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] pt-1 outline-none sm:px-6 lg:px-8 lg:pb-10">
                 {children}
               </main>
             </div>
-            <QuickAddFab />
             <RenLauncher />
             <AppLock />
           </PrivacyProvider>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu } from "lucide-react";
 import { RenewMark } from "@/components/brand/RenewMark";
 import { Wordmark } from "@/components/brand/Wordmark";
 import { RenLogo } from "@/components/brand/RenLogo";
@@ -69,15 +69,13 @@ export function MobileMenu({ user }: { user: ShellUser }) {
               onDragEnd={(_e, info) => { if (info.offset.x < -70 || info.velocity.x < -500) setOpen(false); }}
               role="dialog" aria-label="Menu"
             >
-              <div className="mb-6 flex items-center justify-between">
+              {/* Brand only — no close button. Tap a destination, tap outside, or
+                  swipe left to dismiss (professional, uncluttered). */}
+              <div className="mb-6 flex items-center">
                 <Link href="/dashboard" onClick={() => setOpen(false)} className="flex items-center gap-3" aria-label="Renew home">
                   <RenewMark size={32} />
                   <Wordmark sizeClassName="text-lg" />
                 </Link>
-                <button type="button" onClick={() => setOpen(false)} aria-label="Close menu"
-                  className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]">
-                  <X className="size-5" />
-                </button>
               </div>
 
               <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto overscroll-contain" aria-label="Primary">

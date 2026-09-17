@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  RefreshCw, ReceiptText, Sparkles, Fingerprint,
+  Sparkles, Fingerprint,
   Globe, Palette, Bell, Accessibility, Upload, Database,
   ChevronRight, LogOut, Crown, Pencil, Check,
 } from "lucide-react";
@@ -18,10 +18,8 @@ import { APP_UPDATE_NAME } from "@/lib/setup-version";
 import { updateDisplayName, updateAvatar } from "@/lib/firestore/profile";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useUserProfile } from "@/hooks/useUserProfile";
-import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { signOutUser, AuthError } from "@/lib/auth/client";
 import { registerPasskey, usePasskeySupport } from "@/lib/auth/passkey-client";
-import type { Subscription } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 /**
@@ -35,14 +33,12 @@ export function AccountView() {
   const { user } = useAuth();
   const { profile, uid } = useUserProfile();
   const isPremiumPlan = profile?.plan === "premium";
-  const { data: subs } = useScopedUserCollection<Subscription>("subscriptions");
   const passkeySupported = usePasskeySupport();
   const [addingPasskey, setAddingPasskey] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [name, setName] = useState(user?.displayName ?? "");
   const [savingName, setSavingName] = useState(false);
 
-  const activeCount = subs.filter((s) => s.status === "active").length;
   const fullName = profile?.displayName || user?.displayName || "";
   const shellUser = {
     uid: user?.uid ?? "",
@@ -104,11 +100,10 @@ export function AccountView() {
         </span>
       </div>
 
-      {/* Membership */}
+      {/* Membership — your Renew account only (your tracked bills & subscriptions
+          live on the Bills page, not in your profile). */}
       <Group title="Membership">
-        <Row icon={isPremiumPlan ? Crown : Sparkles} tone="#d4a24a" title="Plan & billing" desc={isPremiumPlan ? "You're on Renew Premium" : "Free plan · see Premium"} href="/settings#billing" />
-        <Row icon={RefreshCw} tone="#5b6cff" title="Subscriptions" desc={`${activeCount} active · renewals`} href="/payments#subscriptions" />
-        <Row icon={ReceiptText} tone="#ff5e8a" title="Bills" desc="Upcoming and paid" href="/payments" />
+        <Row icon={isPremiumPlan ? Crown : Sparkles} tone="#d4a24a" title="Renew plan & billing" desc={isPremiumPlan ? "You're on Renew Premium" : "Free plan · see Premium"} href="/settings#billing" />
       </Group>
 
       {/* Security & sign-in */}

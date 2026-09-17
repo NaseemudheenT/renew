@@ -114,7 +114,7 @@ export function CalendarView() {
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title={t("nav.calendar")} subtitle="Bills, subscriptions and your own reminders on one timeline." action={<AnimatedButton variant="glass" size="sm" onClick={() => { const now = new Date(); setCursor(now); setSelected(now); }}>Today</AnimatedButton>} />
-      <div className="grid gap-6 lg:grid-cols-[1.6fr_1fr]">
+      <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr] lg:gap-6">
         <GlassCard padded>
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-strong text-lg font-medium capitalize">{monthTitle}</h2>
@@ -134,7 +134,7 @@ export function CalendarView() {
               const dayItems = byDay.get(dayStart(day.getTime())) ?? [];
               return (
                 <button key={day.toISOString()} type="button" onClick={() => setSelected(day)} aria-label={dayAria.format(day)} aria-pressed={isSel}
-                  className={cn("relative flex aspect-square flex-col items-center justify-start gap-1 rounded-xl p-1.5 text-sm transition-colors", inMonth ? "text-[var(--text-body)]" : "text-[var(--text-muted)]/50", isSel ? "bg-[var(--glass-bg-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]" : "hover:bg-[var(--glass-bg-soft)]")}>
+                  className={cn("relative flex min-h-11 flex-col items-center justify-center gap-1 rounded-xl p-1 text-sm transition-colors sm:aspect-square sm:justify-start sm:p-1.5", inMonth ? "text-[var(--text-body)]" : "text-[var(--text-muted)]/50", isSel ? "bg-[var(--glass-bg-strong)] shadow-[inset_0_1px_0_var(--glass-edge)]" : "hover:bg-[var(--glass-bg-soft)]")}>
                   <span className={cn("grid size-6 place-items-center rounded-full text-xs tabular-nums", today && "bg-gradient-to-b from-gold-300 to-gold-500 font-semibold text-[var(--text-onGold)]", isSel && !today && "font-semibold text-[var(--text-strong)]")}>{numFmt.format(day.getDate())}</span>
                   {dayItems.length > 0 && (
                     <div className="flex flex-wrap items-center justify-center gap-0.5">

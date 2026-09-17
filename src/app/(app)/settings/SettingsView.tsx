@@ -170,11 +170,11 @@ function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const [storage, setStorage] = useState<string | null>(null);
   const whatsNew = [
-    "Refined light-gold buttons — a cleaner, more premium finish",
-    "Ask Ren from the menu — the floating orb is gone, the screen stays clean",
-    "One tidy Settings, reached from your account — no duplicate in the menu",
-    "Light and dark match — a light-blue day and a midnight-blue night, gold throughout",
-    "Renew updates itself automatically — you never have to reinstall",
+    "A cleaner, professional menu — no floating button, no clutter",
+    "The menu closes on its own when you open a page; swipe or tap away to dismiss",
+    "Your profile now shows just your Renew account, not your tracked bills",
+    "A tidier calendar that fits every phone properly",
+    "Refined light-gold buttons and a premium light-blue / midnight-blue look",
   ];
   // Real on-device footprint (not a made-up number) via the Storage API.
   useEffect(() => {
