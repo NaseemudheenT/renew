@@ -170,10 +170,10 @@ function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const [storage, setStorage] = useState<string | null>(null);
   const whatsNew = [
+    "Swipe left or right to move between sections — like a real native app",
+    "Every page now slides in smoothly, with a gentle haptic on swipe",
     "A cleaner, professional menu — no floating button, no clutter",
-    "The menu closes on its own when you open a page; swipe or tap away to dismiss",
-    "Your profile now shows just your Renew account, not your tracked bills",
-    "A tidier calendar that fits every phone properly",
+    "Your profile shows just your Renew account; a tidier calendar on phones",
     "Refined light-gold buttons and a premium light-blue / midnight-blue look",
   ];
   // Real on-device footprint (not a made-up number) via the Storage API.

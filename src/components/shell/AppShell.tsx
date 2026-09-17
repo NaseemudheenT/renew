@@ -3,6 +3,7 @@
 import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
+import { SwipeNavigator } from "./SwipeNavigator";
 import { NotificationSync } from "./NotificationSync";
 import { RetentionCleanup } from "@/components/providers/RetentionCleanup";
 import { RenLauncher } from "@/components/finance/RenLauncher";
@@ -39,7 +40,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
               <TopBar user={user} />
               <main id="main-content" tabIndex={-1} className="flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 pb-[calc(env(safe-area-inset-bottom,0px)+2rem)] pt-1 outline-none sm:px-6 lg:px-8 lg:pb-10">
-                {children}
+                <SwipeNavigator>{children}</SwipeNavigator>
               </main>
             </div>
             <RenLauncher />
