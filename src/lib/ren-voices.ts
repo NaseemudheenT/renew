@@ -22,7 +22,7 @@ export interface RenVoice {
 export const REN_VOICES: RenVoice[] = [
   { id: "aria", name: "Aria", gender: "female", tagline: "Warm and clear" },
   { id: "nova", name: "Nova", gender: "female", tagline: "Bright and calm" },
-  { id: "kai", name: "Kai", gender: "male", tagline: "Steady and grounded" },
+  { id: "kai", name: "Orion", gender: "male", tagline: "Deep and futuristic" },
   { id: "onyx", name: "Onyx", gender: "male", tagline: "Deep and composed" },
 ];
 

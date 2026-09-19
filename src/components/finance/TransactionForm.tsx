@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { Plus, Check, X, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
+import { SearchInput } from "@/components/ui/SearchInput";
 import { AnimatedButton } from "@/components/motion";
 import { makeCustomCategoryId } from "@/lib/finance";
 import { categorize, merchantKey } from "@/lib/categorize";
@@ -59,6 +60,7 @@ export function TransactionForm({
   const [note, setNote] = useState(initial?.note ?? "");
   const [error, setError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
+  const [catQuery, setCatQuery] = useState("");
   const [newCat, setNewCat] = useState("");
   const [addingSub, setAddingSub] = useState(false);
   const [newSub, setNewSub] = useState("");
@@ -87,6 +89,7 @@ export function TransactionForm({
     setCategoryTouched(true);
     setCategory(id);
     setSubcategory("");
+    setCatQuery("");
     resetSubAdd();
   }
 
@@ -202,33 +205,48 @@ export function TransactionForm({
       {/* What was it for — drives the smart category guess */}
       <Input label="What was it for?" placeholder="e.g. Lunch, Salary, Rent" value={note} onChange={(e) => onNoteChange(e.target.value)} />
 
-      {/* Category — a clean, consistent icon grid (same for expense & income) */}
+      {/* Category — smart & tidy: Renew suggests the best fit, a few common ones
+          show, and everything else is one search away (no wall of icons). */}
       <div>
-        <p className="text-body mb-2 text-sm font-medium">Category</p>
-        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-          {cats.map((c) => {
-            const Icon = resolve(c.id).icon;
-            const on = category === c.id;
+        <div className="mb-2 flex items-center justify-between">
+          <p className="text-body text-sm font-medium">Category</p>
+          {!adding && <button type="button" onClick={() => { setAdding(true); if (catQuery.trim()) setNewCat(catQuery.trim()); }} className="text-[var(--color-gold-600)] inline-flex items-center gap-1 text-xs font-medium hover:underline"><Plus className="size-3.5" />New</button>}
+        </div>
+        <SearchInput value={catQuery} onChange={setCatQuery} placeholder="Search categories…" ariaLabel="Search categories" className="mb-2 flex w-full" />
+        {(() => {
+          const q = catQuery.trim().toLowerCase();
+          // Suggested = the current pick first, then a few common ones. Searching
+          // reveals the full set — matched by name (the box also feeds the smart
+          // guess as you typed the note).
+          const suggested = cats.filter((c) => c.id === category).concat(cats.filter((c) => c.id !== category)).slice(0, 7);
+          const shown = q ? cats.filter((c) => c.label.toLowerCase().includes(q)) : suggested;
+          if (shown.length === 0) {
             return (
-              <button key={c.id} type="button" onClick={() => pickCategory(c.id)} aria-pressed={on}
-                className={cn("flex flex-col items-center gap-1.5 rounded-2xl border p-2 text-center transition-all active:scale-95",
-                  on ? "border-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
-                <span className={cn("grid size-9 place-items-center rounded-full transition-colors",
-                  on ? "bg-[var(--color-gold-500)]/18 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--text-muted)]")}>
-                  <Icon className="size-4.5" />
-                </span>
-                <span className={cn("w-full truncate text-[11px] font-medium leading-tight", on ? "text-[var(--text-strong)]" : "text-[var(--text-body)]")}>{c.label}</span>
+              <button type="button" onClick={() => { setAdding(true); setNewCat(catQuery.trim()); }} className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-[var(--field-border)] py-3 text-xs font-medium text-[var(--color-gold-600)]">
+                <Plus className="size-3.5" /> Add &ldquo;{catQuery.trim()}&rdquo;
               </button>
             );
-          })}
-          {!adding && (
-            <button type="button" onClick={() => setAdding(true)} aria-label="New category"
-              className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed border-[var(--field-border)] p-2 text-center text-[var(--color-gold-600)] transition-all hover:border-[var(--focus-ring)]/60 active:scale-95">
-              <span className="grid size-9 place-items-center rounded-full bg-[var(--glass-bg-strong)]"><Plus className="size-4.5" /></span>
-              <span className="text-[11px] font-medium leading-tight">New</span>
-            </button>
-          )}
-        </div>
+          }
+          return (
+            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+              {shown.map((c) => {
+                const Icon = resolve(c.id).icon;
+                const on = category === c.id;
+                return (
+                  <button key={c.id} type="button" onClick={() => pickCategory(c.id)} aria-pressed={on}
+                    className={cn("flex flex-col items-center gap-1.5 rounded-2xl border p-2 text-center transition-all active:scale-95",
+                      on ? "border-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
+                    <span className={cn("grid size-9 place-items-center rounded-full transition-colors",
+                      on ? "bg-[var(--color-gold-500)]/18 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--text-muted)]")}>
+                      <Icon className="size-4.5" />
+                    </span>
+                    <span className={cn("w-full truncate text-[11px] font-medium leading-tight", on ? "text-[var(--text-strong)]" : "text-[var(--text-body)]")}>{c.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          );
+        })()}
         {adding && (
           <div className="mt-2 flex items-center gap-2">
             <Input placeholder="New category name" value={newCat} autoFocus onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustom(); } }} />

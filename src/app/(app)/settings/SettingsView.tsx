@@ -496,7 +496,7 @@ function RenControl({ uid }: { uid: string }) {
   // Two named voices, like Siri — one female, one male.
   const REN_VOICE_CHOICES = [
     { id: "aria", name: "Aria", desc: "Female · warm and clear" },
-    { id: "kai", name: "Kai", desc: "Male · steady and grounded" },
+    { id: "kai", name: "Orion", desc: "Male · deep and futuristic" },
   ] as const;
 
   return (
