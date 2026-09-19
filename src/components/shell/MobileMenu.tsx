@@ -109,7 +109,7 @@ export function MobileMenu({ user }: { user: ShellUser }) {
               </nav>
 
               <div className="mt-2 shrink-0 border-t border-[var(--glass-border)] pt-3">
-                <AccountMenu user={user} align="left" />
+                <AccountMenu user={user} align="left" onNavigate={() => setOpen(false)} />
               </div>
             </motion.aside>
           </>

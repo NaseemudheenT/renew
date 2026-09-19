@@ -92,7 +92,11 @@ export function Dashboard({ name }: { name: string }) {
   }, [txAll.data]);
 
   const savingsTotal = useMemo(() => savings.data.reduce((s, g) => s + g.current, 0), [savings.data]);
-  const netWorth = totals.balance + savingsTotal;
+  // Net worth = money in − money out. Savings goals are an EARMARK of that same
+  // money (you save from what you've earned), so they're shown separately as
+  // "Saved" and never added on top — adding them double-counts (e.g. earn 100,
+  // spend 35, save 30 → 65, not 95).
+  const netWorth = totals.balance;
   const upcomingBills = useMemo(() => [...bills.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 4), [bills.data]);
   const comingTotal = useMemo(() => bills.data.reduce((s, b) => s + b.amount, 0), [bills.data]);
   const activeAccounts = useMemo(() => accounts.data.filter((a) => a.status === "active"), [accounts.data]);

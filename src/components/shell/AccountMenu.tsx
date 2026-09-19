@@ -9,20 +9,29 @@ import { Avatar } from "./Avatar";
 import type { ShellUser } from "./shell-types";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { signOutUser } from "@/lib/auth/client";
+import { useReauth } from "@/components/security/ReauthProvider";
 import { PopoverPortal } from "@/components/ui/PopoverPortal";
 import { cn } from "@/lib/utils";
 
 /** Account dropdown — clean: profile, settings, sign out. (Passkeys are managed
- *  in Settings › your account; theme lives in Settings.) */
-export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?: "left" | "right" }) {
+ *  in Settings › your account; theme lives in Settings.) `onNavigate` lets a
+ *  parent (the mobile menu panel) close itself when an item is chosen. */
+export function AccountMenu({ user, align = "right", onNavigate }: { user: ShellUser; align?: "left" | "right"; onNavigate?: () => void }) {
   const router = useRouter();
   const { profile } = useUserProfile();
+  const requireReauth = useReauth();
   const displayName = profile?.displayName || user.displayName || "Your account";
   const [open, setOpen] = useState(false);
   const anchorRef = useRef<HTMLButtonElement>(null);
 
+  function go() { setOpen(false); onNavigate?.(); }
+
   async function onSignOut() {
     setOpen(false);
+    // Confirm it's really you (Face ID / passcode) before signing out — keeps a
+    // shoulder-surfer from signing you out. No lock set → resolves through.
+    if (!(await requireReauth("Confirm it's you to sign out"))) return;
+    onNavigate?.();
     await signOutUser();
     router.replace("/sign-in");
   }
@@ -51,7 +60,7 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
         >
           <Link
             href="/account"
-            onClick={() => setOpen(false)}
+            onClick={go}
             className="flex items-center gap-3 rounded-xl px-3 py-3 transition-colors hover:bg-[var(--glass-bg-soft)]"
           >
             <Avatar user={user} size={40} />
@@ -61,7 +70,7 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
           <Link
             href="/account"
             role="menuitem"
-            onClick={() => setOpen(false)}
+            onClick={go}
             className="text-body flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
           >
             <CircleUserRound className="size-4.5" />
@@ -70,7 +79,7 @@ export function AccountMenu({ user, align = "right" }: { user: ShellUser; align?
           <Link
             href="/settings"
             role="menuitem"
-            onClick={() => setOpen(false)}
+            onClick={go}
             className="text-body flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
           >
             <Settings className="size-4.5" />

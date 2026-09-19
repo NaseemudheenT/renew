@@ -158,10 +158,12 @@ export function SettingsView() {
         </section>
       ))}
 
-      <footer className="flex items-center justify-center gap-4 pt-2 text-xs text-[var(--text-muted)]">
+      <footer className="flex flex-wrap items-center justify-center gap-x-4 gap-y-1 pt-2 text-xs text-[var(--text-muted)]">
         <Link href="/privacy" className="hover:text-[var(--text-strong)]">Privacy</Link>
         <span aria-hidden="true">·</span>
         <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
+        <span aria-hidden="true">·</span>
+        <a href="mailto:support@getrenew.in" className="hover:text-[var(--text-strong)]">Contact support</a>
       </footer>
     </div>
   );
