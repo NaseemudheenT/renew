@@ -11,7 +11,7 @@ import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { parseCSV, parseStatement, parseReceipt, detectMapping, buildDrafts, type DraftRow, type ColumnMapping } from "@/lib/import";
-import { getOcrEngine } from "@/lib/ocr";
+import { getOcrEngine, scanReceiptImage } from "@/lib/ocr";
 import { extractPdfText, PdfPasswordError } from "@/lib/pdf";
 import { importTransactions, type TransactionInput } from "@/lib/firestore/transactions";
 import { categoriesFor } from "@/lib/finance";
@@ -139,16 +139,38 @@ export function ImportView() {
       return;
     }
     setFileName(file.name || "Photo");
-    setScanPct(0);
+    setScanPct(null);
     setParsing(true);
     try {
-      const text = await getOcrEngine().recognize(file, (p) => setScanPct(Math.round(p * 100)));
-      // A scan actually ran — count it against the free allowance.
+      // A scan is running — count it against the free allowance (vision or fallback).
       if (!premium && uid) {
         void recordScanUsage(uid, nextScanUsage(profile?.scanUsage, Date.now())).catch(() => {});
       }
-      // A receipt/bill first (one total); if that finds nothing, try reading it
-      // as a photographed statement (many rows). Both go through review.
+
+      // 1) Vision-first (Tech Ref §1): a vision model reads the receipt into
+      //    structured fields and reports its own confidence — it never invents.
+      const vision = await scanReceiptImage(file);
+      if (vision && vision.amount != null) {
+        const dateStr = vision.date ?? toDateInput(Date.now());
+        const row = { date: dateStr, description: vision.merchant ?? "Receipt", amount: String(vision.amount), type: vision.type };
+        if (applyParsed([row])) {
+          // Honour the model's category (buildDrafts would otherwise keyword-guess).
+          if (vision.category) setDrafts((ds) => ds.map((d) => ({ ...d, category: vision.category! })));
+          // §1 trust rule → tell the user how sure we are (they still confirm below).
+          if (vision.confidence >= 0.85) {
+            toast({ title: "Receipt read", description: "Please review and save.", variant: "success" });
+          } else if (vision.confidence >= 0.5) {
+            toast({ title: "Please double-check this one", description: "The receipt was a little hard to read — confirm the amount and merchant.", variant: "default" });
+          } else {
+            toast({ title: "Low confidence — please check the details", description: "Some fields may be wrong; edit anything before saving.", variant: "default" });
+          }
+          return;
+        }
+      }
+
+      // 2) Fallback: on-device OCR text + heuristic parse (no key / unreadable).
+      setScanPct(0);
+      const text = await getOcrEngine().recognize(file, (p) => setScanPct(Math.round(p * 100)));
       let parsed = parseReceipt(text);
       if (parsed.length === 0) parsed = parseStatement(text);
       if (!applyParsed(parsed)) {

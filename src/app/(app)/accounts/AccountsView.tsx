@@ -60,7 +60,7 @@ export function AccountsView() {
       <PageHeader
         title={t("nav.accounts")}
         subtitle="Every place your money lives — balances update from your activity."
-        action={
+        action={isEmpty ? undefined : (
           <div className="flex items-center gap-2">
             {active.length >= 2 && (
               <AnimatedButton variant="glass" onClick={() => setTransferOpen(true)}>
@@ -71,7 +71,7 @@ export function AccountsView() {
               <Plus className="size-4" />{t("accounts.new")}
             </AnimatedButton>
           </div>
-        }
+        )}
       />
 
       {loading ? (

@@ -46,9 +46,15 @@ export function SwipeNavigator({ children }: { children: ReactNode }) {
     const dt = Date.now() - s.t;
     // Decisive, mostly-horizontal, reasonably quick — otherwise it's a scroll.
     if (Math.abs(dx) < 72 || Math.abs(dx) < Math.abs(dy) * 1.8 || dt > 600) return;
-    // Never hijack a swipe that began on something scrollable/interactive.
+    // Never hijack a swipe that began on something scrollable OR interactive —
+    // swiping a transaction row, a button, a link, a chip or a card must do its
+    // own thing (or nothing), never drag the whole page to another section.
     const el = e.target as HTMLElement | null;
-    if (el?.closest?.("[data-noswipe],input,textarea,select,[role=slider],.overflow-x-auto,.overflow-auto")) return;
+    if (el?.closest?.(
+      "[data-noswipe],a,button,input,textarea,select,label," +
+      "[role=button],[role=switch],[role=tab],[role=slider],[role=menuitem],[role=option]," +
+      ".pressable,.overflow-x-auto,.overflow-auto,li",
+    )) return;
     const next = dx < 0 ? idx + 1 : idx - 1;
     if (next < 0 || next >= items.length) return;
     setDir(dx < 0 ? 1 : -1);

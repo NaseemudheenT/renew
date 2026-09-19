@@ -56,7 +56,7 @@ export function BudgetView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={t("nav.budget")} subtitle="Set a monthly limit per category — see what's left at a glance." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New budget</AnimatedButton>} />
+      <PageHeader title={t("nav.budget")} subtitle="Set a monthly limit per category — see what's left at a glance." action={isEmpty ? undefined : <AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New budget</AnimatedButton>} />
       {loading ? (
         <ListSkeleton />
       ) : isEmpty ? (

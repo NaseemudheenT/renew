@@ -36,7 +36,8 @@ export const CURRENT_SETUP_VERSION = 9;
 
 /**
  * The user-facing name for the current software update, Apple-style. Shown in
- * settings/account so people know which release they're on. Future updates step
- * this up (pat5, pat6, … toward pat27).
+ * settings/account so people know which release they're on. The launch-era name
+ * is "fOS" (Renew Financial OS); future updates step the number up (fOS 2, fOS 3…).
+ * (Earlier pre-launch builds were named pat3…pat14.)
  */
-export const APP_UPDATE_NAME = "pat14";
+export const APP_UPDATE_NAME = "fOS 1";

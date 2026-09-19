@@ -107,7 +107,7 @@ export function InvoicesView() {
       <PageHeader
         title="Invoices"
         subtitle="Track what you've billed clients — paid, unpaid and overdue at a glance."
-        action={<AnimatedButton size="sm" onClick={openNew}><Plus className="size-4" />New invoice</AnimatedButton>}
+        action={!loading && sorted.length === 0 ? undefined : <AnimatedButton size="sm" onClick={openNew}><Plus className="size-4" />New invoice</AnimatedButton>}
       />
 
       {mode !== "business" && (
@@ -135,7 +135,7 @@ export function InvoicesView() {
             {[0, 1, 2].map((i) => <div key={i} className="h-16 animate-pulse rounded-2xl bg-[var(--field-bg)]" />)}
           </div>
         ) : sorted.length === 0 ? (
-          <EmptyState icon={FileText} title="No invoices yet" description="Add the first invoice you've sent a client — Renew tracks paid, unpaid and overdue for you." />
+          <EmptyState icon={FileText} title="No invoices yet" description="Add the first invoice you've sent a client — Renew tracks paid, unpaid and overdue for you." action={<AnimatedButton onClick={openNew}><Plus className="size-4" />New invoice</AnimatedButton>} />
         ) : (
           <ul className="flex flex-col gap-2">
             {sorted.map((inv) => {

@@ -109,7 +109,7 @@ export function TransactionsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={<AnimatedButton onClick={() => setAddMenuOpen(true)}><Plus className="size-4" />Add</AnimatedButton>} />
+      <PageHeader title={t("nav.transactions")} subtitle="Every amount in and out — captured in seconds." action={isEmpty ? undefined : <AnimatedButton onClick={() => setAddMenuOpen(true)}><Plus className="size-4" />Add</AnimatedButton>} />
 
       {!isEmpty && (
         <div className="mb-5 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">

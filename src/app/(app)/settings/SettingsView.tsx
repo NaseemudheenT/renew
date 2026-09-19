@@ -170,11 +170,11 @@ function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const [storage, setStorage] = useState<string | null>(null);
   const whatsNew = [
-    "Swipe left or right to move between sections — like a real native app",
-    "Every page now slides in smoothly, with a gentle haptic on swipe",
-    "A cleaner, professional menu — no floating button, no clutter",
-    "Your profile shows just your Renew account; a tidier calendar on phones",
-    "Refined light-gold buttons and a premium light-blue / midnight-blue look",
+    "Renew Financial OS — the launch build (fOS)",
+    "Sharper receipt scanning: reads the amount, merchant and date, and asks when it's unsure",
+    "One clean Add button per screen — no more duplicates",
+    "Smoother swiping — swiping an item no longer flips the whole page",
+    "Renew updates itself automatically — you never have to reinstall",
   ];
   // Real on-device footprint (not a made-up number) via the Storage API.
   useEffect(() => {

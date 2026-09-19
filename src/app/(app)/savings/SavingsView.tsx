@@ -40,7 +40,7 @@ export function SavingsView() {
 
   return (
     <div className="mx-auto max-w-3xl">
-      <PageHeader title={t("nav.savings")} subtitle="Set goals, watch them fill." action={<AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New goal</AnimatedButton>} />
+      <PageHeader title={t("nav.savings")} subtitle="Set goals, watch them fill." action={isEmpty ? undefined : <AnimatedButton onClick={() => { setEditing(null); setModalOpen(true); }}><Plus className="size-4" />New goal</AnimatedButton>} />
       {loading ? (
         <ListSkeleton />
       ) : isEmpty ? (
