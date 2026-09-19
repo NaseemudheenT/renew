@@ -106,6 +106,15 @@ export function TransactionForm({
   async function saveCustomSub() {
     const label = newSub.trim();
     if (!label || !user) return;
+    // Duplicate guard: if this subcategory already exists (any case), select it
+    // instead of silently creating a second one.
+    const existingSub = subs.find((s) => s.toLowerCase() === label.toLowerCase());
+    if (existingSub) {
+      setSubcategory(existingSub);
+      resetSubAdd();
+      toast({ title: "That subcategory already exists", description: `Using “${existingSub}”.` });
+      return;
+    }
     try {
       await addCustomSubcategory(user.uid, category, label);
       setSubcategory(label);
@@ -118,6 +127,17 @@ export function TransactionForm({
   async function saveCustom() {
     const label = newCat.trim();
     if (!label || !user) return;
+    // Duplicate guard (§3): if a category with this name already exists for this
+    // type — built-in OR custom — pick it and tell the user, never create a
+    // duplicate. Applies to both expense and income categories.
+    const existing = cats.find((c) => c.label.toLowerCase() === label.toLowerCase());
+    if (existing) {
+      pickCategory(existing.id);
+      setNewCat("");
+      setAdding(false);
+      toast({ title: "That category already exists", description: `Using “${existing.label}”.` });
+      return;
+    }
     const cat = { id: makeCustomCategoryId(label, type), label, type };
     try {
       await addCustomCategory(user.uid, cat);
@@ -182,24 +202,30 @@ export function TransactionForm({
       {/* What was it for — drives the smart category guess */}
       <Input label="What was it for?" placeholder="e.g. Lunch, Salary, Rent" value={note} onChange={(e) => onNoteChange(e.target.value)} />
 
-      {/* Category — fast, tappable chips with icons */}
+      {/* Category — a clean, consistent icon grid (same for expense & income) */}
       <div>
         <p className="text-body mb-2 text-sm font-medium">Category</p>
-        <div className="flex flex-wrap gap-2">
+        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
           {cats.map((c) => {
             const Icon = resolve(c.id).icon;
             const on = category === c.id;
             return (
               <button key={c.id} type="button" onClick={() => pickCategory(c.id)} aria-pressed={on}
-                className={cn("inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-all active:scale-95",
-                  on ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-body)] hover:border-[var(--focus-ring)]/50")}>
-                <Icon className="size-3.5" />{c.label}
+                className={cn("flex flex-col items-center gap-1.5 rounded-2xl border p-2 text-center transition-all active:scale-95",
+                  on ? "border-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
+                <span className={cn("grid size-9 place-items-center rounded-full transition-colors",
+                  on ? "bg-[var(--color-gold-500)]/18 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--text-muted)]")}>
+                  <Icon className="size-4.5" />
+                </span>
+                <span className={cn("w-full truncate text-[11px] font-medium leading-tight", on ? "text-[var(--text-strong)]" : "text-[var(--text-body)]")}>{c.label}</span>
               </button>
             );
           })}
           {!adding && (
-            <button type="button" onClick={() => setAdding(true)} className="inline-flex items-center gap-1 rounded-full border border-dashed border-[var(--field-border)] px-3 py-1.5 text-xs font-medium text-[var(--color-gold-600)] hover:border-[var(--focus-ring)]/50">
-              <Plus className="size-3.5" /> New
+            <button type="button" onClick={() => setAdding(true)} aria-label="New category"
+              className="flex flex-col items-center gap-1.5 rounded-2xl border border-dashed border-[var(--field-border)] p-2 text-center text-[var(--color-gold-600)] transition-all hover:border-[var(--focus-ring)]/60 active:scale-95">
+              <span className="grid size-9 place-items-center rounded-full bg-[var(--glass-bg-strong)]"><Plus className="size-4.5" /></span>
+              <span className="text-[11px] font-medium leading-tight">New</span>
             </button>
           )}
         </div>

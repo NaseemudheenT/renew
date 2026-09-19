@@ -2,10 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Crown, Check, Wallet, Sparkles, ShieldCheck, Download, TrendingUp, Bell,
-  Landmark, Heart, BellRing, ScanLine, Tags, Target, PiggyBank, FileText,
-} from "lucide-react";
+import { Crown, Check, Sparkles, BellRing, FileText } from "lucide-react";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -17,11 +14,6 @@ import {
   type BillingPeriod,
 } from "@/lib/plan";
 import { cn } from "@/lib/utils";
-
-const ICONS: Record<string, typeof Wallet> = {
-  Wallet, Sparkles, ShieldCheck, Download, TrendingUp, Bell, Landmark, Heart,
-  ScanLine, Tags, Target, PiggyBank,
-};
 
 /**
  * Renew's plan surface — the Free-vs-Premium comparison, real region-aware
@@ -72,13 +64,18 @@ export function PlanControl() {
 
       {!premium && (
         <>
-          {/* Premium pitch + real pricing */}
-          <div className="relative overflow-hidden rounded-2xl border border-[var(--color-gold-500)]/30 p-4">
-            <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[radial-gradient(circle,rgba(0,229,214,0.18),transparent_65%)] blur-2xl" />
+          {/* Premium plan card — pattern §8: ring, badge, big price, separator,
+              check-list, single CTA — in Renew's gold + midnight style. */}
+          <div className="relative overflow-hidden rounded-2xl border border-[var(--color-gold-500)]/40 p-4 ring-2 ring-[var(--color-gold-500)]/40">
+            <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[radial-gradient(circle,rgba(212,175,110,0.2),transparent_65%)] blur-2xl" />
             <div className="relative">
-              <div className="flex items-center gap-2">
-                <Crown className="size-4.5 text-[var(--color-gold-500)]" />
-                <p className="text-strong text-sm font-semibold">Renew Premium</p>
+              {/* Name + badge */}
+              <div className="flex items-center justify-between gap-2">
+                <span className="flex items-center gap-2">
+                  <Crown className="size-4.5 text-[var(--color-gold-500)]" />
+                  <span className="text-strong text-sm font-semibold">Renew Premium</span>
+                </span>
+                <span className="rounded-full bg-[var(--color-gold-500)]/15 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-gold-600)]">Most popular</span>
               </div>
               <p className="text-muted mt-1 text-xs">Unlimited scanning, auto-import, unlimited budgets &amp; goals, and clean reports.</p>
 
@@ -86,10 +83,10 @@ export function PlanControl() {
               <div className="relative mt-3 grid grid-cols-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
                 {(["monthly", "yearly"] as BillingPeriod[]).map((p) => (
                   <button key={p} type="button" onClick={() => setPeriod(p)} aria-pressed={period === p}
-                    className={cn("relative z-10 rounded-full py-1.5 font-medium capitalize transition-colors", period === p ? "text-[var(--text-onGold)]" : "text-[var(--text-muted)]")}>
+                    className={cn("relative z-10 rounded-full py-1.5 font-medium capitalize transition-colors", period === p ? "text-[var(--btn-gold-text)]" : "text-[var(--text-muted)]")}>
                     {p === "yearly" ? "Annual" : "Monthly"}
                     {p === "yearly" && saving > 0 && (
-                      <span className={cn("ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold", period === "yearly" ? "bg-[var(--text-onGold)]/15 text-[var(--text-onGold)]" : "bg-[var(--color-gold-500)]/15 text-[var(--color-gold-600)]")}>
+                      <span className={cn("ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold", period === "yearly" ? "bg-black/15 text-[var(--btn-gold-text)]" : "bg-[var(--color-gold-500)]/15 text-[var(--color-gold-600)]")}>
                         Save {saving}%
                       </span>
                     )}
@@ -98,9 +95,9 @@ export function PlanControl() {
                 <motion.span layout aria-hidden className={cn("absolute inset-y-1 z-0 w-[calc(50%-0.25rem)] rounded-full bg-[var(--color-gold-500)]", period === "yearly" ? "left-[calc(50%+0.125rem)]" : "left-1")} transition={{ type: "spring", stiffness: 400, damping: 32 }} />
               </div>
 
-              {/* Price */}
+              {/* Big price */}
               <div className="mt-4 flex items-baseline gap-1.5">
-                <span className="text-strong text-3xl font-light num">
+                <span className="text-strong num text-3xl font-bold">
                   {formatPlanPrice(price, period === "yearly" ? price.yearly : price.monthly)}
                 </span>
                 <span className="text-muted text-sm">{period === "yearly" ? "/year" : "/month"}</span>
@@ -111,19 +108,17 @@ export function PlanControl() {
                 </p>
               )}
 
-              <ul className="mt-4 flex flex-col gap-2">
-                {PREMIUM_PERKS.map((p) => {
-                  const Icon = ICONS[p.icon] ?? Sparkles;
-                  return (
-                    <li key={p.id} className="flex items-start gap-2.5">
-                      <span className="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-[var(--color-gold-500)]/15"><Icon className="size-3.5 text-[var(--color-gold-500)]" /></span>
-                      <span className="min-w-0">
-                        <span className="text-body block text-sm font-medium">{p.title}{!p.live && <span className="text-muted ml-1.5 text-[10px] font-medium uppercase tracking-wide">soon</span>}</span>
-                        <span className="text-muted block text-xs">{p.desc}</span>
-                      </span>
-                    </li>
-                  );
-                })}
+              {/* Separator */}
+              <div className="my-4 h-px bg-[var(--glass-border)]" />
+
+              {/* Feature checklist */}
+              <ul className="flex flex-col gap-2">
+                {PREMIUM_PERKS.map((p) => (
+                  <li key={p.id} className="flex items-center gap-2 text-sm">
+                    <Check className="size-4 shrink-0 text-emerald-500" strokeWidth={3} />
+                    <span className="text-body">{p.title}{!p.live && <span className="text-muted ml-1.5 text-[10px] font-medium uppercase tracking-wide">soon</span>}</span>
+                  </li>
+                ))}
               </ul>
 
               <AnimatedButton size="lg" fullWidth className="mt-4" onClick={() => setOpen(true)} disabled={interested}>

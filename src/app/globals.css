@@ -115,6 +115,14 @@
   --glass-gold-hi: rgba(212, 175, 110, 0.26);
   --glass-gold-lo: rgba(176, 138, 62, 0.14);
   --btn-gold-text: #241a07;
+  /* The primary BUTTON gold is theme-independent — defined on :root so it is
+     IDENTICAL in light and dark (only the surface behind it changes). Never
+     override these in the light block. */
+  --btn-gold-top: #ecd7a6;
+  --btn-gold-mid: #d4af6a;
+  --btn-gold-bot: #b8923f;
+  --btn-gold-rim: #f0e2bf;
+  --btn-gold-glow: rgba(212, 175, 110, 0.45);
 
   /* Floating menus / popovers — near-opaque surface so content is always
      legible over any background (pickers, dropdowns, command menus). */
@@ -402,23 +410,23 @@ button:active,
   .glass-primary {
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--signal) 52%, #ffffff) 0%,
-      var(--signal) 50%,
-      color-mix(in srgb, var(--signal) 90%, #000) 100%
+      var(--btn-gold-top) 0%,
+      var(--btn-gold-mid) 52%,
+      var(--btn-gold-bot) 100%
     );
     color: var(--btn-gold-text);
-    border: 1px solid color-mix(in srgb, #ffffff 45%, var(--signal));
+    border: 1px solid var(--btn-gold-rim);
     box-shadow:
-      inset 0 1px 0 color-mix(in srgb, #ffffff 55%, transparent),
-      0 4px 14px -4px color-mix(in srgb, var(--signal) 45%, transparent);
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      0 4px 14px -4px var(--btn-gold-glow);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
   @media (hover: hover) {
     .glass-primary:hover {
       box-shadow:
-        inset 0 1px 0 color-mix(in srgb, #ffffff 60%, transparent),
-        0 6px 20px -4px color-mix(in srgb, var(--signal) 42%, transparent);
+        inset 0 1px 0 rgba(255, 255, 255, 0.6),
+        0 6px 20px -4px var(--btn-gold-glow);
     }
   }
 }
