@@ -28,6 +28,7 @@ import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, update
 import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
 import { isPasskeySupported } from "@/lib/auth/passkey-client";
 import { speechOutputSupported } from "@/lib/voice";
+import { DEFAULT_REN_VOICE } from "@/lib/ren-voices";
 import { RETENTION_OPTIONS } from "@/lib/retention";
 import { APP_UPDATE_NAME } from "@/lib/setup-version";
 import { RenewMark } from "@/components/brand/RenewMark";
@@ -491,6 +492,12 @@ function RenControl({ uid }: { uid: string }) {
   const [chatOpen, setChatOpen] = useState(false);
   const autoSpeak = profile?.renAutoSpeak ?? true;
   const voiceOut = speechOutputSupported();
+  const currentVoice = profile?.renVoiceURI || DEFAULT_REN_VOICE;
+  // Two named voices, like Siri — one female, one male.
+  const REN_VOICE_CHOICES = [
+    { id: "aria", name: "Aria", desc: "Female · warm and clear" },
+    { id: "kai", name: "Kai", desc: "Male · steady and grounded" },
+  ] as const;
 
   return (
     <div className="flex flex-col gap-5">
@@ -516,6 +523,30 @@ function RenControl({ uid }: { uid: string }) {
             <span className="text-muted block text-xs">Ren reads its answers aloud in its voice.</span>
           </span>
           <Switch checked={autoSpeak} onChange={(on) => { updateRenPrefs(uid, { renAutoSpeak: on }).catch(() => {}); }} label="Spoken responses" />
+        </div>
+      )}
+
+      {/* Ren's voice — two named voices, choose one (like Siri) */}
+      {voiceOut && autoSpeak && (
+        <div>
+          <p className="text-body mb-2 text-sm font-medium">Ren&rsquo;s voice</p>
+          <div className="grid grid-cols-2 gap-3">
+            {REN_VOICE_CHOICES.map((v) => {
+              const on = currentVoice === v.id;
+              return (
+                <button key={v.id} type="button" aria-pressed={on}
+                  onClick={() => { updateRenPrefs(uid, { renVoiceURI: v.id }).catch(() => {}); }}
+                  className={cn("flex flex-col items-start gap-0.5 rounded-2xl border p-3.5 text-start transition-all active:scale-[0.98]",
+                    on ? "border-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
+                  <span className="flex w-full items-center justify-between">
+                    <span className="text-strong text-sm font-medium">{v.name}</span>
+                    {on && <Check className="size-4 text-[var(--color-gold-600)]" strokeWidth={3} />}
+                  </span>
+                  <span className="text-muted text-xs">{v.desc}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       )}
     </div>

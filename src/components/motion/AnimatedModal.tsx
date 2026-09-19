@@ -147,7 +147,9 @@ export function AnimatedModal({
                 type="button"
                 onClick={onClose}
                 aria-label="Close dialog"
-                className="absolute end-4 top-4 grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"
+                // Phone: no X — swipe the sheet down or tap outside to dismiss
+                // (modern). Desktop (no swipe): keep a close control.
+                className="absolute end-4 top-4 hidden size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)] sm:grid"
               >
                 <X className="size-4.5" />
               </button>
