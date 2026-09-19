@@ -17,6 +17,7 @@ import { CountrySelect } from "@/components/ui/CountrySelect";
 import { LanguageSelect } from "@/components/ui/LanguageSelect";
 import { CurrencySelect } from "@/components/ui/CurrencySelect";
 import { AnimatedButton } from "@/components/motion";
+import { RenewIntro } from "./RenewIntro";
 import { PinPad } from "@/components/security/PinPad";
 import { requestBrowserNotify } from "@/lib/notify";
 import { registerPasskey, isPasskeySupported } from "@/lib/auth/passkey-client";
@@ -47,6 +48,7 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   const detected = useMemo(() => detectPrefs(), []);
   const bioSupported = useMemo(() => isPasskeySupported(), []);
 
+  const [introDone, setIntroDone] = useState(false);
   const [step, setStep] = useState(0);
   const [name, setName] = useState(defaultName);
   const [language, setLanguage] = useState(detected.language);
@@ -179,6 +181,9 @@ export function OnboardingClient({ uid, defaultName }: { uid: string; defaultNam
   }
 
   const initials = name.trim().slice(0, 2).toUpperCase() || "R";
+
+  // The cinematic first-run walkthrough plays once, then reveals the setup card.
+  if (!introDone) return <RenewIntro onDone={() => setIntroDone(true)} />;
 
   return (
     <GlassCard padded>
