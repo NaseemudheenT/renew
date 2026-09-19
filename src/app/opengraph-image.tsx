@@ -18,11 +18,11 @@ export default function OpengraphImage() {
           flexDirection: "column",
           alignItems: "center",
           justifyContent: "center",
-          background: "linear-gradient(135deg, #04060f 0%, #0b1128 55%, #0e1736 100%)",
+          background: "linear-gradient(135deg, #0b1220 0%, #0d1626 55%, #0e1830 100%)",
           fontFamily: "sans-serif",
         }}
       >
-        {/* soft glow */}
+        {/* soft golden glow — the brand accent */}
         <div
           style={{
             position: "absolute",
@@ -30,14 +30,14 @@ export default function OpengraphImage() {
             width: 620,
             height: 620,
             borderRadius: 620,
-            background: "radial-gradient(circle, rgba(90,134,245,0.35), transparent 62%)",
+            background: "radial-gradient(circle, rgba(212,175,110,0.32), transparent 62%)",
             display: "flex",
           }}
         />
-        <div style={{ display: "flex", fontSize: 132, fontWeight: 800, letterSpacing: 22, color: "#eaf0ff" }}>
+        <div style={{ display: "flex", fontSize: 132, fontWeight: 800, letterSpacing: 22, color: "#f5e9c8" }}>
           RENEW
         </div>
-        <div style={{ display: "flex", marginTop: 26, width: 220, height: 6, borderRadius: 6, background: "linear-gradient(90deg, #8fadff, #5a86f5)" }} />
+        <div style={{ display: "flex", marginTop: 26, width: 220, height: 6, borderRadius: 6, background: "linear-gradient(90deg, #ecd199, #c99f52)" }} />
         <div style={{ display: "flex", marginTop: 40, fontSize: 42, color: "#c7d2ee" }}>
           Your money, clear and effortless.
         </div>

@@ -3,7 +3,7 @@
 import { useEffect, useReducer, useState, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown, Lock, MessageSquareText } from "lucide-react";
+import { Palette, Bell, CreditCard, ShieldCheck, Sun, Moon, LogOut, Trash2, Check, Sparkles, Globe, Database, Download, Upload, Briefcase, ChevronRight, ChevronLeft, Accessibility, Crown, Lock, MessageSquareText, Zap, Home, ScanLine, Plus } from "lucide-react";
 import { isOwnerEmail } from "@/lib/auth/owner";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -63,6 +63,7 @@ export function SettingsView() {
     { id: "data", icon: Database, tone: "#4a7bff", title: "Data", sub: "Import, export & delete", render: () => <DataControl /> },
     { id: "accessibility", icon: Accessibility, tone: "#34c759", title: "Accessibility", sub: "Text, contrast, motion & more", render: () => <AccessibilityControl /> },
     { id: "security", icon: ShieldCheck, tone: "#8a8f98", title: "Security", sub: "Sign out & delete account", render: () => <SecurityControl /> },
+    { id: "shortcuts", icon: Zap, tone: "#c99f52", title: "Quick access & shortcuts", sub: "Home Screen, Back Tap & quick actions", render: () => <QuickAccessControl /> },
     { id: "software", icon: Download, tone: "#0aa3ff", title: "Software update", sub: `Renew · ${APP_UPDATE_NAME}`, render: () => <SoftwareUpdateControl /> },
   ] as const;
 
@@ -72,7 +73,7 @@ export function SettingsView() {
     { title: "Preferences", ids: ["appearance", "region", "notifications", "accessibility"] },
     { title: "Money", ids: ["billing", "data"] },
     { title: "Privacy & security", ids: ["security"] },
-    { title: "About", ids: ["software"] },
+    { title: "About", ids: ["shortcuts", "software"] },
   ];
 
   // Deep links like /settings#billing open that category directly.
@@ -162,6 +163,69 @@ export function SettingsView() {
         <span aria-hidden="true">·</span>
         <Link href="/terms" className="hover:text-[var(--text-strong)]">Terms</Link>
       </footer>
+    </div>
+  );
+}
+
+function QuickAccessControl() {
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://getrenew.in";
+  const actions = [
+    { icon: Plus, tone: "#2fbf71", label: "Add expense or income", path: "/quick-add" },
+    { icon: ScanLine, tone: "#4a7bff", label: "Scan a receipt", path: "/import?scan=1" },
+    { icon: Sparkles, tone: "#a15cff", label: "Ask Ren", path: "/dashboard?ren=1" },
+  ];
+  function copy(url: string) {
+    try { void navigator.clipboard?.writeText(url); toast({ title: "Link copied", description: url }); }
+    catch { toast({ title: "Couldn't copy", variant: "error" }); }
+  }
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-muted text-sm">Open any part of Renew instantly — from your Home Screen, a long-press, or a phone shortcut.</p>
+
+      {/* One-tap deep links you can wire to a shortcut */}
+      <div>
+        <p className="text-body mb-2 text-sm font-medium">Quick actions</p>
+        <ul className="flex flex-col gap-2">
+          {actions.map((a) => {
+            const url = origin + a.path;
+            const Icon = a.icon;
+            return (
+              <li key={a.path} className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5">
+                <span className="grid size-8 shrink-0 place-items-center rounded-[0.6rem] shadow-sm" style={{ background: a.tone }}><Icon className="size-4.5 text-white" /></span>
+                <span className="min-w-0 flex-1">
+                  <span className="text-body block truncate text-sm font-medium">{a.label}</span>
+                  <span className="text-muted block truncate text-xs">{url}</span>
+                </span>
+                <button type="button" onClick={() => copy(url)} className="text-[var(--color-gold-600)] shrink-0 text-xs font-medium hover:underline">Copy</button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+
+      {/* How to use them */}
+      <div className="flex flex-col gap-3">
+        <Step icon={Home} title="Add Renew to your Home Screen" body="On iPhone: Share → “Add to Home Screen”. On Android: menu → “Install app”. Renew then opens full-screen like a native app." />
+        <Step icon={Zap} title="Long-press the icon for quick actions" body="On an installed Renew, press and hold the app icon to jump straight to Add, Scan, or Ask Ren." />
+        <Step icon={ScanLine} title="Back Tap & Apple Shortcuts (iPhone)" body="Shortcuts app → new shortcut → “Open URL” → paste the Scan link above → add to Back Tap (Settings › Accessibility › Touch › Back Tap). Now a double-tap on the back of your iPhone opens Renew ready to scan." />
+      </div>
+
+      <div className="rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-3.5">
+        <p className="text-body text-sm font-medium">Home Screen widgets</p>
+        <p className="text-muted mt-0.5 text-xs">Live balance and quick-add widgets are coming with the Renew app for iOS and Android — the web app can&apos;t place true widgets. Everything else above works today.</p>
+      </div>
+    </div>
+  );
+}
+
+function Step({ icon: Icon, title, body }: { icon: typeof Home; title: string; body: string }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="mt-0.5 grid size-8 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-strong)]"><Icon className="size-4.5 text-[var(--color-gold-500)]" /></span>
+      <div className="min-w-0">
+        <p className="text-body text-sm font-medium">{title}</p>
+        <p className="text-muted mt-0.5 text-xs leading-relaxed">{body}</p>
+      </div>
     </div>
   );
 }

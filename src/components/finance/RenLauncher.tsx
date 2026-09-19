@@ -19,6 +19,17 @@ export function RenLauncher() {
   useEffect(() => {
     const openRen = () => setOpen(true);
     window.addEventListener(REN_OPEN_EVENT, openRen);
+    // Deep link: /dashboard?ren=1 (a PWA shortcut, Apple Shortcut or Back Tap)
+    // opens Ren straight away, then cleans the URL so a refresh doesn't reopen it.
+    try {
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("ren") === "1") {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setOpen(true);
+        url.searchParams.delete("ren");
+        window.history.replaceState({}, "", url.pathname + url.search + url.hash);
+      }
+    } catch { /* ignore */ }
     return () => window.removeEventListener(REN_OPEN_EVENT, openRen);
   }, []);
 
