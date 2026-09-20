@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
+import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { orderBy, where, limit } from "firebase/firestore";
@@ -77,6 +78,8 @@ export function Dashboard({ name }: { name: string }) {
   const [addType, setAddType] = useState<"income" | "expense">("expense");
   const [submitting, setSubmitting] = useState(false);
   const openAdd = (t: "income" | "expense") => { setAddType(t); setModalOpen(true); };
+  // Touch to explore: tapping a hero stat reveals its detail (never just seeable).
+  const [openStat, setOpenStat] = useState<null | "in" | "out" | "coming" | "saved">(null);
 
   const loading = txAll.loading || savings.loading || bills.loading || accounts.loading || transfers.loading;
   const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
@@ -89,6 +92,21 @@ export function Dashboard({ name }: { name: string }) {
       else { expense += t.amount; if (t.date >= start && t.date < end) mExpense += t.amount; }
     }
     return { balance: income - expense, income, expense, mIncome, mExpense };
+  }, [txAll.data]);
+
+  // Real breakdown behind each hero stat — top category this month + counts.
+  const monthDetail = useMemo(() => {
+    const { start, end } = monthRange();
+    const inc = new Map<string, number>();
+    const exp = new Map<string, number>();
+    let incCount = 0, expCount = 0;
+    for (const t of txAll.data) {
+      if (t.date < start || t.date >= end) continue;
+      if (t.type === "income") { incCount++; inc.set(t.category, (inc.get(t.category) ?? 0) + t.amount); }
+      else { expCount++; exp.set(t.category, (exp.get(t.category) ?? 0) + t.amount); }
+    }
+    const top = (m: Map<string, number>) => [...m.entries()].sort((a, b) => b[1] - a[1])[0] ?? null;
+    return { incCount, expCount, topIn: top(inc), topExp: top(exp) };
   }, [txAll.data]);
 
   const savingsTotal = useMemo(() => savings.data.reduce((s, g) => s + g.current, 0), [savings.data]);
@@ -167,11 +185,27 @@ export function Dashboard({ name }: { name: string }) {
                 <AnimatedAmount value={netWorth} currency={currency} className="mt-1 block bg-gradient-to-br from-[var(--text-strong)] to-[var(--text-body)] bg-clip-text text-4xl font-light tabular-nums text-transparent sm:text-5xl" />
                 <NetWorthTrend transactions={txAll.data} netWorth={netWorth} />
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Mini label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
-                  <Mini label={isBusiness ? "Expenses (mo)" : "This month out"} icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
-                  <Mini label="Coming up" icon={ReceiptText} value={comingTotal} currency={currency} />
-                  <Mini label="Saved" icon={PiggyBank} value={savingsTotal} currency={currency} />
+                  <Mini stat="in" open={openStat} onToggle={setOpenStat} label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
+                  <Mini stat="out" open={openStat} onToggle={setOpenStat} label={isBusiness ? "Expenses (mo)" : "This month out"} icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
+                  <Mini stat="coming" open={openStat} onToggle={setOpenStat} label="Coming up" icon={ReceiptText} value={comingTotal} currency={currency} />
+                  <Mini stat="saved" open={openStat} onToggle={setOpenStat} label="Saved" icon={PiggyBank} value={savingsTotal} currency={currency} />
                 </div>
+                <AnimatePresence initial={false}>
+                  {openStat && (
+                    <motion.div key={openStat} layout initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                      <div className="mt-3 rounded-2xl border border-[var(--color-gold-500)]/25 bg-[var(--field-bg)] p-3.5 text-sm shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-gold-500)_10%,transparent)]">
+                        <StatDetail
+                          stat={openStat} money={money} currency={currency} resolve={resolve}
+                          monthDetail={monthDetail}
+                          nextBill={upcomingBills[0] ?? null}
+                          topGoal={[...savings.data].sort((a, b) => b.current - a.current)[0] ?? null}
+                          dueLabel={dueLabel}
+                          onGo={(href) => router.push(href)}
+                        />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </GlassCard>
             </StaggerItem>
 
@@ -356,20 +390,78 @@ function DashboardSkeleton() {
   );
 }
 
-function Mini({ label, icon: Icon, value, currency, tone }: { label: string; icon: typeof Wallet; value: number; currency: string; tone?: "emerald" | "rose" }) {
+type StatKey = "in" | "out" | "coming" | "saved";
+
+function Mini({ stat, open, onToggle, label, icon: Icon, value, currency, tone }: {
+  stat: StatKey; open: StatKey | null; onToggle: (s: StatKey | null) => void;
+  label: string; icon: typeof Wallet; value: number; currency: string; tone?: "emerald" | "rose";
+}) {
+  const active = open === stat;
   return (
-    <div className={cn(
-      "rounded-2xl border p-3 transition-colors",
-      tone === "emerald" ? "border-emerald-500/20 bg-emerald-500/[0.07]" : tone === "rose" ? "border-rose-500/20 bg-rose-500/[0.07]" : "border-[var(--field-border)] bg-[var(--field-bg)]",
-    )}>
+    <motion.button
+      type="button"
+      onClick={() => onToggle(active ? null : stat)}
+      aria-expanded={active}
+      whileTap={{ scale: 0.96 }}
+      className={cn(
+        "rounded-2xl border p-3 text-left transition-colors",
+        active && "ring-1 ring-[var(--color-gold-500)]/45",
+        tone === "emerald" ? "border-emerald-500/20 bg-emerald-500/[0.07]" : tone === "rose" ? "border-rose-500/20 bg-rose-500/[0.07]" : "border-[var(--field-border)] bg-[var(--field-bg)]",
+      )}
+    >
       <div className="text-muted flex items-center gap-1.5 text-xs">
         <span className={cn(
           "grid size-5 shrink-0 place-items-center rounded-md",
           tone === "emerald" ? "bg-emerald-500/15 text-emerald-400" : tone === "rose" ? "bg-rose-500/15 text-rose-400" : "bg-[var(--glass-bg-strong)] text-[var(--color-gold-500)]",
         )}><Icon className="size-3" /></span>
         <span className="truncate">{label}</span>
+        <ChevronRight className={cn("ms-auto size-3.5 shrink-0 text-[var(--text-muted)] transition-transform", active && "rotate-90")} />
       </div>
       <AnimatedAmount value={value} currency={currency} className={cn("mt-1.5 block text-lg font-semibold tabular-nums", tone === "emerald" ? "text-emerald-500" : tone === "rose" ? "text-rose-500" : "text-[var(--text-strong)]")} />
+    </motion.button>
+  );
+}
+
+/** The real detail behind a tapped hero stat — top category, next bill or goal.
+ *  Everything is explorable, never just a number. */
+function StatDetail({ stat, money, currency, resolve, monthDetail, nextBill, topGoal, dueLabel, onGo }: {
+  stat: StatKey;
+  money: (n: number, c: string) => string;
+  currency: string;
+  resolve: (id: string) => { label: string };
+  monthDetail: { incCount: number; expCount: number; topIn: [string, number] | null; topExp: [string, number] | null };
+  nextBill: Payment | null;
+  topGoal: SavingsGoal | null;
+  dueLabel: (at: number) => string;
+  onGo: (href: string) => void;
+}) {
+  if (stat === "in") {
+    return <StatRow href="/income" cta="View income" onGo={onGo}>
+      {monthDetail.incCount === 0 ? "No income recorded this month yet." :
+        <>Across <b className="text-strong">{monthDetail.incCount}</b> entr{monthDetail.incCount === 1 ? "y" : "ies"}{monthDetail.topIn && <> · top: {resolve(monthDetail.topIn[0]).label} {money(monthDetail.topIn[1], currency)}</>}.</>}
+    </StatRow>;
+  }
+  if (stat === "out") {
+    return <StatRow href="/transactions" cta="View spending" onGo={onGo}>
+      {monthDetail.expCount === 0 ? "No spending recorded this month yet." :
+        <>Across <b className="text-strong">{monthDetail.expCount}</b> entr{monthDetail.expCount === 1 ? "y" : "ies"}{monthDetail.topExp && <> · top: {resolve(monthDetail.topExp[0]).label} {money(monthDetail.topExp[1], currency)}</>}.</>}
+    </StatRow>;
+  }
+  if (stat === "coming") {
+    return <StatRow href="/payments" cta="View bills" onGo={onGo}>
+      {nextBill ? <>Next: <b className="text-strong">{nextBill.name}</b> {money(nextBill.amount, nextBill.currency)} · {dueLabel(nextBill.dueAt)}.</> : "No bills coming up."}
+    </StatRow>;
+  }
+  return <StatRow href="/savings" cta="View goals" onGo={onGo}>
+    {topGoal ? <>Top goal: <b className="text-strong">{topGoal.name}</b> — {money(topGoal.current, topGoal.currency)}{topGoal.target > 0 && <> of {money(topGoal.target, topGoal.currency)} ({Math.min(100, Math.round((topGoal.current / topGoal.target) * 100))}%)</>}.</> : "No savings goals yet."}
+  </StatRow>;
+}
+
+function StatRow({ children, href, cta, onGo }: { children: React.ReactNode; href: string; cta: string; onGo: (href: string) => void }) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-body min-w-0">{children}</span>
+      <button type="button" onClick={() => onGo(href)} className="shrink-0 text-xs font-medium text-[var(--color-gold-600)] hover:underline">{cta}</button>
     </div>
   );
 }
