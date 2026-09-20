@@ -33,8 +33,8 @@ export function renVoice(id: string | undefined | null): RenVoice {
 }
 
 // Names that strongly signal a voice's gender across common TTS engines.
-const FEMALE = /(female|woman|samantha|karen|victoria|tessa|moira|fiona|serena|allison|ava|susan|zira|hazel|amelie|amélie|anna|paulina|milena|zosia|kyoko|ting|mei|google.*female|aria|nova|jenny|sonia|libby)/i;
-const MALE = /(male|man|daniel|alex|fred|thomas|jorge|diego|yuri|rishi|aaron|david|mark|george|guy|onyx|kai|google.*male|liam|ryan|arthur)/i;
+const FEMALE = /(female|woman|samantha|karen|victoria|tessa|moira|fiona|serena|allison|ava|susan|zira|hazel|amelie|amélie|anna|paulina|milena|zosia|kyoko|ting|mei|google.*female|aria|nova|jenny|sonia|libby|sandy|shelley|kanya|veena|isha|neerja|swara|heera|catherine|linda|emma)/i;
+const MALE = /(male|man|daniel|alex|fred|thomas|jorge|diego|yuri|rishi|aaron|david|mark|george|guy|onyx|kai|orion|google.*male|liam|ryan|arthur|ravi|prabhat|madhur|hemant|eddy|reed|oliver|william|matthew|brian|christopher)/i;
 
 function guessGender(name: string): RenGender | null {
   if (FEMALE.test(name)) return "female";
@@ -63,9 +63,13 @@ export function renVoiceSpeakOpts(id: string | undefined | null): { voiceURI?: s
   const quality = (v: SpeechSynthesisVoice) => (HQ.test(v.name) ? 2 : 0) + (v.localService ? 1 : 0);
   const ranked = [...pool].sort((a, b) => quality(b) - quality(a));
 
-  // Prefer the best-quality voice matching the preset's character; else the best
-  // quality overall, so Ren always sounds clear and premium.
-  const byGender = ranked.find((v) => guessGender(v.name) === preset.gender);
-  const chosen = byGender ?? ranked[0];
+  // Match the preset's gender FIRST — a male pick must never fall straight back
+  // to a (higher-"quality") female voice, which was the bug. Order of preference:
+  //   1. best-quality voice of the RIGHT gender
+  //   2. best-quality gender-neutral voice (unknown)
+  //   3. anything (device may only have the opposite gender)
+  const matches = ranked.filter((v) => guessGender(v.name) === preset.gender);
+  const neutral = ranked.filter((v) => guessGender(v.name) === null);
+  const chosen = matches[0] ?? neutral[0] ?? ranked[0];
   return chosen ? { voiceURI: chosen.voiceURI } : {};
 }

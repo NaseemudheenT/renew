@@ -38,6 +38,8 @@ export const INCOME_CATEGORIES: CatMeta[] = [
   { id: "cashback", label: "Cashback & Rewards", icon: BadgePercent, tone: IN, sub: ["Card rewards", "App cashback", "Points"] },
   { id: "sale", label: "Sale", icon: Tag, tone: IN, sub: ["Resale", "Second-hand", "Asset sale"] },
   { id: "refund", label: "Refund", icon: RotateCcw, tone: IN, sub: ["Purchase refund", "Tax refund", "Deposit return"] },
+  { id: "reimbursement", label: "Reimbursement", icon: HandCoins, tone: IN, sub: ["Expense claim", "Work reimbursement", "Deposit return"] },
+  { id: "loan_in", label: "Loan received", icon: Landmark, tone: IN, sub: ["Loan", "Borrowed", "Advance"] },
   { id: "other_income", label: "Other", icon: Coins, tone: IN },
 ];
 
@@ -65,6 +67,11 @@ export const EXPENSE_CATEGORIES: CatMeta[] = [
   { id: "taxes", label: "Taxes", icon: Landmark, tone: EX, sub: ["Income tax", "Property tax", "GST / VAT"] },
   { id: "fees", label: "Fees & Charges", icon: Banknote, tone: EX, sub: ["Bank fees", "Interest", "Penalties", "Service charge"] },
   { id: "utilities", label: "Other Utilities", icon: Zap, tone: EX, sub: ["Solar", "Heating", "Cooling"] },
+  { id: "loan", label: "Loans & EMI", icon: Landmark, tone: EX, sub: ["EMI", "Loan repayment", "Credit card bill", "Interest"] },
+  { id: "investing", label: "Investing", icon: TrendingUp, tone: EX, sub: ["Stocks", "Mutual funds", "SIP", "Crypto", "Gold"] },
+  { id: "cash", label: "Cash & ATM", icon: Banknote, tone: EX, sub: ["ATM withdrawal", "Cash"] },
+  { id: "alcohol", label: "Drinks & Nightlife", icon: Coins, tone: EX, sub: ["Bar", "Alcohol", "Nightlife"] },
+  { id: "home_help", label: "Home Help", icon: Home, tone: EX, sub: ["Maid", "Cook", "Driver", "Gardener"] },
   { id: "other_expense", label: "Other", icon: Coins, tone: EX },
 ];
 

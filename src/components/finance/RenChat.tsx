@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import { X, Mic, ArrowUp, Volume2, VolumeX, Square } from "lucide-react";
+import { AnimatePresence, motion, useDragControls } from "framer-motion";
+import { Mic, ArrowUp, Volume2, VolumeX, Square } from "lucide-react";
 import { RenLogo } from "@/components/brand/RenLogo";
 import { RenChart, type RenChartData } from "@/components/finance/RenChart";
 import { type AskContext } from "@/lib/ask";
@@ -48,6 +48,7 @@ export function RenChat({
   const { money } = useLocale();
   const { profile } = useUserProfile();
   const { ask } = useRenBrain(ctx, uid);
+  const dragControls = useDragControls();
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
   const [listening, setListening] = useState(false);
@@ -141,16 +142,29 @@ export function RenChat({
           <motion.div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-md" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} aria-hidden />
           <motion.div
             role="dialog" aria-label="Ren, your finance assistant"
-            className="fixed inset-x-0 bottom-0 z-50 mx-auto flex h-[86dvh] max-w-2xl flex-col overflow-hidden rounded-t-[2rem] sm:inset-x-4 sm:bottom-4 sm:h-[78dvh] sm:rounded-[2rem] lg:inset-x-auto lg:left-1/2 lg:w-[40rem] lg:-translate-x-1/2"
-            initial={{ y: 40, opacity: 0, scale: 0.98 }} animate={{ y: 0, opacity: 1, scale: 1 }} exit={{ y: 40, opacity: 0, scale: 0.98 }}
+            className="fixed inset-0 z-50 mx-auto flex h-dvh w-full flex-col overflow-hidden sm:inset-4 sm:mx-auto sm:h-auto sm:max-w-2xl sm:rounded-[2rem] lg:inset-y-6 lg:left-1/2 lg:w-[42rem] lg:-translate-x-1/2"
+            initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
             transition={{ type: "spring", stiffness: 300, damping: 32 }}
-            style={{ background: "var(--glass-bg-strong)", boxShadow: "var(--glass-shadow), 0 40px 120px -20px rgba(0,0,0,0.6)", border: "1px solid var(--glass-border)", backdropFilter: "blur(28px) saturate(1.4)" }}
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.5 }}
+            onDragEnd={(_e, info) => { if (info.offset.y > 110 || info.velocity.y > 600) onClose(); }}
+            style={{ background: "var(--glass-bg-strong)", boxShadow: "var(--glass-shadow), 0 40px 120px -20px rgba(0,0,0,0.6)", border: "1px solid var(--glass-border)", backdropFilter: "blur(28px) saturate(1.4)", paddingTop: "env(safe-area-inset-top,0px)" }}
           >
             {/* Ambient champagne glow */}
             <div aria-hidden className="pointer-events-none absolute -top-24 left-1/2 size-72 -translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(212,175,110,0.28),transparent_65%)] blur-2xl" />
 
+            {/* Grab handle — swipe down to close (no X). */}
+            <div
+              className="mx-auto mt-2 h-1.5 w-10 shrink-0 cursor-grab touch-none rounded-full bg-[var(--text-muted)]/30"
+              onPointerDown={(e) => dragControls.start(e)}
+              aria-hidden="true"
+            />
+
             {/* Header */}
-            <div className="relative flex items-center justify-between px-5 py-4">
+            <div className="relative flex items-center justify-between px-5 py-3">
               <div className="flex items-center gap-3">
                 <RenLogo size={38} idSuffix="hdr" />
                 <div>
@@ -165,7 +179,6 @@ export function RenChat({
                     {speakOn ? <Volume2 className="size-5" /> : <VolumeX className="size-5" />}
                   </button>
                 )}
-                <button type="button" onClick={onClose} aria-label="Close" className="grid size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)]"><X className="size-5" /></button>
               </div>
             </div>
 

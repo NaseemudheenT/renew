@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { X } from "lucide-react";
 import { modalVariants, sheetVariants, backdropVariants } from "@/lib/motion";
 import { useIsMobile } from "@/hooks/useMediaQuery";
 import { cn } from "@/lib/utils";
@@ -33,7 +32,7 @@ export function AnimatedModal({
   title,
   description,
   className,
-  hideClose = false,
+  // hideClose is accepted for compatibility but no longer used — there is no X.
   dismissible = true,
 }: AnimatedModalProps) {
   const reduced = useReducedMotion();
@@ -142,18 +141,8 @@ export function AnimatedModal({
               onPointerDown={(e) => { if (isMobile && dismissible) dragControls.start(e); }}
               aria-hidden="true"
             />
-            {!hideClose && dismissible && (
-              <button
-                type="button"
-                onClick={onClose}
-                aria-label="Close dialog"
-                // Phone: no X — swipe the sheet down or tap outside to dismiss
-                // (modern). Desktop (no swipe): keep a close control.
-                className="absolute end-4 top-4 hidden size-9 place-items-center rounded-full text-[var(--text-muted)] transition-colors hover:bg-[var(--glass-bg-soft)] hover:text-[var(--text-strong)] sm:grid"
-              >
-                <X className="size-4.5" />
-              </button>
-            )}
+            {/* No X anywhere — dismiss by swiping the sheet down, tapping
+                outside, or pressing Esc. Clean and modern across the app. */}
             {title && (
               <h2 id={labelId} className="text-strong pe-8 text-lg font-medium">
                 {title}
