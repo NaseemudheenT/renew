@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import {
   Users, UserPlus, Activity, ShieldCheck, ShieldAlert, Ban,
   RefreshCw, KeyRound, Fingerprint, Mail, Smartphone, Apple, Globe, Circle,
@@ -394,9 +394,12 @@ export function OwnerConsole() {
               <p className="text-muted text-sm">{q ? "No one matches that search." : "No users yet."}</p>
             ) : (
               <ul className="divide-y divide-white/5">
-                {filteredUsers.map((u) => (
-                  <li key={u.uid} className="flex flex-col py-3">
+                {filteredUsers.map((u) => {
+                  const open = openMenuUid === u.uid;
+                  return (
+                  <li key={u.uid} className={cn("flex flex-col rounded-2xl px-2 py-3 transition-colors", open && "bg-white/[0.03] ring-1 ring-[var(--color-gold-500)]/25")}>
                    <div className="flex items-center gap-3">
+                    <button type="button" onClick={() => setOpenMenuUid((v) => (v === u.uid ? null : u.uid))} aria-expanded={open} className="flex min-w-0 flex-1 items-center gap-3 text-left">
                     <span
                       className="grid size-9 shrink-0 place-items-center rounded-full bg-gradient-to-br from-gold-300 to-gold-500 text-sm font-medium text-white"
                       aria-hidden
@@ -425,6 +428,7 @@ export function OwnerConsole() {
                         <span>{u.lastSignInAt ? `active ${relativeTime(u.lastSignInAt)}` : "never active"}</span>
                       </div>
                     </div>
+                    </button>
                     <div className="hidden shrink-0 items-center gap-1 sm:flex">
                       {u.providers.map((p) => {
                         const meta = providerMeta(p);
@@ -442,19 +446,35 @@ export function OwnerConsole() {
                     </button>
                    </div>
 
-                   {openMenuUid === u.uid && (
-                     <div className="mt-2 flex flex-wrap gap-2 ps-12">
-                       {u.premium
-                         ? <AdminBtn onClick={() => void act(u.uid, "revokePremium")} busy={busyUid === u.uid}>Revoke Premium</AdminBtn>
-                         : <AdminBtn onClick={() => void act(u.uid, "grantPremium")} busy={busyUid === u.uid}>Grant Premium</AdminBtn>}
-                       {u.disabled
-                         ? <AdminBtn onClick={() => void act(u.uid, "enable")} busy={busyUid === u.uid}>Enable account</AdminBtn>
-                         : <AdminBtn danger onClick={() => void act(u.uid, "disable", "Disable this account? They'll be signed out and can't sign in until re-enabled.")} busy={busyUid === u.uid}>Disable account</AdminBtn>}
-                       <AdminBtn onClick={() => void act(u.uid, "signout", "Sign this user out of all devices?")} busy={busyUid === u.uid}>Sign out everywhere</AdminBtn>
-                     </div>
-                   )}
+                   <AnimatePresence initial={false}>
+                     {open && (
+                       <motion.div key="detail" layout initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                         <div className="mt-2 ps-12">
+                           <div className="text-muted mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                             {u.email && <span className="inline-flex items-center gap-1"><Mail size={11} />{u.email}</span>}
+                             <span aria-hidden>·</span>
+                             <span>{u.emailVerified ? "verified" : "unverified"}</span>
+                             <span aria-hidden>·</span>
+                             <span>via {u.providers.map((p) => providerMeta(p).label).join(", ") || "—"}</span>
+                             <span aria-hidden>·</span>
+                             <span className="font-mono">{u.uid.slice(0, 10)}</span>
+                           </div>
+                           <div className="flex flex-wrap gap-2">
+                             {u.premium
+                               ? <AdminBtn onClick={() => void act(u.uid, "revokePremium")} busy={busyUid === u.uid}>Revoke Premium</AdminBtn>
+                               : <AdminBtn onClick={() => void act(u.uid, "grantPremium")} busy={busyUid === u.uid}>Grant Premium</AdminBtn>}
+                             {u.disabled
+                               ? <AdminBtn onClick={() => void act(u.uid, "enable")} busy={busyUid === u.uid}>Enable account</AdminBtn>
+                               : <AdminBtn danger onClick={() => void act(u.uid, "disable", "Disable this account? They'll be signed out and can't sign in until re-enabled.")} busy={busyUid === u.uid}>Disable account</AdminBtn>}
+                             <AdminBtn onClick={() => void act(u.uid, "signout", "Sign this user out of all devices?")} busy={busyUid === u.uid}>Sign out everywhere</AdminBtn>
+                           </div>
+                         </div>
+                       </motion.div>
+                     )}
+                   </AnimatePresence>
                   </li>
-                ))}
+                  );
+                })}
               </ul>
             )}
           </GlassCard>
