@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { Plus, Pencil, Trash2, Archive, ArchiveRestore, ArrowLeftRight, ArrowRight, Wallet } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
@@ -22,6 +23,7 @@ import { createAccount, updateAccount, setAccountStatus, deleteAccount, type Acc
 import { createTransfer, deleteTransfer, type TransferInput } from "@/lib/firestore/transfers";
 import { ACCOUNT_TYPES, accountTypeMeta, computeAccountBalance } from "@/lib/accounts";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
+import { useCategories } from "@/hooks/useCategories";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { Account, AccountType, Transaction, Transfer } from "@/lib/types";
@@ -45,6 +47,19 @@ export function AccountsView() {
     for (const a of accounts) m.set(a.id, computeAccountBalance(a, txs, transfers));
     return m;
   }, [accounts, txs, transfers]);
+
+  // Each account's most recent transactions — revealed when a row is tapped.
+  const recentByAccount = useMemo(() => {
+    const m = new Map<string, Transaction[]>();
+    const sorted = [...txs].sort((a, b) => b.date - a.date);
+    for (const tx of sorted) {
+      if (!tx.accountId) continue;
+      const arr = m.get(tx.accountId);
+      if (arr) { if (arr.length < 4) arr.push(tx); }
+      else m.set(tx.accountId, [tx]);
+    }
+    return m;
+  }, [txs]);
 
   // Per-currency totals of active accounts — never mix currencies into one sum.
   const currencyTotals = useMemo(() => {
@@ -96,7 +111,7 @@ export function AccountsView() {
           <div className="flex flex-col gap-2">
             <AnimatePresence initial={false}>
               {active.map((a) => (
-                <AccountRow key={a.id} account={a} balance={balances.get(a.id) ?? 0} money={money}
+                <AccountRow key={a.id} account={a} balance={balances.get(a.id) ?? 0} money={money} recent={recentByAccount.get(a.id) ?? []}
                   onEdit={() => { setEditing(a); setModalOpen(true); }}
                   onArchive={() => uid && setAccountStatus(uid, a.id, "archived")}
                   onDelete={() => setConfirmDelete(a)} />
@@ -112,7 +127,7 @@ export function AccountsView() {
               {showArchived && (
                 <div className="flex flex-col gap-2 opacity-70">
                   {archived.map((a) => (
-                    <AccountRow key={a.id} account={a} balance={balances.get(a.id) ?? 0} money={money} archived
+                    <AccountRow key={a.id} account={a} balance={balances.get(a.id) ?? 0} money={money} recent={recentByAccount.get(a.id) ?? []} archived
                       onRestore={() => uid && setAccountStatus(uid, a.id, "active")}
                       onDelete={() => setConfirmDelete(a)} />
                   ))}
@@ -166,10 +181,11 @@ export function AccountsView() {
   );
 }
 
-function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRestore, onDelete }: {
+function AccountRow({ account, balance, money, recent, archived, onEdit, onArchive, onRestore, onDelete }: {
   account: Account;
   balance: number;
   money: (n: number, c?: string) => string;
+  recent: Transaction[];
   archived?: boolean;
   onEdit?: () => void;
   onArchive?: () => void;
@@ -177,6 +193,9 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
   onDelete: () => void;
 }) {
   const { hidden, mask } = usePrivacy();
+  const { shortDate } = useLocale();
+  const { resolve } = useCategories();
+  const [expanded, setExpanded] = useState(false);
   const meta = accountTypeMeta(account.atype);
   const Icon = meta.icon;
   const negative = balance < 0;
@@ -189,14 +208,49 @@ function AccountRow({ account, balance, money, archived, onEdit, onArchive, onRe
         swipeRight={!archived && onEdit ? { label: "Edit", icon: Pencil, bg: "bg-[var(--color-gold-600)]", onTrigger: onEdit } : archived && onRestore ? { label: "Restore", icon: ArchiveRestore, bg: "bg-emerald-500", onTrigger: onRestore } : undefined}
         swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: onDelete }}
       >
-        <div className="glass flex items-center gap-3 p-3.5">
-          <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
-          <div className="min-w-0 flex-1">
-            <p className="text-strong truncate text-sm font-medium">{account.name}</p>
-            <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
+        <div className={cn("glass overflow-hidden p-3.5 transition-[border-color]", expanded && "ring-1 ring-[var(--color-gold-500)]/35")}>
+          <div className="flex items-center gap-3">
+            <button type="button" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+              <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
+              <div className="min-w-0 flex-1">
+                <p className="text-strong truncate text-sm font-medium">{account.name}</p>
+                <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
+              </div>
+              <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{hidden ? mask : money(balance, account.currency)}</span>
+            </button>
+            <RowMenu items={items} />
           </div>
-          <span className={cn("shrink-0 text-sm font-semibold tabular-nums", negative ? "text-rose-500" : "text-[var(--text-strong)]")}>{hidden ? mask : money(balance, account.currency)}</span>
-          <RowMenu items={items} />
+
+          <AnimatePresence initial={false}>
+            {expanded && (
+              <motion.div key="detail" layout initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                <div className="mt-3 border-t border-[var(--glass-border)] pt-3">
+                  {recent.length === 0 ? (
+                    <p className="text-muted text-xs">No transactions in this account yet.</p>
+                  ) : (
+                    <ul className="flex flex-col gap-1.5">
+                      {recent.map((tx) => {
+                        const cm = resolve(tx.category);
+                        const CIcon = cm.icon;
+                        const income = tx.type === "income";
+                        return (
+                          <li key={tx.id} className="flex items-center gap-2.5 text-sm">
+                            <CIcon className={cn("size-4 shrink-0", income ? "text-emerald-400" : "text-rose-400")} />
+                            <span className="text-body min-w-0 flex-1 truncate">{tx.note || cm.label}</span>
+                            <span className="text-muted shrink-0 text-xs tabular-nums">{shortDate(tx.date)}</span>
+                            <span className={cn("shrink-0 text-sm font-medium tabular-nums", income ? "text-emerald-500" : "text-rose-500")}>{income ? "+" : "−"}{money(tx.amount, tx.currency)}</span>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                  <Link href="/transactions" className="text-[var(--color-gold-600)] mt-2 inline-flex items-center gap-1 text-xs font-medium hover:underline">
+                    View all activity <ArrowRight className="size-3.5" />
+                  </Link>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
       </SwipeRow>
     </motion.div>
