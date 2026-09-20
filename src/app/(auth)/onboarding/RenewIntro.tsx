@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Wallet, ScanLine, LineChart, ShieldCheck, ArrowRight } from "lucide-react";
-import { RenewMark } from "@/components/brand/RenewMark";
 import { RenLogo } from "@/components/brand/RenLogo";
 import { AnimatedButton } from "@/components/motion";
+import { cn } from "@/lib/utils";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
 const HOLD_MS = 3000; // each scene holds this long before auto-advancing
@@ -18,7 +18,11 @@ type Scene = {
 };
 
 const SCENES: Scene[] = [
-  { key: "welcome", render: (s) => <RenewMark size={s} idSuffix="intro" />, title: "Welcome to Renew", body: "Your money — clear, calm and completely private." },
+  // First page = the founder's gold Renew logo, revealed cinematically.
+  { key: "welcome", render: () => (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src="/renew-logo.png" alt="Renew" className="w-[min(76vw,300px)] rounded-[1.75rem]" draggable={false} />
+  ), title: "", body: "Your money — clear, calm and completely private." },
   { key: "track", render: () => <SceneIcon icon={Wallet} />, title: "Track it in seconds", body: "Add an expense in a tap. Renew keeps every account in one place." },
   { key: "scan", render: () => <SceneIcon icon={ScanLine} />, title: "Just snap a receipt", body: "Renew reads the amount, merchant and date for you — no typing." },
   { key: "understand", render: () => <SceneIcon icon={LineChart} />, title: "See where it really goes", body: "Honest, simple insight — income vs spend, month by month." },
@@ -78,8 +82,8 @@ export function RenewIntro({ onDone }: { onDone: () => void }) {
               animate={reduced ? {} : { scale: [1, 1.03, 1] }} transition={{ duration: 3.4, repeat: Infinity, ease: "easeInOut" }}>
               {scene.render(104)}
             </motion.div>
-            <h1 className="text-strong mt-8 text-2xl font-light tracking-tight">{scene.title}</h1>
-            <p className="text-muted mt-2 max-w-xs text-sm leading-relaxed">{scene.body}</p>
+            {scene.title && <h1 className="text-strong mt-8 text-2xl font-light tracking-tight">{scene.title}</h1>}
+            <p className={cn("text-muted max-w-xs text-sm leading-relaxed", scene.title ? "mt-2" : "mt-6")}>{scene.body}</p>
           </motion.div>
         </AnimatePresence>
 
