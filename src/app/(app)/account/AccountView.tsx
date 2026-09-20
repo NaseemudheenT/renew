@@ -78,7 +78,10 @@ export function AccountView() {
       await registerPasskey();
       toast({ title: "Passkey added", description: "You can now unlock with Face ID.", variant: "success" });
     } catch (err) {
-      toast({ title: "Couldn't add passkey", description: err instanceof AuthError ? err.message : undefined, variant: "error" });
+      // Surface the real reason (AuthError message, or the raw WebAuthn error) so
+      // a device-specific failure is visible instead of a silent dead end.
+      const msg = err instanceof AuthError ? err.message : err instanceof Error ? `${err.name}: ${err.message}` : "Unexpected error.";
+      toast({ title: "Couldn't add passkey", description: msg, variant: "error" });
     } finally {
       setAddingPasskey(false);
     }

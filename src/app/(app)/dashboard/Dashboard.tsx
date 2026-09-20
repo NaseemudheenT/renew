@@ -82,7 +82,11 @@ export function Dashboard({ name }: { name: string }) {
   const [openStat, setOpenStat] = useState<null | "in" | "out" | "coming" | "saved">(null);
 
   const loading = txAll.loading || savings.loading || bills.loading || accounts.loading || transfers.loading;
-  const currency = txAll.data[0]?.currency ?? savings.data[0]?.currency ?? prefs.currency;
+  // The overview totals always show in the user's chosen display currency, so
+  // changing it in Settings updates everything here immediately (not stuck on
+  // whatever the first record happened to be). Per-item rows still show their
+  // own currency.
+  const currency = prefs.currency;
 
   const totals = useMemo(() => {
     let income = 0, expense = 0, mIncome = 0, mExpense = 0;

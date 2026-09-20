@@ -32,7 +32,8 @@ export function AnalyticsView() {
   const { data, loading } = useScopedUserCollection<Transaction>("transactions", txC);
   const subs = useScopedUserCollection<Subscription>("subscriptions");
   const reduced = useReducedMotion();
-  const currency = data[0]?.currency ?? prefs.currency;
+  // Show analytics in the user's chosen display currency (updates when changed).
+  const currency = prefs.currency;
 
   // Which month is being viewed — 0 = this month, higher = further back. Renew
   // is month-wise on purpose: you always know exactly which month you're seeing.
