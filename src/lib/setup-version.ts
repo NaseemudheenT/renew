@@ -40,4 +40,4 @@ export const CURRENT_SETUP_VERSION = 9;
  * is "fOS" (Renew Financial OS); future updates step the number up (fOS 2, fOS 3…).
  * (Earlier pre-launch builds were named pat3…pat14.)
  */
-export const APP_UPDATE_NAME = "fOS 1";
+export const APP_UPDATE_NAME = "fOS 2";

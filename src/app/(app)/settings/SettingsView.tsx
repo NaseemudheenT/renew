@@ -237,11 +237,11 @@ function SoftwareUpdateControl() {
   const [checking, setChecking] = useState(false);
   const [storage, setStorage] = useState<string | null>(null);
   const whatsNew = [
-    "Renew Financial OS — the launch build (fOS)",
-    "Sharper receipt scanning: reads the amount, merchant and date, and asks when it's unsure",
-    "One clean Add button per screen — no more duplicates",
-    "Smoother swiping — swiping an item no longer flips the whole page",
-    "Renew updates itself automatically — you never have to reinstall",
+    "Your gold logo, revealed cinematically when you open Renew",
+    "Change your currency and the whole overview updates instantly",
+    "Long amounts and names always fit now — no more overflow",
+    "Categories in a clean, searchable list — with a fitting icon for every one",
+    "Tap any stat or account to explore the detail behind it",
   ];
   // Real on-device footprint (not a made-up number) via the Storage API.
   useEffect(() => {

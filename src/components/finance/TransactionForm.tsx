@@ -187,14 +187,17 @@ export function TransactionForm({
         <motion.span layout className={cn("absolute inset-y-1 z-0 w-[calc(50%-0.25rem)] rounded-full", type === "income" ? "left-[calc(50%+0.125rem)] bg-emerald-500/15" : "left-1 bg-rose-500/15")} transition={{ type: "spring", stiffness: 400, damping: 32 }} />
       </div>
 
-      {/* Hero amount — the one thing that matters, big and clear (iOS-style) */}
+      {/* Hero amount — big and clear, but it shrinks as the number grows so a
+          long value never spills out of the sheet or off-screen. */}
       <div className="flex flex-col items-center py-3">
-        <div className="flex max-w-full items-baseline justify-center gap-1.5">
-          <span className="text-muted text-lg font-medium">{effCurrency}</span>
+        <div className="flex w-full max-w-full items-baseline justify-center gap-1.5 overflow-hidden">
+          <span className="text-muted shrink-0 text-lg font-medium">{effCurrency}</span>
           <input
             type="text" inputMode="decimal" placeholder="0" value={amount} autoFocus aria-label="Amount"
             onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(prefs.region, effCurrency)).display)}
-            className={cn("min-w-[2ch] max-w-full bg-transparent text-center text-5xl font-light tabular-nums outline-none placeholder:text-[var(--text-muted)]/50",
+            className={cn("min-w-[2ch] max-w-full bg-transparent text-center font-light tabular-nums outline-none placeholder:text-[var(--text-muted)]/50",
+              // Step the font down as the digits grow so it always fits.
+              amount.length > 15 ? "text-2xl" : amount.length > 11 ? "text-3xl" : amount.length > 8 ? "text-4xl" : "text-5xl",
               type === "income" ? "text-emerald-500" : "text-[var(--text-strong)]")}
             style={{ width: `${Math.max(2, amount.length + 1)}ch` }}
           />
@@ -205,49 +208,49 @@ export function TransactionForm({
       {/* What was it for — drives the smart category guess */}
       <Input label="What was it for?" placeholder="e.g. Lunch, Salary, Rent" value={note} onChange={(e) => onNoteChange(e.target.value)} />
 
-      {/* Category — smart & tidy: Renew suggests the best fit, a few common ones
-          show, and everything else is one search away (no wall of icons). */}
+      {/* Category — a clean, searchable LIST: the full set shows, filtered by the
+          search, each row a branded icon tile + name (same language as subcats). */}
       <div>
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-body text-sm font-medium">Category</p>
-          {!adding && <button type="button" onClick={() => { setAdding(true); if (catQuery.trim()) setNewCat(catQuery.trim()); }} className="text-[var(--color-gold-600)] inline-flex items-center gap-1 text-xs font-medium hover:underline"><Plus className="size-3.5" />New</button>}
-        </div>
+        <p className="text-body mb-2 text-sm font-medium">Category</p>
         <SearchInput value={catQuery} onChange={setCatQuery} placeholder="Search categories…" ariaLabel="Search categories" className="mb-2 flex w-full" />
         {(() => {
           const q = catQuery.trim().toLowerCase();
-          // Suggested = the current pick first, then a few common ones. Searching
-          // reveals the full set — matched by name (the box also feeds the smart
-          // guess as you typed the note).
-          const suggested = cats.filter((c) => c.id === category).concat(cats.filter((c) => c.id !== category)).slice(0, 7);
-          const shown = q ? cats.filter((c) => c.label.toLowerCase().includes(q)) : suggested;
-          if (shown.length === 0) {
-            return (
-              <button type="button" onClick={() => { setAdding(true); setNewCat(catQuery.trim()); }} className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-[var(--field-border)] py-3 text-xs font-medium text-[var(--color-gold-600)]">
-                <Plus className="size-3.5" /> Add &ldquo;{catQuery.trim()}&rdquo;
-              </button>
-            );
-          }
+          const shown = q ? cats.filter((c) => c.label.toLowerCase().includes(q)) : cats;
           return (
-            <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
-              {shown.map((c) => {
-                const Icon = resolve(c.id).icon;
-                const on = category === c.id;
-                return (
-                  <button key={c.id} type="button" onClick={() => pickCategory(c.id)} aria-pressed={on}
-                    className={cn("flex flex-col items-center gap-1.5 rounded-2xl border p-2 text-center transition-all active:scale-95",
-                      on ? "border-[var(--color-gold-500)] bg-[var(--color-gold-500)]/10" : "border-[var(--field-border)] bg-[var(--field-bg)] hover:border-[var(--focus-ring)]/50")}>
-                    <span className={cn("grid size-9 place-items-center rounded-full transition-colors",
-                      on ? "bg-[var(--color-gold-500)]/18 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--text-muted)]")}>
-                      <Icon className="size-4.5" />
-                    </span>
-                    <span className={cn("w-full truncate text-[11px] font-medium leading-tight", on ? "text-[var(--text-strong)]" : "text-[var(--text-body)]")}>{c.label}</span>
-                  </button>
-                );
-              })}
+            <div className="max-h-60 overflow-y-auto overscroll-contain rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)]">
+              {shown.length === 0 ? (
+                <button type="button" onClick={() => { setAdding(true); setNewCat(catQuery.trim()); }} className="flex w-full items-center gap-2 px-3.5 py-3 text-sm font-medium text-[var(--color-gold-600)]">
+                  <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[var(--color-gold-500)]/15"><Plus className="size-4.5" /></span>
+                  Add &ldquo;{catQuery.trim()}&rdquo;
+                </button>
+              ) : (
+                <ul className="divide-y divide-[var(--glass-border)]">
+                  {shown.map((c) => {
+                    const Icon = resolve(c.id).icon;
+                    const on = category === c.id;
+                    return (
+                      <li key={c.id}>
+                        <button type="button" onClick={() => pickCategory(c.id)} aria-pressed={on}
+                          className={cn("flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors", on ? "bg-[var(--color-gold-500)]/10" : "hover:bg-[var(--glass-bg-soft)]")}>
+                          <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", on ? "bg-[var(--color-gold-500)]/20 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--color-gold-500)]")}>
+                            <Icon className="size-4.5" />
+                          </span>
+                          <span className={cn("min-w-0 flex-1 truncate text-sm", on ? "text-[var(--text-strong)] font-medium" : "text-[var(--text-body)]")}>{c.label}</span>
+                          {on && <Check className="size-4 shrink-0 text-[var(--color-gold-600)]" strokeWidth={3} />}
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
             </div>
           );
         })()}
-        {adding && (
+        {!adding ? (
+          <button type="button" onClick={() => { setAdding(true); if (catQuery.trim()) setNewCat(catQuery.trim()); }} className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-[var(--color-gold-600)] hover:underline">
+            <Plus className="size-3.5" /> New category
+          </button>
+        ) : (
           <div className="mt-2 flex items-center gap-2">
             <Input placeholder="New category name" value={newCat} autoFocus onChange={(e) => setNewCat(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); saveCustom(); } }} />
             <AnimatedButton type="button" size="sm" onClick={saveCustom} disabled={!newCat.trim()} aria-label="Save category"><Check className="size-4" /></AnimatedButton>

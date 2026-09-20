@@ -131,11 +131,53 @@ export function monthPaceProjection(spentSoFar: number, now: number = Date.now()
 }
 
 /** Meta for a user-defined category. */
+/** Auto-pick a fitting icon for a category name (used for user-created
+ *  categories so a new one never shows a generic tag). First match wins. */
+const LABEL_ICONS: [RegExp, LucideIcon][] = [
+  [/grocer|supermarket|kirana|vegetab/, ShoppingCart],
+  [/food|eat|restaur|cafe|coffee|dining|snack|lunch|dinner|breakfast|pizza|burger|tea/, Utensils],
+  [/fuel|petrol|diesel|charg/, Fuel],
+  [/transport|taxi|uber|ola|cab|bus|train|metro|ride|toll|parking|travel card/, Car],
+  [/rent|home|house|mortgage|furnitur|maintenance/, Home],
+  [/shop|amazon|flipkart|mall|store|gadget|electron/, ShoppingBag],
+  [/movie|game|entertain|netflix|concert|stream|show/, Clapperboard],
+  [/health|doctor|hospital|clinic|pharm|medic|dental|therapy/, HeartPulse],
+  [/edu|school|college|course|tuition|book|learn|class/, GraduationCap],
+  [/gym|fitness|workout|sport|yoga|protein/, Dumbbell],
+  [/travel|flight|hotel|trip|vacation|holiday|airbnb/, Plane],
+  [/cloth|apparel|fashion|shoe|dress|wear/, Shirt],
+  [/phone|mobile|internet|wifi|broadband|recharge|data|sim/, Smartphone],
+  [/util|electric|water|power/, Zap],
+  [/insur|policy/, Shield],
+  [/kid|child|baby|toy|creche|daycare/, Baby],
+  [/pet|dog|cat|vet/, PawPrint],
+  [/gift|charity|donat|giving|tip/, Gift],
+  [/loan|emi|debt|credit card/, Landmark],
+  [/tax|gst|vat/, Landmark],
+  [/invest|stock|mutual|sip|equity/, TrendingUp],
+  [/crypto|bitcoin|coin/, Bitcoin],
+  [/sav|deposit|goal|fund/, PiggyBank],
+  [/cash|atm|withdraw|fee|charge|bank/, Banknote],
+  [/salary|payroll|wage|job|work|office/, Briefcase],
+  [/freelance|client|gig|contract|consult/, Laptop],
+  [/bonus|reward|incentive|award/, Award],
+  [/interest|dividend/, Percent],
+  [/beauty|salon|spa|hair|cosmet|grooming|care/, Sparkles],
+  [/music|song|spotify|band/, Music],
+  [/subscri|membership|plan/, Repeat],
+  [/business|company|startup|sales/, Building2],
+];
+export function iconForLabel(label: string): LucideIcon {
+  const s = (label || "").toLowerCase();
+  for (const [re, icon] of LABEL_ICONS) if (re.test(s)) return icon;
+  return Tag;
+}
+
 export function customCatMeta(cat: CustomCategory): CatMeta {
   return {
     id: cat.id,
     label: cat.label,
-    icon: Tag,
+    icon: iconForLabel(cat.label),
     tone: cat.type === "income" ? "text-emerald-400" : "text-rose-400",
   };
 }

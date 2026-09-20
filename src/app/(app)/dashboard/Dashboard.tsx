@@ -186,7 +186,7 @@ export function Dashboard({ name }: { name: string }) {
                 <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[radial-gradient(circle,var(--bokeh-1),transparent_70%)] blur-2xl" />
                 <div className="pointer-events-none absolute -bottom-16 -left-12 size-44 rounded-full bg-[radial-gradient(circle,var(--bokeh-3),transparent_72%)] blur-3xl opacity-70" />
                 <p className="text-muted text-sm">{isBusiness ? "Business net worth" : "Net worth"}</p>
-                <AnimatedAmount value={netWorth} currency={currency} className="mt-1 block bg-gradient-to-br from-[var(--text-strong)] to-[var(--text-body)] bg-clip-text text-4xl font-light tabular-nums text-transparent sm:text-5xl" />
+                <AnimatedAmount value={netWorth} currency={currency} className="mt-1 block max-w-full truncate bg-gradient-to-br from-[var(--text-strong)] to-[var(--text-body)] bg-clip-text text-4xl font-light tabular-nums text-transparent sm:text-5xl" />
                 <NetWorthTrend transactions={txAll.data} netWorth={netWorth} />
                 <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <Mini stat="in" open={openStat} onToggle={setOpenStat} label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
@@ -408,7 +408,7 @@ function Mini({ stat, open, onToggle, label, icon: Icon, value, currency, tone }
       aria-expanded={active}
       whileTap={{ scale: 0.96 }}
       className={cn(
-        "rounded-2xl border p-3 text-left transition-colors",
+        "overflow-hidden rounded-2xl border p-3 text-left transition-colors",
         active && "ring-1 ring-[var(--color-gold-500)]/45",
         tone === "emerald" ? "border-emerald-500/20 bg-emerald-500/[0.07]" : tone === "rose" ? "border-rose-500/20 bg-rose-500/[0.07]" : "border-[var(--field-border)] bg-[var(--field-bg)]",
       )}
@@ -421,7 +421,7 @@ function Mini({ stat, open, onToggle, label, icon: Icon, value, currency, tone }
         <span className="truncate">{label}</span>
         <ChevronRight className={cn("ms-auto size-3.5 shrink-0 text-[var(--text-muted)] transition-transform", active && "rotate-90")} />
       </div>
-      <AnimatedAmount value={value} currency={currency} className={cn("mt-1.5 block text-lg font-semibold tabular-nums", tone === "emerald" ? "text-emerald-500" : tone === "rose" ? "text-rose-500" : "text-[var(--text-strong)]")} />
+      <AnimatedAmount value={value} currency={currency} className={cn("mt-1.5 block max-w-full truncate text-lg font-semibold tabular-nums", tone === "emerald" ? "text-emerald-500" : tone === "rose" ? "text-rose-500" : "text-[var(--text-strong)]")} />
     </motion.button>
   );
 }
