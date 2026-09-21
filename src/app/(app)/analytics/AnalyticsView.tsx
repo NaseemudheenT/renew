@@ -8,6 +8,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { BarChart3, ArrowDownLeft, ArrowUpRight, PiggyBank, ChevronLeft, ChevronRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StaggerContainer, StaggerItem } from "@/components/motion";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
@@ -81,7 +82,23 @@ export function AnalyticsView() {
     return { income, expense };
   }, [data, year]);
 
-  if (!loading && data.length === 0) {
+  // Never show a half-loaded chart: hold on a skeleton until the full dataset
+  // has resolved, then the real content animates in (design system §2.5 / §5).
+  if (loading) {
+    return (
+      <div className="mx-auto max-w-4xl">
+        <PageHeader title={t("nav.analytics")} subtitle="A clear, honest picture of your money, month by month." />
+        <div className="flex flex-col gap-6">
+          <Skeleton className="h-12 w-full rounded-2xl" />
+          <div className="grid gap-3 sm:grid-cols-3">{[0, 1, 2].map((i) => <Skeleton key={i} className="h-24 rounded-2xl" />)}</div>
+          <Skeleton className="h-72 w-full rounded-2xl" />
+          <Skeleton className="h-72 w-full rounded-2xl" />
+        </div>
+      </div>
+    );
+  }
+
+  if (data.length === 0) {
     return (
       <div className="mx-auto max-w-4xl">
         <PageHeader title={t("nav.analytics")} />

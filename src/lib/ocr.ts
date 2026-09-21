@@ -69,6 +69,35 @@ function fileToDataUrl(file: File | Blob): Promise<string> {
 }
 
 /**
+ * Preprocess a receipt photo before upload (Tech Ref §4 Step 1): honour EXIF
+ * orientation, downscale the longest edge to 1568px (past which OCR accuracy
+ * stops improving but cost/upload time keep rising) and re-encode JPEG q85.
+ * Falls back to the raw data URL if the canvas path isn't available.
+ */
+const MAX_EDGE = 1568;
+async function preprocessImage(file: File | Blob): Promise<string> {
+  try {
+    if (typeof createImageBitmap !== "function" || typeof document === "undefined") {
+      return await fileToDataUrl(file);
+    }
+    const bmp = await createImageBitmap(file, { imageOrientation: "from-image" });
+    const scale = Math.min(1, MAX_EDGE / Math.max(bmp.width, bmp.height));
+    const w = Math.max(1, Math.round(bmp.width * scale));
+    const h = Math.max(1, Math.round(bmp.height * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) { bmp.close?.(); return await fileToDataUrl(file); }
+    ctx.drawImage(bmp, 0, 0, w, h);
+    bmp.close?.();
+    return canvas.toDataURL("image/jpeg", 0.85);
+  } catch {
+    return fileToDataUrl(file);
+  }
+}
+
+/**
  * Ask the server vision model to read a receipt/bill into structured fields.
  * Returns null when the model is unavailable (no key / rate-limited / error) or
  * the image is unreadable, so the caller falls back to the on-device engine.
@@ -76,7 +105,7 @@ function fileToDataUrl(file: File | Blob): Promise<string> {
  */
 export async function scanReceiptImage(file: File | Blob): Promise<VisionReceipt | null> {
   try {
-    const image = await fileToDataUrl(file);
+    const image = await preprocessImage(file);
     const res = await fetch("/api/ocr", {
       method: "POST",
       headers: { "content-type": "application/json" },
