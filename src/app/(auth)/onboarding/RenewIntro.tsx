@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Wallet, ScanLine, LineChart, ShieldCheck, ArrowRight } from "lucide-react";
 import { RenLogo } from "@/components/brand/RenLogo";
+import { RenewMark } from "@/components/brand/RenewMark";
+import { Wordmark } from "@/components/brand/Wordmark";
 import { AnimatedButton } from "@/components/motion";
 import { cn } from "@/lib/utils";
 
@@ -18,10 +20,13 @@ type Scene = {
 };
 
 const SCENES: Scene[] = [
-  // First page = the founder's gold Renew logo, revealed cinematically.
-  { key: "welcome", render: () => (
-    // eslint-disable-next-line @next/next/no-img-element
-    <img src="/renew-logo.png" alt="Renew" className="w-[min(76vw,300px)] rounded-[1.75rem]" draggable={false} />
+  // First page = the gold Renew mark + wordmark alone (no background tile),
+  // revealed cinematically. The boxed logo lives only in the app icon.
+  { key: "welcome", render: (s) => (
+    <div className="flex flex-col items-center">
+      <RenewMark size={Math.round(s * 1.5)} idSuffix="intro-welcome" />
+      <Wordmark sizeClassName="text-3xl" className="mt-4" />
+    </div>
   ), title: "", body: "Your money — clear, calm and completely private." },
   { key: "track", render: () => <SceneIcon icon={Wallet} />, title: "Track it in seconds", body: "Add an expense in a tap. Renew keeps every account in one place." },
   { key: "scan", render: () => <SceneIcon icon={ScanLine} />, title: "Just snap a receipt", body: "Renew reads the amount, merchant and date for you — no typing." },
