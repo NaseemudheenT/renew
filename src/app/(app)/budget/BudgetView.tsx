@@ -25,13 +25,14 @@ import { CURRENCIES, cn } from "@/lib/utils";
 import type { Budget, Transaction } from "@/lib/types";
 
 export function BudgetView() {
-  const { money, t } = useLocale();
+  const { money, t, shortDate } = useLocale();
   const { resolve } = useCategories();
   const txC = useMemo(() => [orderBy("date", "desc")], []);
   const { data: budgets, loading, uid } = useScopedUserCollection<Budget>("budgets");
   const { data: txs } = useScopedUserCollection<Transaction>("transactions", txC);
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<Budget | null>(null);
+  const [openId, setOpenId] = useState<string | null>(null);
 
   function removeBudget(b: Budget) {
     if (!uid) return;
@@ -48,6 +49,20 @@ export function BudgetView() {
     for (const t of txs) if (t.type === "expense" && t.date >= start && t.date < end) {
       const key = `${t.category}|${t.currency}`;
       m.set(key, (m.get(key) ?? 0) + t.amount);
+    }
+    return m;
+  }, [txs]);
+
+  // This month's transactions per category+currency — revealed when a budget is
+  // tapped (txs are date-desc, so the first few are the most recent).
+  const monthTxByCat = useMemo(() => {
+    const { start, end } = monthRange();
+    const m = new Map<string, Transaction[]>();
+    for (const t of txs) {
+      if (t.type !== "expense" || t.date < start || t.date >= end) continue;
+      const key = `${t.category}|${t.currency}`;
+      const arr = m.get(key);
+      if (arr) { if (arr.length < 6) arr.push(t); } else m.set(key, [t]);
     }
     return m;
   }, [txs]);
@@ -81,14 +96,16 @@ export function BudgetView() {
                   swipeRight={{ label: "Edit", icon: Pencil, bg: "bg-[var(--color-gold-600)]", onTrigger: () => { setEditing(b); setModalOpen(true); } }}
                   swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => removeBudget(b) }}
                 >
-                <div className="glass p-4">
+                <div className={cn("glass overflow-hidden p-4", openId === b.id && "ring-1 ring-[var(--color-gold-500)]/30")}>
                   <div className="flex items-center gap-3">
-                    <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
-                    <div className="min-w-0 flex-1">
-                      <p className="text-strong text-sm font-medium">{meta.label}</p>
-                      <p className="text-muted text-xs tabular-nums">{money(spent, b.currency)} of {money(b.amount, b.currency)}</p>
-                    </div>
-                    <span className={cn("text-sm font-semibold tabular-nums", over ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(Math.max(0, b.amount - spent), b.currency)}<span className="text-muted ms-1 text-xs font-normal">left</span></span>
+                    <button type="button" onClick={() => setOpenId((v) => (v === b.id ? null : b.id))} aria-expanded={openId === b.id} className="flex min-w-0 flex-1 items-center gap-3 text-left">
+                      <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-strong truncate text-sm font-medium">{meta.label}</p>
+                        <p className="text-muted truncate text-xs tabular-nums">{money(spent, b.currency)} of {money(b.amount, b.currency)}</p>
+                      </div>
+                      <span className={cn("shrink-0 text-sm font-semibold tabular-nums", over ? "text-rose-500" : "text-[var(--text-strong)]")}>{money(Math.max(0, b.amount - spent), b.currency)}<span className="text-muted ms-1 text-xs font-normal">left</span></span>
+                    </button>
                     <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: () => { setEditing(b); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => removeBudget(b), danger: true }]} />
                   </div>
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
@@ -99,6 +116,29 @@ export function BudgetView() {
                       <TrendingUp className="size-3.5" />On this month&apos;s pace you&apos;ll spend ~{money(projected, b.currency)} — {money(projected - b.amount, b.currency)} over.
                     </p>
                   )}
+                  <AnimatePresence initial={false}>
+                    {openId === b.id && (
+                      <motion.div key="detail" layout initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }} transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }} className="overflow-hidden">
+                        <div className="mt-3 border-t border-[var(--glass-border)] pt-3">
+                          {(() => {
+                            const list = monthTxByCat.get(`${b.category}|${b.currency}`) ?? [];
+                            if (list.length === 0) return <p className="text-muted text-xs">No spending in this category this month.</p>;
+                            return (
+                              <ul className="flex flex-col gap-1.5">
+                                {list.map((tx) => (
+                                  <li key={tx.id} className="flex items-center gap-2.5 text-sm">
+                                    <span className="text-body min-w-0 flex-1 truncate">{tx.note || meta.label}</span>
+                                    <span className="text-muted shrink-0 text-xs tabular-nums">{shortDate(tx.date)}</span>
+                                    <span className="text-strong shrink-0 text-sm font-medium tabular-nums">{money(tx.amount, tx.currency)}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            );
+                          })()}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </div>
                 </SwipeRow>
                 </motion.div>
