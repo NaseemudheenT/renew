@@ -9,6 +9,7 @@ import { SearchInput } from "@/components/ui/SearchInput";
 import { AnimatedButton } from "@/components/motion";
 import { makeCustomCategoryId } from "@/lib/finance";
 import { categorize, merchantKey } from "@/lib/categorize";
+import { embedCategorize } from "@/lib/categorize-remote";
 import { learnCategory } from "@/lib/firestore/profile";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
@@ -103,6 +104,18 @@ export function TransactionForm({
         setCategory(guess);
         setSubcategory("");
       }
+    }
+  }
+
+  /** When the local pass is unsure, ask the server (Voyage embeddings) for a
+   *  smarter category — only on blur, only if the user hasn't chosen one. */
+  async function onNoteBlur() {
+    if (categoryTouched || !note.trim()) return;
+    if (categorize(note, type, learned ?? {}).confidence !== "ask") return;
+    const remote = await embedCategorize(note, type);
+    if (remote && remote.score >= 0.45 && !categoryTouched) {
+      setCategory(remote.category);
+      setSubcategory("");
     }
   }
 
@@ -206,7 +219,7 @@ export function TransactionForm({
       </div>
 
       {/* What was it for — drives the smart category guess */}
-      <Input label="What was it for?" placeholder="e.g. Lunch, Salary, Rent" value={note} onChange={(e) => onNoteChange(e.target.value)} />
+      <Input label="What was it for?" placeholder="e.g. Lunch, Salary, Rent" value={note} onChange={(e) => onNoteChange(e.target.value)} onBlur={() => { void onNoteBlur(); }} />
 
       {/* Category — a clean, searchable LIST: the full set shows, filtered by the
           search, each row a branded icon tile + name (same language as subcats). */}

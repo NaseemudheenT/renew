@@ -101,6 +101,11 @@ export function getServerEnv() {
     // be swapped later (spec §6).
     anthropicApiKey: clean(process.env.ANTHROPIC_API_KEY),
     renModel: clean(process.env.REN_MODEL) || "claude-haiku-4-5-20251001",
+    // Voyage AI embeddings (server-only) for smarter categorization + semantic
+    // search. Optional: when unset, Renew uses the on-device keyword/learned
+    // categorizer and plain-text search (no degradation, just less "understanding").
+    voyageApiKey: clean(process.env.VOYAGE_API_KEY),
+    voyageModel: clean(process.env.VOYAGE_MODEL) || "voyage-3.5-lite",
     firebaseServiceAccountKey: clean(process.env.FIREBASE_SERVICE_ACCOUNT_KEY),
     cloudinary: {
       cloudName: clean(process.env.CLOUDINARY_CLOUD_NAME),
