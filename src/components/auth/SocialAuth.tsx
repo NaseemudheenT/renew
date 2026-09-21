@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { AlertCircle, Fingerprint, QrCode, ChevronRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { FadeScale, StaggerContainer, StaggerItem } from "@/components/motion";
@@ -83,8 +84,14 @@ export function SocialAuth({
     return (
       <FadeScale>
         <GlassCard padded>
-          <div className="flex flex-col items-center justify-center gap-3 py-8 text-center">
-            <span className="size-6 animate-spin rounded-full border-2 border-[var(--text-muted)] border-t-transparent" />
+          <div className="flex flex-col items-center justify-center gap-4 py-8 text-center">
+            {/* Breathing-glow, not a spinner (design system §3). */}
+            <motion.span
+              className="size-4 rounded-full bg-[var(--color-gold-500)]"
+              animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.25, 1], boxShadow: ["0 0 0 0 rgba(212,175,110,0)", "0 0 22px 4px rgba(212,175,110,0.5)", "0 0 0 0 rgba(212,175,110,0)"] }}
+              transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+              aria-hidden
+            />
             <p className="text-body text-sm">Signing you in…</p>
           </div>
         </GlassCard>
