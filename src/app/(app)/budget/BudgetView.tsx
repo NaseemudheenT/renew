@@ -15,7 +15,7 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { createBudget, updateBudget, deleteBudget, restoreBudget } from "@/lib/firestore/budgets";
-import { monthRange, monthPaceProjection } from "@/lib/finance";
+import { monthRange, monthPaceProjection, catColor } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
@@ -84,6 +84,7 @@ export function BudgetView() {
             {budgets.map((b) => {
               const meta = resolve(b.category);
               const Icon = meta.icon;
+              const hue = catColor(meta);
               const spent = spentByCat.get(`${b.category}|${b.currency}`) ?? 0;
               const pct = b.amount > 0 ? Math.min(100, Math.round((spent / b.amount) * 100)) : 0;
               const over = spent > b.amount;
@@ -96,10 +97,10 @@ export function BudgetView() {
                   swipeRight={{ label: "Edit", icon: Pencil, bg: "bg-[var(--color-gold-600)]", onTrigger: () => { setEditing(b); setModalOpen(true); } }}
                   swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: () => removeBudget(b) }}
                 >
-                <div className={cn("glass overflow-hidden p-4", openId === b.id && "ring-1 ring-[var(--color-gold-500)]/30")}>
+                <div className="glass overflow-hidden p-4 transition-shadow" style={openId === b.id ? { boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${hue} 40%, transparent), 0 0 26px -10px ${hue}` } : undefined}>
                   <div className="flex items-center gap-3">
                     <button type="button" onClick={() => setOpenId((v) => (v === b.id ? null : b.id))} aria-expanded={openId === b.id} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-                      <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
+                      <span className="grid size-10 shrink-0 place-items-center rounded-2xl" style={{ color: hue, background: `color-mix(in srgb, ${hue} 15%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${hue} 30%, transparent)` }}><Icon className="size-5" /></span>
                       <div className="min-w-0 flex-1">
                         <p className="text-strong truncate text-sm font-medium">{meta.label}</p>
                         <p className="text-muted truncate text-xs tabular-nums">{money(spent, b.currency)} of {money(b.amount, b.currency)}</p>
@@ -109,7 +110,7 @@ export function BudgetView() {
                     <RowMenu items={[{ label: "Edit", icon: Pencil, onClick: () => { setEditing(b); setModalOpen(true); } }, { label: "Delete", icon: Trash2, onClick: () => removeBudget(b), danger: true }]} />
                   </div>
                   <div className="mt-3 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
-                    <motion.div className={cn("h-full rounded-full", over ? "bg-gradient-to-r from-rose-400 to-rose-600" : "bg-gradient-to-r from-gold-300 to-gold-500")} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
+                    <motion.div className="h-full rounded-full" style={over ? { background: "linear-gradient(to right, #fb7185, #e11d48)" } : { background: `linear-gradient(to right, color-mix(in srgb, ${hue} 55%, transparent), ${hue})` }} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
                   </div>
                   {willExceed && (
                     <p className="mt-2 flex items-center gap-1.5 text-xs text-amber-500">

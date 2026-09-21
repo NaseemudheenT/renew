@@ -241,7 +241,7 @@ function InvoiceForm({
           <div className="flex items-center gap-2">
             <input type="text" inputMode="decimal" placeholder="0" value={amount} aria-label="Amount"
               onChange={(e) => setAmount(formatAmountTyping(e.target.value, groupingLocale(region, currency)).display)}
-              className="text-strong h-11 min-w-0 flex-1 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 text-sm tabular-nums outline-none focus:border-[var(--focus-ring)]" />
+              className="rn-field text-strong h-11 min-w-0 flex-1 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 text-sm tabular-nums outline-none" />
           </div>
         </div>
       </div>

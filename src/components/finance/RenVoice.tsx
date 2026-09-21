@@ -223,7 +223,7 @@ export function RenVoice({
               <form onSubmit={(e) => { e.preventDefault(); const v = input; setInput(""); void send(v); }}
                 className="mt-6 flex w-full items-center gap-2">
                 <input ref={inputRef} value={input} onChange={(e) => setInput(e.target.value)} placeholder="Message Ren" aria-label="Message Ren"
-                  className="text-strong h-12 min-w-0 flex-1 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-5 text-sm outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--focus-ring)]" />
+                  className="rn-field text-strong h-12 min-w-0 flex-1 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-5 text-sm outline-none placeholder:text-[var(--text-muted)]" />
                 <button type="submit" disabled={!input.trim()} aria-label="Send"
                   className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--color-gold-400)] to-[var(--color-gold-600)] text-[var(--btn-gold-text)] shadow-[0_6px_20px_-6px_var(--color-gold-500)] transition-all active:scale-95 disabled:opacity-40">
                   <ArrowUp className="size-5" />

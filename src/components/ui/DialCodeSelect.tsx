@@ -51,7 +51,7 @@ export function DialCodeSelect({
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label="Country dialling code"
-        className="flex h-12 shrink-0 items-center gap-1.5 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 text-[0.95rem] text-[var(--text-strong)] backdrop-blur-md transition-colors focus:border-[var(--focus-ring)] focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25 disabled:opacity-55"
+        className="rn-field flex h-12 shrink-0 items-center gap-1.5 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 text-[0.95rem] text-[var(--text-strong)] backdrop-blur-md focus:outline-none disabled:opacity-55"
       >
         <span className="text-base leading-none">{flagFor(iso)}</span>
         <span className="tabular-nums">{value}</span>

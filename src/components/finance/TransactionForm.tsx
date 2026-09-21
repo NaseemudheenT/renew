@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { SearchInput } from "@/components/ui/SearchInput";
 import { AnimatedButton } from "@/components/motion";
-import { makeCustomCategoryId } from "@/lib/finance";
+import { makeCustomCategoryId, catColor } from "@/lib/finance";
 import { categorize, merchantKey } from "@/lib/categorize";
 import { embedCategorize } from "@/lib/categorize-remote";
 import { learnCategory } from "@/lib/firestore/profile";
@@ -241,15 +241,24 @@ export function TransactionForm({
                   {shown.map((c) => {
                     const Icon = resolve(c.id).icon;
                     const on = category === c.id;
+                    const hue = catColor(c);
                     return (
                       <li key={c.id}>
                         <button type="button" onClick={() => pickCategory(c.id)} aria-pressed={on}
-                          className={cn("flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors", on ? "bg-[var(--color-gold-500)]/10" : "hover:bg-[var(--glass-bg-soft)]")}>
-                          <span className={cn("grid size-8 shrink-0 place-items-center rounded-lg", on ? "bg-[var(--color-gold-500)]/20 text-[var(--color-gold-600)]" : "bg-[var(--glass-bg-strong)] text-[var(--color-gold-500)]")}>
+                          className="flex w-full items-center gap-3 px-3 py-2.5 text-left transition-colors hover:bg-[var(--glass-bg-soft)]"
+                          style={on ? { background: `color-mix(in srgb, ${hue} 12%, transparent)` } : undefined}>
+                          <span
+                            className="grid size-8 shrink-0 place-items-center rounded-lg"
+                            style={{
+                              color: hue,
+                              background: `color-mix(in srgb, ${hue} ${on ? 22 : 14}%, transparent)`,
+                              boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${hue} ${on ? 45 : 24}%, transparent)`,
+                            }}
+                          >
                             <Icon className="size-4.5" />
                           </span>
                           <span className={cn("min-w-0 flex-1 truncate text-sm", on ? "text-[var(--text-strong)] font-medium" : "text-[var(--text-body)]")}>{c.label}</span>
-                          {on && <Check className="size-4 shrink-0 text-[var(--color-gold-600)]" strokeWidth={3} />}
+                          {on && <Check className="size-4 shrink-0" strokeWidth={3} style={{ color: hue }} />}
                         </button>
                       </li>
                     );

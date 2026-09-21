@@ -256,7 +256,7 @@ export function ImportView() {
                 onChange={(e) => { setPdfPassword(e.target.value); setPdfWrong(false); }}
                 onKeyDown={(e) => { if (e.key === "Enter" && pdfPassword.trim()) void processPdf(pdfPending, pdfPassword); }}
                 placeholder="PDF password" aria-label="PDF password"
-                className="text-strong h-12 w-full max-w-xs rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-4 text-center text-sm outline-none focus:border-[var(--focus-ring)]"
+                className="rn-field text-strong h-12 w-full max-w-xs rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-4 text-center text-sm outline-none"
               />
               {pdfWrong && <p className="text-xs text-rose-500">That password didn&apos;t work — try again.</p>}
               <div className="flex w-full max-w-xs flex-col gap-2">

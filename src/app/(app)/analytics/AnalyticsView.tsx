@@ -15,7 +15,7 @@ import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
 import { SpendingRing } from "@/components/finance/SpendingRing";
 import { subscriptionTotals } from "@/lib/accounts";
-import { monthRange } from "@/lib/finance";
+import { monthRange, catColor } from "@/lib/finance";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { cn } from "@/lib/utils";
@@ -195,11 +195,12 @@ export function AnalyticsView() {
                 {bySource.map((d, i) => {
                   const meta = resolve(d.category);
                   const Icon = meta.icon;
+                  const hue = catColor(meta);
                   return (
                     <div key={d.category} className="flex items-center gap-3">
-                      <span className="text-muted flex w-32 shrink-0 items-center gap-1.5 text-xs"><Icon className="size-3.5" />{meta.label}</span>
+                      <span className="text-muted flex w-32 shrink-0 items-center gap-1.5 text-xs"><Icon className="size-3.5" style={{ color: hue }} />{meta.label}</span>
                       <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
-                        <motion.div className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500" initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / srcMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
+                        <motion.div className="h-full rounded-full" style={{ background: `linear-gradient(to right, color-mix(in srgb, ${hue} 55%, transparent), ${hue})` }} initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / srcMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
                       </div>
                       <span className="text-body w-20 text-end text-xs tabular-nums">{money(d.amount, currency)}</span>
                     </div>
@@ -222,11 +223,12 @@ export function AnalyticsView() {
                 {byCategory.map((d, i) => {
                   const meta = resolve(d.category);
                   const Icon = meta.icon;
+                  const hue = catColor(meta);
                   return (
                     <div key={d.category} className="flex items-center gap-3">
-                      <span className="text-muted flex w-32 shrink-0 items-center gap-1.5 text-xs"><Icon className="size-3.5" />{meta.label}</span>
+                      <span className="text-muted flex w-32 shrink-0 items-center gap-1.5 text-xs"><Icon className="size-3.5" style={{ color: hue }} />{meta.label}</span>
                       <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
-                        <motion.div className="h-full rounded-full bg-gradient-to-r from-gold-300 to-gold-500" initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / catMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
+                        <motion.div className="h-full rounded-full" style={{ background: `linear-gradient(to right, color-mix(in srgb, ${hue} 55%, transparent), ${hue})` }} initial={reduced ? false : { width: 0 }} animate={{ width: `${(d.amount / catMax) * 100}%` }} transition={{ duration: 0.6, delay: i * 0.05 }} />
                       </div>
                       <span className="text-body w-20 text-end text-xs tabular-nums">{money(d.amount, currency)}</span>
                     </div>

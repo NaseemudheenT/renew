@@ -16,6 +16,8 @@ export interface CatMeta {
   tone: string;
   /** Optional subcategories — a finer breakdown the person can pick. */
   sub?: string[];
+  /** Optional explicit hue (hex) — otherwise derived from the id, see catColor. */
+  color?: string;
 }
 
 const IN = "text-emerald-400";
@@ -112,6 +114,47 @@ export function categoriesFor(type: TxType, mode: WorkspaceMode = "personal"): C
 }
 export function catMeta(id: string): CatMeta {
   return byId.get(id) ?? { id, label: "Other", icon: Coins, tone: "text-[var(--text-muted)]" };
+}
+
+/**
+ * The color-coded OS identity: a distinct, midnight-friendly hue per category.
+ * Common categories get a hand-picked, meaningful color (food warm amber,
+ * groceries lime, transport sky…); anything else — including a user's custom
+ * category — gets a stable jewel tone derived from its id so it always looks
+ * intentional and never changes between sessions. Used for icon tiles and
+ * accents across transactions, the picker, budgets and analysis.
+ */
+const CAT_COLORS: Record<string, string> = {
+  // Income — cool, "money coming in" greens/teals/blues
+  salary: "#34d399", freelance: "#22d3ee", business: "#38bdf8", investment: "#a78bfa",
+  rental: "#2dd4bf", interest: "#5eead4", dividends: "#818cf8", bonus: "#facc15",
+  commission: "#4ade80", pension: "#94a3b8", benefits: "#60a5fa", royalties: "#c084fc",
+  gift: "#f472b6", cashback: "#a3e635", sale: "#fbbf24", refund: "#34d399",
+  reimbursement: "#2dd4bf", loan_in: "#38bdf8", other_income: "#6ee7b7",
+  // Expense — a broad, legible spread of warm & jewel tones
+  food: "#f59e0b", groceries: "#84cc16", transport: "#38bdf8", fuel: "#fb923c",
+  rent: "#f472b6", bills: "#2dd4bf", phone: "#60a5fa", shopping: "#a78bfa",
+  clothing: "#e879f9", entertainment: "#f43f5e", health: "#fb7185", fitness: "#4ade80",
+  education: "#22d3ee", subscriptions: "#c084fc", travel: "#0ea5e9", insurance: "#14b8a6",
+  personal_care: "#f0abfc", kids: "#fda4af", pets: "#fbbf24", giving: "#f472b6",
+  taxes: "#94a3b8", fees: "#cbd5e1", utilities: "#eab308", loan: "#f87171",
+  investing: "#a78bfa", cash: "#a3e635", alcohol: "#e879f9", home_help: "#5eead4",
+  other_expense: "#94a3b8",
+};
+const HUE_PALETTE = [
+  "#f59e0b", "#84cc16", "#22d3ee", "#a78bfa", "#f472b6", "#2dd4bf",
+  "#60a5fa", "#fb923c", "#f43f5e", "#c084fc", "#4ade80", "#38bdf8",
+  "#eab308", "#14b8a6", "#e879f9", "#fb7185",
+];
+function hashStr(s: string): number {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
+  return Math.abs(h);
+}
+/** A stable hex hue for a category (explicit meta.color → curated map → hash). */
+export function catColor(meta: { id: string; color?: string }): string {
+  if (meta.color) return meta.color;
+  return CAT_COLORS[meta.id] ?? HUE_PALETTE[hashStr(meta.id) % HUE_PALETTE.length]!;
 }
 /** The subcategory labels for a category id (empty if none / unknown). */
 export function subcategoriesFor(categoryId: string): string[] {

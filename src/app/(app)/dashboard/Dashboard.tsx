@@ -21,7 +21,7 @@ import { toast } from "@/components/ui/toast-store";
 import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
-import { monthRange } from "@/lib/finance";
+import { monthRange, catColor } from "@/lib/finance";
 import { computeAccountBalance, accountTypeMeta } from "@/lib/accounts";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { isOverdue } from "@/lib/dates";
@@ -306,10 +306,11 @@ export function Dashboard({ name }: { name: string }) {
                         const meta = resolve(t.category);
                         const Icon = meta.icon;
                         const income = t.type === "income";
+                        const hue = catColor(meta);
                         return (
                           <li key={t.id}>
                             <Link href="/transactions" className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-2.5 transition-colors hover:border-[var(--focus-ring)]/50">
-                              <Icon className={cn("size-4 shrink-0", income ? "text-emerald-400" : "text-rose-400")} />
+                              <span className="grid size-7 shrink-0 place-items-center rounded-lg" style={{ color: hue, background: `color-mix(in srgb, ${hue} 15%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${hue} 28%, transparent)` }}><Icon className="size-4" /></span>
                               <span className="text-body min-w-0 flex-1 truncate text-sm">{t.note || meta.label}</span>
                               <span className={cn("text-sm font-medium tabular-nums", income ? "text-emerald-500" : "text-rose-500")}>{income ? "+" : "−"}{money(t.amount, t.currency)}</span>
                             </Link>

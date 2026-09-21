@@ -26,7 +26,7 @@ export function SearchInput({
   return (
     <div
       className={cn(
-        "inline-flex h-10 items-center gap-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] ps-3.5 pe-2 transition-colors focus-within:border-[var(--focus-ring)]",
+        "rn-field inline-flex h-10 items-center gap-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] ps-3.5 pe-2",
         className,
       )}
     >

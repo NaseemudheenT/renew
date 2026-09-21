@@ -79,7 +79,7 @@ export function SearchableSelect({
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="listbox"
         aria-expanded={open}
-        className="flex h-12 w-full items-center gap-2.5 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-4 text-[0.95rem] text-[var(--text-strong)] backdrop-blur-md transition-colors focus:border-[var(--focus-ring)] focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25"
+        className="rn-field flex h-12 w-full items-center gap-2.5 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-4 text-[0.95rem] text-[var(--text-strong)] backdrop-blur-md focus:outline-none"
       >
         {showTriggerLeading && current?.leading && <span className="shrink-0 text-base leading-none">{current.leading}</span>}
         <span className="min-w-0 flex-1 truncate text-start">{current ? current.primary : placeholder}</span>

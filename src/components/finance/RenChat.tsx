@@ -253,7 +253,7 @@ export function RenChat({
                 </button>
               )}
               <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={listening ? "Listening…" : "Tell Ren, or ask…"} aria-label="Message Ren"
-                className="text-strong h-12 min-w-0 flex-1 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-5 text-sm outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--focus-ring)]" />
+                className="rn-field text-strong h-12 min-w-0 flex-1 rounded-full border border-[var(--glass-border)] bg-[var(--glass-bg-soft)] px-5 text-sm outline-none placeholder:text-[var(--text-muted)]" />
               <button type="submit" disabled={!input.trim()} aria-label="Send" className="grid size-12 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[var(--color-gold-300)] to-[var(--color-gold-500)] text-[var(--text-onGold)] shadow-[0_6px_20px_-6px_var(--color-gold-500)] transition-all hover:-translate-y-0.5 active:scale-95 disabled:translate-y-0 disabled:opacity-40"><ArrowUp className="size-5" /></button>
             </form>
           </motion.div>

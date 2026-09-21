@@ -7,6 +7,7 @@ import { RowMenu } from "@/components/ui/RowMenu";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { catColor } from "@/lib/finance";
 import { cn } from "@/lib/utils";
 import type { Transaction } from "@/lib/types";
 
@@ -28,6 +29,7 @@ export function TransactionRow({
   const meta = resolve(tx.category);
   const Icon = meta.icon;
   const income = tx.type === "income";
+  const hue = catColor(meta);
 
   const menu = [
     { label: "Edit", icon: Pencil, onClick: onEdit },
@@ -49,14 +51,21 @@ export function TransactionRow({
       >
         <div
           className={cn(
-            "glass overflow-hidden p-3.5",
+            "glass overflow-hidden p-3.5 transition-shadow",
             income ? "shadow-[inset_2px_0_0_rgba(16,185,129,0.7)]" : "shadow-[inset_2px_0_0_rgba(244,63,94,0.7)]",
-            expanded && "ring-1 ring-[var(--color-gold-500)]/30",
           )}
+          style={expanded ? { boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${hue} 40%, transparent), 0 0 26px -10px ${hue}` } : undefined}
         >
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-              <span className={cn("glass grid size-10 shrink-0 place-items-center !rounded-2xl", income ? "text-emerald-400" : "text-rose-400")}>
+              <span
+                className="grid size-10 shrink-0 place-items-center rounded-2xl"
+                style={{
+                  color: hue,
+                  background: `color-mix(in srgb, ${hue} 15%, transparent)`,
+                  boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${hue} 30%, transparent)`,
+                }}
+              >
                 <Icon className="size-5" />
               </span>
               <div className="min-w-0 flex-1">

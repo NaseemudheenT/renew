@@ -385,7 +385,7 @@ export function OwnerConsole() {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="Search email or name"
-                  className="text-body w-56 max-w-full rounded-full border border-white/10 bg-white/5 py-1.5 pl-8 pr-3 text-sm outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--focus-ring)]"
+                  className="rn-field text-body w-56 max-w-full rounded-full border border-white/10 bg-white/5 py-1.5 pl-8 pr-3 text-sm outline-none placeholder:text-[var(--text-muted)]"
                 />
               </div>
             </div>

@@ -41,15 +41,14 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
           aria-invalid={error ? true : undefined}
           aria-describedby={error ? `${inputId}-error` : hint ? `${inputId}-hint` : undefined}
           className={cn(
-            "h-12 w-full rounded-2xl border bg-[var(--field-bg)] text-[var(--text-strong)]",
+            "rn-field h-12 w-full rounded-2xl border bg-[var(--field-bg)] text-[var(--text-strong)]",
             "backdrop-blur-md placeholder:text-[var(--text-muted)]",
-            "px-4 text-[0.95rem] transition-all duration-300 ease-[var(--ease-calm)]",
-            // Neat, premium focus — a clean border highlight + a whisper of a
-            // ring. No chunky gold glow/box.
-            "border-[var(--field-border)] focus:border-[var(--focus-ring)]",
-            "focus:outline-none focus:ring-1 focus:ring-[var(--focus-ring)]/30",
+            "px-4 text-[0.95rem]",
+            // Cool ambient focus (see .rn-field) — a light edge + soft halo, no
+            // gold line/box.
+            "border-[var(--field-border)] focus:outline-none",
             icon && "ps-11",
-            error && "border-rose-400/70 focus:ring-rose-400/20",
+            error && "border-rose-400/70",
             className,
           )}
           {...props}

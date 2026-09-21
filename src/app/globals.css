@@ -101,8 +101,15 @@
 
   --field-bg: rgba(26, 39, 68, 0.6);
   --field-border: rgba(232, 237, 242, 0.1);
-  /* Focus = the gold accent. */
+  /* Selection/active state = the gold accent (theme picker, chips, avatar). */
   --focus-ring: rgba(212, 175, 110, 0.6);
+  /* Text-field & search focus = a cool, bright light EDGE + a soft ambient halo,
+     NOT a gold box. This is the "3008" instrument look: the field lights up from
+     within instead of drawing a hard gold outline. Never gold. */
+  --field-focus: rgba(233, 239, 252, 0.55);
+  --field-focus-glow: rgba(130, 165, 240, 0.16);
+  /* Keyboard focus-visible outline — cool bright, accessible, never gold. */
+  --focus-outline: rgba(170, 198, 255, 0.75);
 
   /* Brand mark in champagne gold on the midnight ground. */
   --mark-gold-1: #f5e9c8;
@@ -180,8 +187,13 @@
 
   --field-bg: rgba(255, 255, 255, 0.72);
   --field-border: rgba(20, 32, 66, 0.14);
-  /* Focus ring = the accent hue (same as dark); only opacity may differ. */
+  /* Selection/active state = the gold accent (same as dark). */
   --focus-ring: rgba(212, 175, 110, 0.6);
+  /* Text-field & search focus — the daylight twin: a crisp cool-blue edge + a
+     soft halo on white. Never gold. */
+  --field-focus: rgba(46, 92, 200, 0.62);
+  --field-focus-glow: rgba(70, 120, 220, 0.14);
+  --focus-outline: rgba(38, 90, 210, 0.7);
 
   /* No accent overrides in light — the champagne ramp (@theme) is used in BOTH
      themes so the gold never shifts. Only surfaces/text differ. */
@@ -288,9 +300,34 @@ body {
   color: var(--text-onGold);
 }
 :focus-visible {
-  outline: 2px solid var(--focus-ring);
+  outline: 2px solid var(--focus-outline);
   outline-offset: 2px;
   border-radius: 6px;
+}
+
+/* ---- Field focus: cool ambient light, never a gold line ------------------ */
+/* Applied to every text input, textarea, select trigger and search shell. On
+   focus the field's own hairline brightens to a cool light edge and a soft
+   blurred halo blooms around it — an instrument lighting up, not a hard box.
+   Removes the gold outline the founder disliked on search everywhere. */
+.rn-field {
+  transition:
+    border-color 0.3s var(--ease-calm),
+    box-shadow 0.3s var(--ease-calm),
+    background-color 0.3s var(--ease-calm);
+}
+.rn-field:focus,
+.rn-field:focus-within {
+  border-color: var(--field-focus);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--field-focus) 40%, transparent),
+    0 0 24px -8px var(--field-focus-glow);
+  outline: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rn-field {
+    transition: none;
+  }
 }
 
 /* Universal press feedback — every control dips slightly inward when pressed, so

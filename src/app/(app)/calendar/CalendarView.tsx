@@ -189,9 +189,9 @@ export function CalendarView() {
             <form onSubmit={(e) => { e.preventDefault(); void addReminder(); }} className="mt-4 border-t border-[var(--glass-border)] pt-4">
               <div className="flex items-center gap-2">
                 <input value={newTitle} onChange={(e) => setNewTitle(e.target.value)} placeholder="Add a reminder…" aria-label="Reminder title"
-                  className="text-body min-w-0 flex-1 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm outline-none placeholder:text-[var(--text-muted)] focus:border-[var(--focus-ring)]" />
+                  className="rn-field text-body min-w-0 flex-1 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2 text-sm outline-none placeholder:text-[var(--text-muted)]" />
                 <input type="time" value={newTime} onChange={(e) => setNewTime(e.target.value)} aria-label="Reminder time"
-                  className="text-body w-[92px] shrink-0 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-2 py-2 text-sm outline-none focus:border-[var(--focus-ring)]" />
+                  className="rn-field text-body w-[92px] shrink-0 rounded-xl border border-[var(--field-border)] bg-[var(--field-bg)] px-2 py-2 text-sm outline-none" />
                 <button type="submit" disabled={!newTitle.trim() || adding} aria-label="Add reminder"
                   className="grid size-9 shrink-0 place-items-center rounded-xl bg-gradient-to-b from-gold-300 to-gold-500 text-[var(--text-onGold)] transition-opacity disabled:opacity-40"><Plus className="size-4" /></button>
               </div>

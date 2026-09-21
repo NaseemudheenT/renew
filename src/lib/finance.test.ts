@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   categoriesFor,
   catMeta,
+  catColor,
   resolveCatMeta,
   customCatMeta,
   makeCustomCategoryId,
@@ -29,6 +30,27 @@ describe("categoriesFor", () => {
   it("returns income vs expense sets", () => {
     expect(categoriesFor("income")).toBe(INCOME_CATEGORIES);
     expect(categoriesFor("expense")).toBe(EXPENSE_CATEGORIES);
+  });
+});
+
+describe("catColor", () => {
+  it("returns a valid hex hue for every built-in category", () => {
+    for (const c of [...INCOME_CATEGORIES, ...EXPENSE_CATEGORIES]) {
+      expect(catColor(c)).toMatch(/^#[0-9a-fA-F]{6}$/);
+    }
+  });
+  it("is stable for a given id (deterministic hash fallback)", () => {
+    const a = catColor({ id: "totally-made-up-category" });
+    const b = catColor({ id: "totally-made-up-category" });
+    expect(a).toBe(b);
+    expect(a).toMatch(/^#[0-9a-fA-F]{6}$/);
+  });
+  it("prefers an explicit color when provided", () => {
+    expect(catColor({ id: "food", color: "#123456" })).toBe("#123456");
+  });
+  it("gives common categories their curated hue", () => {
+    expect(catColor({ id: "food" })).toBe("#f59e0b");
+    expect(catColor({ id: "salary" })).toBe("#34d399");
   });
 });
 

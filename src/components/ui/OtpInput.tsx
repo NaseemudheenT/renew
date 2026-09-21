@@ -140,12 +140,10 @@ export function OtpInput({
           onPaste={handlePaste}
           onFocus={(e) => e.target.select()}
           className={cn(
-            "size-12 sm:size-14 rounded-2xl border bg-[var(--field-bg)] text-center",
+            "rn-field size-12 sm:size-14 rounded-2xl border bg-[var(--field-bg)] text-center",
             "text-xl font-semibold text-[var(--text-strong)] backdrop-blur-md",
-            "transition-all duration-200 ease-[var(--ease-calm)]",
-            "border-[var(--field-border)] focus:border-[var(--focus-ring)]",
-            "focus:outline-none focus:ring-4 focus:ring-[var(--focus-ring)]/25",
-            digit && "border-[var(--focus-ring)]/60",
+            "border-[var(--field-border)] focus:outline-none",
+            digit && "border-[var(--field-focus)]",
             error && "border-rose-400/70",
           )}
         />

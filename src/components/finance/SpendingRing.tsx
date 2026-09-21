@@ -4,11 +4,12 @@ import { useMemo } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useCategories } from "@/hooks/useCategories";
 import { useLocale } from "@/components/providers/LocaleProvider";
+import { catColor } from "@/lib/finance";
 
 export interface RingRow { category: string; amount: number }
 
-/** Premium, dimensional palette for the ring segments (champagne-led). */
-const PALETTE = ["#d4af6e", "#4a7bff", "#37e6ff", "#c05cff", "#ff9d6c", "#43c59e", "#ff6ec7", "#8892a6"];
+/** Neutral tone for the aggregated "Other" slice. */
+const OTHER_COLOR = "#8892a6";
 
 /**
  * A luminous spending ring — the "wow" visual for analysis. A donut of real
@@ -33,7 +34,8 @@ export function SpendingRing({ rows, currency }: { rows: RingRow[]; currency: st
     return list.map((r, i) => {
       const frac = fracs[i]!;
       const prior = fracs.slice(0, i).reduce((s, f) => s + f, 0);
-      return { ...r, color: PALETTE[i % PALETTE.length]!, dash: frac * C, offset: -prior * C, pct: Math.round(frac * 100) };
+      const color = r.category === "__other" ? OTHER_COLOR : catColor({ id: r.category });
+      return { ...r, color, dash: frac * C, offset: -prior * C, pct: Math.round(frac * 100) };
     });
   }, [rows, total, C]);
 

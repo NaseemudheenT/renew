@@ -11,7 +11,7 @@ import { AnimatedButton } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
 import { useAuth } from "@/components/providers/AuthProvider";
 import { useLocale } from "@/components/providers/LocaleProvider";
-import { categoriesFor } from "@/lib/finance";
+import { categoriesFor, catColor } from "@/lib/finance";
 import { createTransaction } from "@/lib/firestore/transactions";
 import { formatAmountTyping, parseAmount, groupingLocale } from "@/lib/amount-format";
 import { nowMs } from "@/lib/dates";
@@ -106,11 +106,13 @@ export function QuickAddView() {
               {cats.map((c) => {
                 const Icon = c.icon;
                 const active = category === c.id;
+                const hue = catColor(c);
                 return (
                   <button key={c.id} type="button" onClick={() => setCategory(c.id)} aria-pressed={active}
                     className={cn("flex shrink-0 flex-col items-center gap-1 rounded-2xl border px-3 py-2 text-xs transition-colors",
-                      active ? "border-[var(--focus-ring)] bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-muted)]")}>
-                    <Icon className={cn("size-5", active && "text-[var(--color-gold-500)]")} />
+                      active ? "bg-[var(--glass-bg-strong)] text-[var(--text-strong)]" : "border-[var(--field-border)] bg-[var(--field-bg)] text-[var(--text-muted)]")}
+                    style={active ? { borderColor: `color-mix(in srgb, ${hue} 55%, transparent)`, boxShadow: `0 0 20px -10px ${hue}` } : undefined}>
+                    <Icon className="size-5" style={{ color: active ? hue : undefined }} />
                     {c.label.split(" ")[0]}
                   </button>
                 );
