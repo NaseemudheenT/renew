@@ -23,6 +23,12 @@ export function RenewBackground() {
         }}
       />
 
+      {/* A cool spatial aurora high in the frame — the deep-space horizon. */}
+      <div
+        className="absolute inset-0"
+        style={{ background: "radial-gradient(120% 55% at 50% -18%, var(--aurora), transparent 62%)" }}
+      />
+
       {/* Soft, static golden fog — three large feathered glows for premium depth. */}
       <div
         className="absolute inset-0"
