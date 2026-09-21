@@ -4,6 +4,7 @@ import type { ReactNode } from "react";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { SwipeNavigator } from "./SwipeNavigator";
+import { CommandPalette } from "./CommandPalette";
 import { NotificationSync } from "./NotificationSync";
 import { RetentionCleanup } from "@/components/providers/RetentionCleanup";
 import { RenLauncher } from "@/components/finance/RenLauncher";
@@ -44,6 +45,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
               </main>
             </div>
             <RenLauncher />
+            <CommandPalette />
             <AppLock />
           </PrivacyProvider>
         </ReauthProvider>

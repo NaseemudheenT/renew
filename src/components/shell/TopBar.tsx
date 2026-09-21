@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { PanelLeft } from "lucide-react";
+import { PanelLeft, Search } from "lucide-react";
+import { openCommand } from "@/lib/command-open";
 import { MobileMenu } from "./MobileMenu";
 import { toggleSidebar } from "./sidebar-store";
 import { NotificationBell } from "./NotificationBell";
@@ -46,6 +47,13 @@ export function TopBar({ user }: { user: ShellUser }) {
         <WorkspaceSwitch />
       </div>
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Global smart search / command palette — capsule on desktop, icon on phone. */}
+        <button type="button" onClick={openCommand} aria-label="Search or run a command"
+          className="flex h-9 items-center gap-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] px-2.5 text-[var(--text-muted)] transition-colors hover:border-[var(--focus-ring)]/50 hover:text-[var(--text-strong)] sm:pe-2 sm:ps-3">
+          <Search className="size-4 shrink-0" />
+          <span className="hidden text-sm sm:inline">Search…</span>
+          <kbd className="hidden rounded border border-[var(--glass-border)] px-1.5 py-0.5 text-[10px] lg:inline">⌘K</kbd>
+        </button>
         <InstallRenew />
         <NotificationBell />
       </div>
