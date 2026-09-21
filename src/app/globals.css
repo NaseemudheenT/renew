@@ -140,7 +140,9 @@
   --void: #e4ebf6;
   --surface: #ffffff;
   --surface-raised: #f3f7fd;
-  --signal: #a67c2e;
+  /* ONE fixed champagne accent, identical to dark — only surfaces/text change
+     between themes (design system §2.1). Never deepen the accent for light. */
+  --signal: #d4af6a;
   --pulse-amber: #c07d00;
   --pulse-coral: #e0455a;
   --mist: #101a30;
@@ -178,12 +180,11 @@
 
   --field-bg: rgba(255, 255, 255, 0.72);
   --field-border: rgba(20, 32, 66, 0.14);
-  --focus-ring: rgba(166, 124, 46, 0.55);
+  /* Focus ring = the accent hue (same as dark); only opacity may differ. */
+  --focus-ring: rgba(212, 175, 110, 0.6);
 
-  /* On daylight the gold accent is deepened for legible contrast. */
-  --color-gold-400: #b08a3e;
-  --color-gold-500: #a67c2e;
-  --color-gold-600: #8f6f30;
+  /* No accent overrides in light — the champagne ramp (@theme) is used in BOTH
+     themes so the gold never shifts. Only surfaces/text differ. */
 
   /* Brand mark in deep gold so it reads on the daylight ground. */
   --mark-gold-1: #c99f52;
