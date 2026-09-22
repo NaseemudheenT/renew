@@ -25,6 +25,57 @@ export interface MoneyDraft {
   note: string;
 }
 
+/**
+ * REN ACTIONS — the "Siri for Renew" layer. Ren can DO things in the app, not
+ * just answer: switch the theme, open any section. Deterministic and safe — only
+ * navigation and appearance, never anything that spends or deletes without the
+ * normal confirmation. Returns null when the text isn't an action command.
+ */
+export type RenAction =
+  | { kind: "theme"; theme: "light" | "dark" | "toggle"; label: string }
+  | { kind: "navigate"; href: string; label: string };
+
+const NAV_TARGETS: { re: RegExp; href: string; label: string }[] = [
+  { re: /\b(dashboard|overview|home\s*screen|home\s*page)\b/, href: "/dashboard", label: "Dashboard" },
+  { re: /\b(transactions?|history)\b/, href: "/transactions", label: "Transactions" },
+  { re: /\b(budgets?)\b/, href: "/budget", label: "Budgets" },
+  { re: /\b(savings?|goals?)\b/, href: "/savings", label: "Savings" },
+  { re: /\b(bills?|payments?|subscriptions?)\b/, href: "/payments", label: "Bills" },
+  { re: /\b(accounts?)\b/, href: "/accounts", label: "Accounts" },
+  { re: /\b(analytics|analysis|insights?|reports?)\b/, href: "/analytics", label: "Analytics" },
+  { re: /\b(calendar)\b/, href: "/calendar", label: "Calendar" },
+  { re: /\b(invoices?)\b/, href: "/invoices", label: "Invoices" },
+  { re: /\b(settings?|preferences?)\b/, href: "/settings", label: "Settings" },
+];
+
+/**
+ * Detect an in-app action ("switch to dark mode", "open my budgets"). Checked
+ * before recording money or answering, so Ren acts like an assistant.
+ */
+export function parseRenAction(text: string): RenAction | null {
+  const t = (text ?? "").toLowerCase().trim();
+  if (!t) return null;
+
+  // THEME — appearance words or an intent verb, plus a direction (or a bare
+  // "change the theme" which toggles).
+  const wantsAppearance = /\b(theme|mode|appearance)\b/.test(t);
+  const themeVerb = /\b(change|switch|turn|set|make|go|enable|use|activate|toggle|flip)\b/.test(t);
+  if (wantsAppearance || themeVerb) {
+    const dark = /\b(dark|night|black)\b/.test(t);
+    const light = /\b(light|day|bright|white)\b/.test(t);
+    if (dark && !light) return { kind: "theme", theme: "dark", label: "dark mode" };
+    if (light && !dark) return { kind: "theme", theme: "light", label: "light mode" };
+    if (wantsAppearance && themeVerb) return { kind: "theme", theme: "toggle", label: "the theme" };
+  }
+
+  // NAVIGATION — only on an explicit "open / go to / take me to" verb, so a
+  // question like "how much on bills?" is never hijacked into a page change.
+  if (/\b(open|go\s*to|goto|take me to|navigate|jump to|bring up)\b/.test(t)) {
+    for (const n of NAV_TARGETS) if (n.re.test(t)) return { kind: "navigate", href: n.href, label: n.label };
+  }
+  return null;
+}
+
 // Looks like a question, not a command to record money.
 const QUESTION_RE = /^(how|what|when|why|where|which|who|can|could|do|did|does|am|is|are|will|should|show|tell|list)\b|\?\s*$/i;
 

@@ -109,8 +109,8 @@
   /* Text-field & search focus = a cool, bright light EDGE + a soft ambient halo,
      NOT a gold box. This is the "3008" instrument look: the field lights up from
      within instead of drawing a hard gold outline. Never gold. */
-  --field-focus: rgba(233, 239, 252, 0.55);
-  --field-focus-glow: rgba(130, 165, 240, 0.16);
+  --field-focus: rgba(224, 232, 248, 0.28);
+  --field-focus-glow: rgba(130, 165, 240, 0.12);
   /* Keyboard focus-visible outline — cool bright, accessible, never gold. */
   --focus-outline: rgba(170, 198, 255, 0.75);
 
@@ -196,8 +196,8 @@
   --focus-ring: rgba(212, 175, 110, 0.6);
   /* Text-field & search focus — the daylight twin: a crisp cool-blue edge + a
      soft halo on white. Never gold. */
-  --field-focus: rgba(46, 92, 200, 0.62);
-  --field-focus-glow: rgba(70, 120, 220, 0.14);
+  --field-focus: rgba(46, 92, 200, 0.42);
+  --field-focus-glow: rgba(70, 120, 220, 0.12);
   --focus-outline: rgba(38, 90, 210, 0.7);
 
   /* No accent overrides in light — the champagne ramp (@theme) is used in BOTH
@@ -323,10 +323,9 @@ body {
 }
 .rn-field:focus,
 .rn-field:focus-within {
+  /* Normal, quiet focus: just a gentle border brighten — no glow, no halo,
+     no gold. A search box should look like a plain search box. */
   border-color: var(--field-focus);
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--field-focus) 40%, transparent),
-    0 0 24px -8px var(--field-focus-glow);
   outline: none;
 }
 @media (prefers-reduced-motion: reduce) {

@@ -3,9 +3,12 @@
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useDragControls } from "framer-motion";
 import { Mic, ArrowUp, Volume2, VolumeX, Square } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { RenLogo } from "@/components/brand/RenLogo";
 import { RenChart, type RenChartData } from "@/components/finance/RenChart";
 import { type AskContext } from "@/lib/ask";
+import { parseRenAction } from "@/lib/ren";
+import { setTheme, toggleTheme } from "@/lib/theme";
 import { useRenBrain } from "@/hooks/useRenBrain";
 import { listen, speak, stopSpeaking, isVoiceSupported, speechOutputSupported, type Listener } from "@/lib/voice";
 import { renVoiceSpeakOpts } from "@/lib/ren-voices";
@@ -48,6 +51,7 @@ export function RenChat({
   const { money } = useLocale();
   const { profile } = useUserProfile();
   const { ask } = useRenBrain(ctx, uid);
+  const router = useRouter();
   const dragControls = useDragControls();
   const [msgs, setMsgs] = useState<Msg[]>([]);
   const [input, setInput] = useState("");
@@ -97,6 +101,23 @@ export function RenChat({
     const history = msgs.slice(-10).map((m) => ({ role: m.role, text: m.text }));
     push({ role: "user", text });
     setInput("");
+
+    // Siri-style actions — Ren DOES things, not just answers. Checked first so
+    // "switch to dark mode" or "open my budgets" act instead of being answered.
+    const action = parseRenAction(text);
+    if (action) {
+      if (action.kind === "theme") {
+        if (action.theme === "toggle") toggleTheme();
+        else setTheme(action.theme);
+        respond(`Done — ${action.label === "the theme" ? "switched the theme" : `switched to ${action.label}`}.`);
+        return;
+      }
+      // navigate — confirm, then open the section and close the panel so it shows.
+      respond(`Opening ${action.label}.`);
+      router.push(action.href);
+      setTimeout(onClose, 350);
+      return;
+    }
 
     // A visual request — draw the chart from real data (the "Jarvis" moment).
     if (wantsChart(text)) {

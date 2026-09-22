@@ -1,5 +1,26 @@
 import { describe, it, expect } from "vitest";
-import { parseMoneyCommand } from "./ren";
+import { parseMoneyCommand, parseRenAction } from "./ren";
+
+describe("ren.parseRenAction", () => {
+  it("switches to dark / light mode on request", () => {
+    expect(parseRenAction("switch to dark mode")).toMatchObject({ kind: "theme", theme: "dark" });
+    expect(parseRenAction("change to light theme")).toMatchObject({ kind: "theme", theme: "light" });
+    expect(parseRenAction("go dark")).toMatchObject({ kind: "theme", theme: "dark" });
+  });
+  it("toggles when no direction is given", () => {
+    expect(parseRenAction("change the theme")).toMatchObject({ kind: "theme", theme: "toggle" });
+  });
+  it("navigates to a section on an explicit open/go verb", () => {
+    expect(parseRenAction("open my budgets")).toMatchObject({ kind: "navigate", href: "/budget" });
+    expect(parseRenAction("go to settings")).toMatchObject({ kind: "navigate", href: "/settings" });
+    expect(parseRenAction("take me to transactions")).toMatchObject({ kind: "navigate", href: "/transactions" });
+  });
+  it("does NOT hijack questions or money commands", () => {
+    expect(parseRenAction("how much did I spend on bills?")).toBeNull();
+    expect(parseRenAction("spent 500 on groceries")).toBeNull();
+    expect(parseRenAction("what's my net worth?")).toBeNull();
+  });
+});
 
 describe("ren.parseMoneyCommand", () => {
   it("parses a spend command", () => {
