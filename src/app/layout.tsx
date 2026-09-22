@@ -64,12 +64,14 @@ export const metadata: Metadata = {
     description:
       "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
     url: appUrl,
+    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Renew" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Renew",
     description:
       "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
+    images: ["/og-image.png"],
   },
   icons: {
     // The founder's gold Renew logo, as the icon everywhere (browser tab,

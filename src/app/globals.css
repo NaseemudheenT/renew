@@ -435,20 +435,35 @@ button:active,
     pointer-events: none;
     z-index: 1;
   }
-  /* Inner specular sheen (top-left light source). */
+  /* LIQUID GLASS — two soft specular glints that slowly drift through the panel,
+     so every card, menu and glass button reads as living liquid glass catching
+     moving light. Bound-safe: the light travels via background-position on an
+     over-sized gradient (no translate, so it never spills past rounded corners
+     or clips popovers). Subtle + slow = premium, not busy. Stilled for
+     reduced-motion below. */
   .glass::after {
     content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    background: radial-gradient(
-      120% 80% at 15% 0%,
-      var(--glass-highlight),
-      transparent 55%
-    );
-    opacity: 0.35;
+    background:
+      radial-gradient(60% 48% at 22% 12%, var(--glass-highlight), transparent 60%),
+      radial-gradient(
+        52% 42% at 82% 88%,
+        color-mix(in srgb, var(--signal) 12%, transparent),
+        transparent 62%
+      );
+    background-size: 200% 200%, 200% 200%;
+    background-position: 0% 0%, 100% 100%;
+    opacity: 0.42;
     pointer-events: none;
     z-index: 1;
+    animation: glass-liquid 17s ease-in-out infinite alternate;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .glass::after {
+      animation: none;
+    }
   }
   .glass-strong {
     background: var(--glass-bg-strong);
@@ -594,6 +609,24 @@ h1,
 .prose-renew strong {
   color: var(--text-strong);
   font-weight: 600;
+}
+
+/* ---- Liquid-glass drift — the living light in every panel -------------- */
+/* The two specular glints wander slowly across the glass and breathe in
+   intensity, so a still screen still feels like a liquid, refractive material. */
+@keyframes glass-liquid {
+  0% {
+    background-position: 0% 0%, 100% 100%;
+    opacity: 0.34;
+  }
+  50% {
+    background-position: 46% 34%, 58% 66%;
+    opacity: 0.6;
+  }
+  100% {
+    background-position: 22% 62%, 82% 40%;
+    opacity: 0.44;
+  }
 }
 
 /* ---- "Light" animations — premium moving sheen ------------------------- */
