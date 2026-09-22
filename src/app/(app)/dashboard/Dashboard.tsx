@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { AnimatedButton, AnimatedModal, StaggerContainer, StaggerItem } from "@/components/motion";
 import { AnimatedAmount } from "@/components/finance/AnimatedAmount";
+import { LifeStateOrb } from "@/components/finance/LifeStateOrb";
 import { TransactionForm } from "@/components/finance/TransactionForm";
 import { NetWorthTrend } from "@/components/finance/NetWorthTrend";
 import { SpendingBreakdown } from "@/components/finance/SpendingBreakdown";
@@ -22,6 +23,7 @@ import { useScopedUserCollection } from "@/hooks/useScopedUserCollection";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import { createTransaction, type TransactionInput } from "@/lib/firestore/transactions";
 import { monthRange, catColor } from "@/lib/finance";
+import { computeLifeState } from "@/lib/life-state";
 import { computeAccountBalance, accountTypeMeta } from "@/lib/accounts";
 import { usePrivacy } from "@/components/providers/PrivacyProvider";
 import { isOverdue } from "@/lib/dates";
@@ -121,6 +123,16 @@ export function Dashboard({ name }: { name: string }) {
   const netWorth = totals.balance;
   const upcomingBills = useMemo(() => [...bills.data].sort((a, b) => a.dueAt - b.dueAt).slice(0, 4), [bills.data]);
   const comingTotal = useMemo(() => bills.data.reduce((s, b) => s + b.amount, 0), [bills.data]);
+  const overdueCount = useMemo(
+    () => bills.data.filter((b) => b.status === "overdue" || isOverdue(b.dueAt)).length,
+    [bills.data],
+  );
+  // The honest "Life State" that drives the hero orb — pure function of real
+  // figures, no prediction or fabrication (see computeLifeState).
+  const life = useMemo(
+    () => computeLifeState({ monthIncome: totals.mIncome, monthExpense: totals.mExpense, netWorth, overdueCount }),
+    [totals.mIncome, totals.mExpense, netWorth, overdueCount],
+  );
   const activeAccounts = useMemo(() => accounts.data.filter((a) => a.status === "active"), [accounts.data]);
   const accountBalances = useMemo(() => {
     const m = new Map<string, number>();
@@ -180,15 +192,27 @@ export function Dashboard({ name }: { name: string }) {
           </StaggerItem>
         ) : (
           <>
-            {/* Hero balance */}
+            {/* Hero — Life State orb + net worth */}
             <StaggerItem>
               <GlassCard padded className="relative overflow-hidden">
-                <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[radial-gradient(circle,var(--bokeh-1),transparent_70%)] blur-2xl" />
+                <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full blur-2xl" style={{ background: `radial-gradient(circle, color-mix(in srgb, ${life.tone} 22%, transparent), transparent 70%)` }} />
                 <div className="pointer-events-none absolute -bottom-16 -left-12 size-44 rounded-full bg-[radial-gradient(circle,var(--bokeh-3),transparent_72%)] blur-3xl opacity-70" />
-                <p className="text-muted text-sm">{isBusiness ? "Business net worth" : "Net worth"}</p>
-                <AnimatedAmount value={netWorth} currency={currency} className="mt-1 block max-w-full truncate bg-gradient-to-br from-[var(--text-strong)] to-[var(--text-body)] bg-clip-text text-4xl font-light tabular-nums text-transparent sm:text-5xl" />
-                <NetWorthTrend transactions={txAll.data} netWorth={netWorth} />
-                <div className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <div className="relative flex flex-col items-center gap-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+                  <div className="order-2 min-w-0 text-center sm:order-1 sm:text-left">
+                    <p className="text-muted text-sm">{isBusiness ? "Business net worth" : "Net worth"}</p>
+                    <AnimatedAmount value={netWorth} currency={currency} className="mt-1 block max-w-full truncate bg-gradient-to-br from-[var(--text-strong)] to-[var(--text-body)] bg-clip-text text-4xl font-light tabular-nums text-transparent sm:text-5xl" />
+                    <div className="flex justify-center sm:justify-start"><NetWorthTrend transactions={txAll.data} netWorth={netWorth} /></div>
+                    <div className="mt-3 inline-flex items-center gap-2">
+                      <span aria-hidden className="size-2.5 rounded-full" style={{ background: life.tone, boxShadow: `0 0 10px ${life.tone}` }} />
+                      <span className="text-strong text-sm font-medium">{life.label}</span>
+                    </div>
+                    <p className="text-muted mx-auto mt-1 max-w-xs text-xs leading-relaxed sm:mx-0">{life.blurb}</p>
+                  </div>
+                  <div className="order-1 sm:order-2">
+                    <LifeStateOrb state={life} />
+                  </div>
+                </div>
+                <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
                   <Mini stat="in" open={openStat} onToggle={setOpenStat} label={isBusiness ? "Revenue (mo)" : "This month in"} icon={ArrowDownLeft} value={totals.mIncome} currency={currency} tone="emerald" />
                   <Mini stat="out" open={openStat} onToggle={setOpenStat} label={isBusiness ? "Expenses (mo)" : "This month out"} icon={ArrowUpRight} value={totals.mExpense} currency={currency} tone="rose" />
                   <Mini stat="coming" open={openStat} onToggle={setOpenStat} label="Coming up" icon={ReceiptText} value={comingTotal} currency={currency} />
