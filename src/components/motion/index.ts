@@ -15,3 +15,4 @@ export type { AnimatedButtonProps } from "./AnimatedButton";
 export { SuccessTransition, LoadingTransition, CheckPop } from "./feedback";
 export { SharedElement } from "./SharedElement";
 export type { SharedElementProps } from "./SharedElement";
+export { TiltCard } from "./TiltCard";

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { AlertCircle, Fingerprint, QrCode, ChevronRight } from "lucide-react";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { FadeScale, StaggerContainer, StaggerItem } from "@/components/motion";
+import { FadeScale, StaggerContainer, StaggerItem, TiltCard } from "@/components/motion";
 import { GoogleIcon } from "@/components/brand/GoogleIcon";
 import { AppleIcon } from "@/components/brand/AppleIcon";
 import { useAuth } from "@/components/providers/AuthProvider";
@@ -101,6 +101,7 @@ export function SocialAuth({
 
   return (
     <FadeScale>
+      <TiltCard className="relative">
       <GlassCard padded>
         <h1 className="text-strong text-2xl font-medium tracking-tight">{title}</h1>
         <p className="text-muted mt-1 mb-6 text-sm">{subtitle}</p>
@@ -142,6 +143,7 @@ export function SocialAuth({
         </StaggerContainer>
 
       </GlassCard>
+      </TiltCard>
       <QrSignIn open={qrOpen} onClose={() => setQrOpen(false)} />
     </FadeScale>
   );
@@ -179,7 +181,9 @@ function AuthTile({
         {hint && <span className="text-muted block text-xs">{hint}</span>}
       </span>
       {loading ? (
-        <span className="size-4 shrink-0 animate-spin rounded-full border-2 border-[var(--text-muted)] border-t-transparent" />
+        <motion.span aria-hidden className="size-2.5 shrink-0 rounded-full bg-[var(--color-gold-500)]"
+          animate={{ opacity: [0.4, 1, 0.4], scale: [1, 1.3, 1] }}
+          transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }} />
       ) : (
         <ChevronRight className="size-4 shrink-0 text-[var(--text-muted)] transition-transform group-hover:translate-x-0.5" />
       )}

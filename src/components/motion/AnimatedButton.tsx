@@ -2,7 +2,6 @@
 
 import { motion, useReducedMotion, type HTMLMotionProps } from "framer-motion";
 import { forwardRef, useState, type PointerEvent, type ReactNode } from "react";
-import { Loader2 } from "lucide-react";
 import { spring } from "@/lib/motion";
 import { cn } from "@/lib/utils";
 
@@ -107,7 +106,11 @@ export const AnimatedButton = forwardRef<HTMLButtonElement, AnimatedButtonProps>
             onAnimationEnd={() => setRipples((prev) => prev.filter((p) => p.id !== rp.id))}
           />
         ))}
-        {loading && <Loader2 className="size-4 animate-spin" aria-hidden="true" />}
+        {loading && (
+          <motion.span aria-hidden="true" className="size-2.5 rounded-full bg-current"
+            animate={reduced ? undefined : { opacity: [0.4, 1, 0.4], scale: [1, 1.3, 1] }}
+            transition={{ duration: 1.2, repeat: Infinity, ease: "easeInOut" }} />
+        )}
         <span className={cn("relative z-[1]", loading && "opacity-90")}>{children}</span>
       </motion.button>
     );
