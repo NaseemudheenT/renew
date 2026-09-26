@@ -30,13 +30,19 @@ type Filter = "all" | TxType;
 
 export function TransactionsView() {
   const router = useRouter();
-  const { prefs, t } = useLocale();
+  const { prefs, t, money } = useLocale();
   const { resolve } = useCategories();
   const loc = `${prefs.language}-${prefs.region}`;
   const groupHeaderFmt = useMemo(
     () => new Intl.DateTimeFormat(loc, { weekday: "long", day: "numeric", month: "short", year: "numeric" }),
     [loc],
   );
+  // Apple-style relative day headers: Today / Yesterday, then the full date.
+  const dayLabel = useMemo(() => {
+    const today = dayStart(nowMs());
+    const yesterday = today - 86400000;
+    return (day: number) => (day === today ? "Today" : day === yesterday ? "Yesterday" : groupHeaderFmt.format(day));
+  }, [groupHeaderFmt]);
   const constraints = useMemo(() => [orderBy("date", "desc")], []);
   const { data, loading, uid } = useScopedUserCollection<Transaction>("transactions", constraints);
   const [filter, setFilter] = useState<Filter>("all");
@@ -62,7 +68,14 @@ export function TransactionsView() {
       arr.push(t);
       map.set(key, arr);
     }
-    return Array.from(map.entries());
+    // Per-day total — only when every entry that day shares one currency, so the
+    // sum is always correct (mixed-currency days show a count instead).
+    return Array.from(map.entries()).map(([day, items]) => {
+      const currencies = new Set(items.map((x) => x.currency));
+      const currency = currencies.size === 1 ? [...currencies][0]! : null;
+      const net = currency ? items.reduce((s, x) => s + (x.type === "income" ? x.amount : -x.amount), 0) : 0;
+      return { day, items, currency, net };
+    });
   }, [filtered]);
 
   async function onSubmit(input: TransactionInput) {
@@ -136,9 +149,18 @@ export function TransactionsView() {
         <GlassCard padded><EmptyState compact icon={Search} title="No matches" description="Try a different search or filter." /></GlassCard>
       ) : (
         <div className="flex flex-col gap-6">
-          {groups.map(([day, items]) => (
+          {groups.map(({ day, items, currency, net }) => (
             <div key={day}>
-              <h2 className="text-muted mb-2 px-1 text-xs font-semibold uppercase tracking-wider">{groupHeaderFmt.format(day)}</h2>
+              <div className="mb-2 flex items-baseline justify-between gap-3 px-1">
+                <h2 className="text-muted text-xs font-semibold uppercase tracking-wider">{dayLabel(day)}</h2>
+                {currency ? (
+                  <span className={cn("shrink-0 text-xs font-semibold tabular-nums", net > 0 ? "text-emerald-500" : net < 0 ? "text-rose-500" : "text-[var(--text-muted)]")}>
+                    {net > 0 ? "+" : net < 0 ? "−" : ""}{money(Math.abs(net), currency)}
+                  </span>
+                ) : (
+                  <span className="text-muted shrink-0 text-xs">{items.length} item{items.length === 1 ? "" : "s"}</span>
+                )}
+              </div>
               <div className="flex flex-col gap-2">
                 <AnimatePresence initial={false}>
                   {items.map((t) => <TransactionRow key={t.id} tx={t} onEdit={() => openEdit(t)} onDelete={() => onDelete(t)} onDuplicate={() => duplicate(t)} />)}
