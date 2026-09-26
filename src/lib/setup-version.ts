@@ -40,4 +40,26 @@ export const CURRENT_SETUP_VERSION = 9;
  * is "fOS" (Renew Financial OS); future updates step the number up (fOS 2, fOS 3…).
  * (Earlier pre-launch builds were named pat3…pat14.)
  */
-export const APP_UPDATE_NAME = "fOS 2";
+export const APP_UPDATE_NAME = "fOS 4";
+
+/**
+ * A stable key for the current update, used to show the "What's New" reveal once
+ * per release (stored in localStorage). Bump it whenever WHATS_NEW changes so
+ * every user sees the highlights the next time they open Renew.
+ */
+export const APP_UPDATE_KEY = "fos-4";
+
+/** Lucide icon name (mapped in WhatsNew) for each highlight. */
+export interface UpdateHighlight { icon: string; title: string; desc: string }
+
+/**
+ * What's new in this release — shown once, Apple-style, to every user on their
+ * first open after the update. Kept short and human.
+ */
+export const WHATS_NEW: UpdateHighlight[] = [
+  { icon: "Sparkles", title: "A logo made of light", desc: "Your new cinematic opening — the RENEW mark drawn in real time." },
+  { icon: "Gem", title: "Liquid-glass everywhere", desc: "Every card and menu now catches soft, moving light with real depth." },
+  { icon: "Palette", title: "Colour-coded money", desc: "Each category has its own colour across transactions, budgets and analysis." },
+  { icon: "Bot", title: "Ren can do things", desc: "Ask Ren to switch the theme, open any screen, or log money — just say it." },
+  { icon: "Zap", title: "Faster & smoother", desc: "3D tilt, gentle parallax and instant, calm loading — no spinners." },
+];

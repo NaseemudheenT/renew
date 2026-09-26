@@ -5,6 +5,7 @@ import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { SwipeNavigator } from "./SwipeNavigator";
 import { CommandPalette } from "./CommandPalette";
+import { WhatsNew } from "./WhatsNew";
 import { NotificationSync } from "./NotificationSync";
 import { RetentionCleanup } from "@/components/providers/RetentionCleanup";
 import { RenLauncher } from "@/components/finance/RenLauncher";
@@ -46,6 +47,7 @@ export function AppShell({ user, children }: { user: ShellUser; children: ReactN
             </div>
             <RenLauncher />
             <CommandPalette />
+            <WhatsNew />
             <AppLock />
           </PrivacyProvider>
         </ReauthProvider>
