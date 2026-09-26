@@ -286,6 +286,10 @@ body {
   min-height: 100dvh;
   max-width: 100vw;
   overflow-x: hidden;
+  /* Auto-fit safety net: any long word, number, email or merchant name WRAPS
+     rather than spilling past the phone edge. Truncated (nowrap) text is
+     unaffected, so money columns still line up. */
+  overflow-wrap: anywhere;
   /* Smooth momentum scroll on iOS without the whole page rubber-banding. */
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;

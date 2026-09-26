@@ -26,7 +26,8 @@ import type { Transaction, Budget, SavingsGoal, Investment, Payment, Account, Tr
 import { useUserProfile, DEFAULT_NOTIFICATION_PREFS, type NotificationPrefs } from "@/hooks/useUserProfile";
 import { updateNotificationPrefs, updateLocalePrefs, updateDataRetention, updateRenPrefs, setSecurity, clearSecurity, setBiometricEnabled } from "@/lib/firestore/profile";
 import { makePasscodeRecord, isValidPasscode } from "@/lib/security/passcode";
-import { isPasskeySupported } from "@/lib/auth/passkey-client";
+import { isPasskeySupported, registerPasskey } from "@/lib/auth/passkey-client";
+import { AuthError } from "@/lib/auth/client";
 import { speechOutputSupported } from "@/lib/voice";
 import { DEFAULT_REN_VOICE } from "@/lib/ren-voices";
 import { RETENTION_OPTIONS } from "@/lib/retention";
@@ -681,6 +682,29 @@ function PasscodeControl() {
   const [confirm, setConfirm] = useState("");
   const [err, setErr] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [bioBusy, setBioBusy] = useState(false);
+
+  // Turning ON Face ID must actually create a passkey on this device — otherwise
+  // the lock screen's "Face ID" has nothing to verify and silently fails. So we
+  // run the real WebAuthn registration (which prompts Face ID once to confirm),
+  // and only flip the flag if it succeeds. Everything gives clear feedback.
+  async function toggleBio(on: boolean) {
+    if (!uid || !profile?.security || bioBusy) return;
+    setBioBusy(true);
+    try {
+      if (on) await registerPasskey();
+      await setBiometricEnabled(uid, profile.security, on);
+      toast({ title: on ? "Face ID unlock is on" : "Face ID unlock turned off", variant: "success" });
+    } catch (e) {
+      toast({
+        title: on ? "Couldn't turn on Face ID" : "Couldn't update",
+        description: e instanceof AuthError ? e.message : "Please try again.",
+        variant: "error",
+      });
+    } finally {
+      setBioBusy(false);
+    }
+  }
 
   function close() { setOpen(false); setPin(""); setConfirm(""); setErr(null); }
   async function save() {
@@ -720,8 +744,11 @@ function PasscodeControl() {
         <div className="mt-3 flex flex-col gap-3 border-t border-[var(--glass-border)] pt-3">
           {isPasskeySupported() && uid && profile?.security && (
             <div className="flex items-center justify-between">
-              <span className="text-body text-sm">Unlock with Face ID</span>
-              <Switch checked={bioOn} onChange={(on) => { setBiometricEnabled(uid, profile.security!, on).catch(() => {}); }} label="Unlock with Face ID" />
+              <div className="min-w-0 flex-1">
+                <span className="text-body text-sm">Unlock with Face ID</span>
+                {bioBusy && <span className="text-muted ms-2 text-xs">Confirming…</span>}
+              </div>
+              <Switch checked={bioOn} disabled={bioBusy} onChange={(on) => { void toggleBio(on); }} label="Unlock with Face ID" />
             </div>
           )}
           <button type="button" onClick={turnOff} className="text-start text-sm text-rose-600 hover:underline dark:text-rose-300">Turn off passcode</button>
