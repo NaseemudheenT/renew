@@ -6,6 +6,7 @@ import { GlassFilter } from "@/components/ui/GlassFilter";
 import { themeNoFlashScript } from "@/lib/theme";
 import { a11yNoFlashScript } from "@/lib/a11y";
 import { publicEnv } from "@/lib/env";
+import { BRAND } from "@/lib/brand";
 import "./globals.css";
 
 const inter = Inter({
@@ -64,24 +65,24 @@ export const metadata: Metadata = {
     description:
       "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
     url: appUrl,
-    images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Renew" }],
+    images: [{ url: BRAND.ogImage, width: 1200, height: 630, alt: BRAND.name }],
   },
   twitter: {
     card: "summary_large_image",
     title: "Renew",
     description:
       "A calm, premium personal finance companion. See what you have, where it's going, and what's coming next.",
-    images: ["/og-image.png"],
+    images: [BRAND.ogImage],
   },
   icons: {
-    // The founder's gold Renew logo, as the icon everywhere (browser tab,
-    // install, home screen). PNGs generated from public/renew-logo.png.
+    // The official gold Renew logo, as the icon everywhere (browser tab,
+    // install, home screen). Paths come from the brand source of truth (§79).
     icon: [
-      { url: "/favicon-32.png", sizes: "32x32", type: "image/png" },
-      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
-      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: BRAND.icons.favicon32, sizes: "32x32", type: "image/png" },
+      { url: BRAND.icons.icon192, sizes: "192x192", type: "image/png" },
+      { url: BRAND.icons.icon512, sizes: "512x512", type: "image/png" },
     ],
-    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
+    apple: [{ url: BRAND.icons.appleTouch, sizes: "180x180" }],
   },
   appleWebApp: {
     capable: true,

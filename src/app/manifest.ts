@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { BRAND } from "@/lib/brand";
 
 /**
  * PWA manifest. Renew is installable on Android/desktop Chromium and iOS.
@@ -9,8 +10,8 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Renew",
-    short_name: "Renew",
+    name: BRAND.name,
+    short_name: BRAND.name,
     description:
       "A calm, premium personal finance companion — track balances, transactions, budgets, savings, investments and bills in one place.",
     start_url: "/dashboard",
@@ -22,16 +23,16 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ["productivity", "lifestyle", "utilities", "finance"],
     // Long-press the app icon for instant actions (Android/desktop Chromium).
     shortcuts: [
-      { name: "Add expense or income", short_name: "Add", url: "/quick-add", icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }] },
-      { name: "Scan a receipt", short_name: "Scan", url: "/import?scan=1", icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }] },
-      { name: "Ask Ren", short_name: "Ren", url: "/dashboard?ren=1", icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }] },
-      { name: "Analytics", short_name: "Analytics", url: "/analytics", icons: [{ src: "/icon-192.png", sizes: "192x192", type: "image/png" }] },
+      { name: "Add expense or income", short_name: "Add", url: "/quick-add", icons: [{ src: BRAND.icons.icon192, sizes: "192x192", type: "image/png" }] },
+      { name: "Scan a receipt", short_name: "Scan", url: "/import?scan=1", icons: [{ src: BRAND.icons.icon192, sizes: "192x192", type: "image/png" }] },
+      { name: "Ask Ren", short_name: "Ren", url: "/dashboard?ren=1", icons: [{ src: BRAND.icons.icon192, sizes: "192x192", type: "image/png" }] },
+      { name: "Analytics", short_name: "Analytics", url: "/analytics", icons: [{ src: BRAND.icons.icon192, sizes: "192x192", type: "image/png" }] },
     ],
     icons: [
-      { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/icon-maskable.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: BRAND.icons.icon192, sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: BRAND.icons.icon512, sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: BRAND.icons.maskable, sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: BRAND.icons.svg, sizes: "any", type: "image/svg+xml", purpose: "any" },
     ],
   };
 }

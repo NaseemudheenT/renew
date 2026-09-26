@@ -18,6 +18,7 @@ import { toDateInput, fromDateTimeInputs } from "@/lib/dates";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { formatAmountTyping, parseAmount, groupingLocale, displayFromValue } from "@/lib/amount-format";
 import { savingsProjection, monthsSince } from "@/lib/intelligence";
+import { catColor } from "@/lib/finance";
 import { SwipeRow } from "@/components/ui/SwipeRow";
 import { CURRENCIES, cn } from "@/lib/utils";
 import type { SavingsGoal } from "@/lib/types";
@@ -52,6 +53,7 @@ export function SavingsView() {
               const pct = g.target > 0 ? Math.min(100, Math.round((g.current / g.target) * 100)) : 0;
               const done = g.current >= g.target;
               const proj = savingsProjection(g.current, g.target, monthsSince(g.createdAt));
+              const hue = catColor({ id: g.id });
               return (
                 <motion.div key={g.id} layout="position" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}>
                 <SwipeRow
@@ -71,7 +73,7 @@ export function SavingsView() {
                     <span className="text-muted text-xs tabular-nums">/ {money(g.target, g.currency)}</span>
                   </div>
                   <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--glass-bg-soft)]">
-                    <motion.div className={cn("h-full rounded-full", done ? "bg-gradient-to-r from-emerald-400 to-emerald-600" : "bg-gradient-to-r from-gold-300 to-gold-500")} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
+                    <motion.div className="h-full rounded-full" style={done ? { background: "linear-gradient(to right, #34d399, #059669)" } : { background: `linear-gradient(to right, color-mix(in srgb, ${hue} 55%, transparent), ${hue})` }} initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }} />
                   </div>
                   <div className="mt-2 flex items-center justify-between">
                     <span className={cn("text-xs font-medium", done ? "text-emerald-500" : "text-[var(--text-muted)]")}>{done ? "Goal reached 🎉" : `${pct}%`}</span>

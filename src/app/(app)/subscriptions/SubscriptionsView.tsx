@@ -24,6 +24,7 @@ import {
 } from "@/lib/firestore/subscriptions";
 import { BILLING_CYCLES, subscriptionMonthly, subscriptionTotals, advanceBilling } from "@/lib/accounts";
 import { CATEGORIES, categoryMeta } from "@/lib/categories";
+import { catColor } from "@/lib/finance";
 import { toDateInput, fromDateTimeInputs, todayStart } from "@/lib/dates";
 import { CURRENCIES } from "@/lib/utils";
 import type { Subscription, Account, BillingCycle, Category } from "@/lib/types";
@@ -171,6 +172,7 @@ function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onPay, onEdit, on
 }) {
   const meta = categoryMeta(sub.category as Category);
   const Icon = meta.icon;
+  const hue = catColor({ id: sub.category });
   const items = cancelled
     ? [{ label: "Reactivate", icon: PlayCircle, onClick: onReactivate! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }]
     : [{ label: "Mark renewed", icon: RefreshCw, onClick: onPay! }, { label: "Edit", icon: Pencil, onClick: onEdit! }, { label: "Cancel", icon: XCircle, onClick: onCancel! }, { label: "Delete", icon: Trash2, onClick: onDelete, danger: true }];
@@ -187,7 +189,7 @@ function SubRow({ sub, money, dueLabel, cycleLabel, cancelled, onPay, onEdit, on
         }
       >
         <div className="glass flex items-center gap-3 p-3.5">
-          <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
+          <span className="grid size-10 shrink-0 place-items-center rounded-2xl" style={{ color: hue, background: `color-mix(in srgb, ${hue} 15%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${hue} 30%, transparent)` }}><Icon className="size-5" /></span>
           <div className="min-w-0 flex-1">
             <p className="text-strong truncate text-sm font-medium">{sub.name}</p>
             <p className="text-muted truncate text-xs">{cycleLabel}{cancelled ? "" : ` · ${dueLabel(sub.nextBillingAt)}`}</p>
