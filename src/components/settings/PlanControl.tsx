@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Crown, Check, Sparkles, BellRing, FileText } from "lucide-react";
+import { Crown, Check, Sparkles, BellRing } from "lucide-react";
 import { AnimatedButton, AnimatedModal } from "@/components/motion";
 import { toast } from "@/components/ui/toast-store";
 import { useUserProfile } from "@/hooks/useUserProfile";
@@ -10,10 +10,23 @@ import { usePremium } from "@/hooks/usePremium";
 import { useLocale } from "@/components/providers/LocaleProvider";
 import { setPremiumInterest } from "@/lib/firestore/profile";
 import {
-  FREE_PERKS, PREMIUM_PERKS, planPricing, yearlySavingPct, formatPlanPrice,
+  FREE_LIMITS, planPricing, yearlySavingPct, formatPlanPrice,
   type BillingPeriod,
 } from "@/lib/plan";
 import { cn } from "@/lib/utils";
+
+// Kept short and professional on purpose — a couple of lines each, not a wall.
+const BASIC_FEATURES = [
+  "Track spending in seconds",
+  `${FREE_LIMITS.scansPerMonth} receipt scans a month`,
+  "Budgets, goals & insights",
+];
+const PREMIUM_FEATURES = [
+  "Unlimited receipt scanning",
+  "Auto-import from bank & SMS",
+  "Unlimited budgets, goals & reports",
+  "Priority sync & support",
+];
 
 /**
  * Renew's plan surface — the Free-vs-Premium comparison, real region-aware
@@ -48,106 +61,101 @@ export function PlanControl() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Current plan */}
-      <div className={cn("flex items-center justify-between rounded-2xl border p-4", premium ? "border-[var(--color-gold-500)]/40 bg-[var(--color-gold-500)]/8" : "border-[var(--field-border)] bg-[var(--field-bg)]")}>
-        <div className="flex items-center gap-3">
-          <span className="glass grid size-10 place-items-center !rounded-2xl">
-            {premium ? <Crown className="size-5 text-[var(--color-gold-500)]" /> : <Sparkles className="size-5 text-[var(--color-gold-500)]" />}
-          </span>
-          <div>
-            <p className="text-strong text-sm font-medium">{premium ? "Renew Premium" : "Free plan"}</p>
-            <p className="text-muted text-xs">{premium ? "Thank you — you have everything Renew offers." : "Everything that makes Renew genuinely useful, at no cost."}</p>
+      {premium ? (
+        /* Premium member — a calm thank-you, no upsell. */
+        <div className="flex items-center justify-between rounded-3xl border border-[var(--color-gold-500)]/40 bg-[var(--color-gold-500)]/8 p-4">
+          <div className="flex items-center gap-3">
+            <span className="glass grid size-10 place-items-center !rounded-2xl"><Crown className="size-5 text-[var(--color-gold-500)]" /></span>
+            <div>
+              <p className="text-strong text-sm font-medium">Renew Premium</p>
+              <p className="text-muted text-xs">Thank you — you have everything Renew offers.</p>
+            </div>
           </div>
+          <span className="rounded-full bg-[var(--glass-bg-strong)] px-3 py-1 text-xs font-medium text-[var(--text-strong)]">Active</span>
         </div>
-        <span className="rounded-full bg-[var(--glass-bg-strong)] px-3 py-1 text-xs font-medium text-[var(--text-strong)]">Current</span>
-      </div>
-
-      {!premium && (
+      ) : (
         <>
-          {/* Premium plan card — pattern §8: ring, badge, big price, separator,
-              check-list, single CTA — in Renew's gold + midnight style. */}
-          <div className="relative overflow-hidden rounded-2xl border border-[var(--color-gold-500)]/40 p-4 ring-2 ring-[var(--color-gold-500)]/40">
-            <div aria-hidden className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full bg-[radial-gradient(circle,rgba(212,175,110,0.2),transparent_65%)] blur-2xl" />
-            <div className="relative">
-              {/* Name + badge */}
+          {/* Two clean plan cards — Basic and Premium, side by side. */}
+          {/* Billing period applies to the Premium card. */}
+          <div className="relative grid grid-cols-1 gap-3 sm:grid-cols-2">
+            {/* ---- BASIC ---- */}
+            <div className="glass relative flex flex-col p-5">
               <div className="flex items-center justify-between gap-2">
                 <span className="flex items-center gap-2">
-                  <Crown className="size-4.5 text-[var(--color-gold-500)]" />
-                  <span className="text-strong text-sm font-semibold">Renew Premium</span>
+                  <Sparkles className="size-4.5 text-[var(--color-gold-500)]" />
+                  <span className="text-strong text-sm font-semibold">Basic</span>
                 </span>
-                <span className="rounded-full bg-[var(--color-gold-500)]/15 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-gold-600)]">Most popular</span>
+                <span className="rounded-full bg-[var(--glass-bg-strong)] px-2.5 py-0.5 text-[11px] font-medium text-[var(--text-body)]">Your plan</span>
               </div>
-              <p className="text-muted mt-1 text-xs">Unlimited scanning, auto-import, unlimited budgets &amp; goals, and clean reports.</p>
-
-              {/* Monthly / Annual toggle */}
-              <div className="relative mt-3 grid grid-cols-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
-                {(["monthly", "yearly"] as BillingPeriod[]).map((p) => (
-                  <button key={p} type="button" onClick={() => setPeriod(p)} aria-pressed={period === p}
-                    className={cn("relative z-10 rounded-full py-1.5 font-medium capitalize transition-colors", period === p ? "text-[var(--btn-gold-text)]" : "text-[var(--text-muted)]")}>
-                    {p === "yearly" ? "Annual" : "Monthly"}
-                    {p === "yearly" && saving > 0 && (
-                      <span className={cn("ml-1.5 rounded-full px-1.5 py-0.5 text-[10px] font-semibold", period === "yearly" ? "bg-black/15 text-[var(--btn-gold-text)]" : "bg-[var(--color-gold-500)]/15 text-[var(--color-gold-600)]")}>
-                        Save {saving}%
-                      </span>
-                    )}
-                  </button>
-                ))}
-                <motion.span layout aria-hidden className={cn("absolute inset-y-1 z-0 w-[calc(50%-0.25rem)] rounded-full bg-[var(--color-gold-500)]", period === "yearly" ? "left-[calc(50%+0.125rem)]" : "left-1")} transition={{ type: "spring", stiffness: 400, damping: 32 }} />
-              </div>
-
-              {/* Big price */}
+              <p className="text-muted mt-1 text-xs">Genuinely useful, free forever.</p>
               <div className="mt-4 flex items-baseline gap-1.5">
-                <span className="text-strong num text-3xl font-bold">
-                  {formatPlanPrice(price, period === "yearly" ? price.yearly : price.monthly)}
-                </span>
-                <span className="text-muted text-sm">{period === "yearly" ? "/year" : "/month"}</span>
+                <span className="text-strong num text-3xl font-bold">Free</span>
               </div>
-              {period === "yearly" && (
-                <p className="text-muted mt-0.5 text-xs">
-                  That&apos;s just {formatPlanPrice(price, Math.round(monthlyEquivalent))}/month, billed yearly.
-                </p>
-              )}
-
-              {/* Separator */}
+              <p className="text-muted mt-0.5 text-xs">No card, no catch.</p>
               <div className="my-4 h-px bg-[var(--glass-border)]" />
-
-              {/* Feature checklist */}
               <ul className="flex flex-col gap-2">
-                {PREMIUM_PERKS.map((p) => (
-                  <li key={p.id} className="flex items-center gap-2 text-sm">
-                    <Check className="size-4 shrink-0 text-emerald-500" strokeWidth={3} />
-                    <span className="text-body">{p.title}{!p.live && <span className="text-muted ml-1.5 text-[10px] font-medium uppercase tracking-wide">soon</span>}</span>
+                {BASIC_FEATURES.map((f) => (
+                  <li key={f} className="flex items-center gap-2 text-sm">
+                    <Check className="size-4 shrink-0 text-[var(--color-gold-500)]" strokeWidth={3} />
+                    <span className="text-body">{f}</span>
                   </li>
                 ))}
               </ul>
-
-              <AnimatedButton size="lg" fullWidth className="mt-4" onClick={() => setOpen(true)} disabled={interested}>
-                <Crown className="size-4" />{interested ? "You're on the list" : "Get Premium"}
+              <AnimatedButton size="lg" variant="glass" fullWidth className="mt-5" disabled>
+                Current plan
               </AnimatedButton>
-              <p className="text-muted mt-2 text-center text-[11px]">Cancel anytime. No charge until secure checkout is live and you choose to subscribe.</p>
+            </div>
+
+            {/* ---- PREMIUM ---- */}
+            <div className="glass relative flex flex-col overflow-hidden p-5 ring-2 ring-[var(--color-gold-500)]/45">
+              <div aria-hidden className="pointer-events-none absolute -right-12 -top-12 size-44 rounded-full bg-[radial-gradient(circle,rgba(212,175,110,0.22),transparent_65%)] blur-2xl" />
+              <div className="relative flex flex-1 flex-col">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2">
+                    <Crown className="size-4.5 text-[var(--color-gold-500)]" />
+                    <span className="text-strong text-sm font-semibold">Premium</span>
+                  </span>
+                  <span className="rounded-full bg-[var(--color-gold-500)]/15 px-2.5 py-0.5 text-[11px] font-semibold text-[var(--color-gold-600)]">Most popular</span>
+                </div>
+                <p className="text-muted mt-1 text-xs">Everything, unlimited.</p>
+
+                {/* Monthly / Annual toggle */}
+                <div className="relative mt-3 grid grid-cols-2 rounded-full border border-[var(--field-border)] bg-[var(--field-bg)] p-1 text-sm">
+                  {(["monthly", "yearly"] as BillingPeriod[]).map((p) => (
+                    <button key={p} type="button" onClick={() => setPeriod(p)} aria-pressed={period === p}
+                      className={cn("relative z-10 rounded-full py-1.5 text-xs font-medium capitalize transition-colors", period === p ? "text-[var(--btn-gold-text)]" : "text-[var(--text-muted)]")}>
+                      {p === "yearly" ? "Annual" : "Monthly"}
+                      {p === "yearly" && saving > 0 && (
+                        <span className={cn("ml-1 rounded-full px-1 py-0.5 text-[9px] font-semibold", period === "yearly" ? "bg-black/15 text-[var(--btn-gold-text)]" : "bg-[var(--color-gold-500)]/15 text-[var(--color-gold-600)]")}>-{saving}%</span>
+                      )}
+                    </button>
+                  ))}
+                  <motion.span layout aria-hidden className={cn("absolute inset-y-1 z-0 w-[calc(50%-0.25rem)] rounded-full bg-[var(--color-gold-500)]", period === "yearly" ? "left-[calc(50%+0.125rem)]" : "left-1")} transition={{ type: "spring", stiffness: 400, damping: 32 }} />
+                </div>
+
+                <div className="mt-4 flex items-baseline gap-1.5">
+                  <span className="text-strong num text-3xl font-bold">{formatPlanPrice(price, period === "yearly" ? price.yearly : price.monthly)}</span>
+                  <span className="text-muted text-sm">{period === "yearly" ? "/year" : "/month"}</span>
+                </div>
+                <p className="text-muted mt-0.5 text-xs">{period === "yearly" ? `≈ ${formatPlanPrice(price, Math.round(monthlyEquivalent))}/mo, billed yearly` : "Cancel anytime"}</p>
+
+                <div className="my-4 h-px bg-[var(--glass-border)]" />
+                <ul className="flex flex-1 flex-col gap-2">
+                  {PREMIUM_FEATURES.map((f) => (
+                    <li key={f} className="flex items-center gap-2 text-sm">
+                      <Check className="size-4 shrink-0 text-emerald-500" strokeWidth={3} />
+                      <span className="text-body">{f}</span>
+                    </li>
+                  ))}
+                </ul>
+                <AnimatedButton size="lg" fullWidth className="mt-5" onClick={() => setOpen(true)} disabled={interested}>
+                  <Crown className="size-4" />{interested ? "You're on the list" : "Get Premium"}
+                </AnimatedButton>
+              </div>
             </div>
           </div>
 
-          {/* One-time report add-on — for free users who don't want a subscription */}
-          <div className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] p-4">
-            <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[var(--glass-bg-strong)]"><FileText className="size-5 text-[var(--color-gold-500)]" /></span>
-            <div className="min-w-0 flex-1">
-              <p className="text-strong text-sm font-medium">Just need one report?</p>
-              <p className="text-muted text-xs">A one-time clean PDF/CSV summary — {formatPlanPrice(price, price.oneTimeReport)}, no subscription. Coming with checkout.</p>
-            </div>
-          </div>
-
-          {/* Everything in Free (so nobody fears losing anything) */}
-          <div>
-            <p className="text-muted mb-2 text-xs font-medium uppercase tracking-wide">Included free, always</p>
-            <ul className="flex flex-col gap-1.5">
-              {FREE_PERKS.map((p) => (
-                <li key={p.id} className="text-body flex items-center gap-2 text-sm">
-                  <Check className="size-4 shrink-0 text-[var(--color-gold-500)]" strokeWidth={3} />{p.title}
-                </li>
-              ))}
-            </ul>
-          </div>
+          <p className="text-muted text-center text-[11px]">No charge until secure checkout is live and you choose to subscribe. A one-time {formatPlanPrice(price, price.oneTimeReport)} report will also be available — no subscription.</p>
         </>
       )}
 
