@@ -458,10 +458,10 @@ button:active,
       );
     background-size: 200% 200%, 200% 200%;
     background-position: 0% 0%, 100% 100%;
-    opacity: 0.42;
+    opacity: 0.28;
     pointer-events: none;
     z-index: 1;
-    animation: glass-liquid 17s ease-in-out infinite alternate;
+    animation: glass-liquid 24s ease-in-out infinite alternate;
   }
   @media (prefers-reduced-motion: reduce) {
     .glass::after {
@@ -620,15 +620,15 @@ h1,
 @keyframes glass-liquid {
   0% {
     background-position: 0% 0%, 100% 100%;
-    opacity: 0.34;
+    opacity: 0.18;
   }
   50% {
     background-position: 46% 34%, 58% 66%;
-    opacity: 0.6;
+    opacity: 0.32;
   }
   100% {
     background-position: 22% 62%, 82% 40%;
-    opacity: 0.44;
+    opacity: 0.24;
   }
 }
 

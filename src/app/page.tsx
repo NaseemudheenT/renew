@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion, useAnimationControls } from "framer-motion";
 import { CinematicRenew } from "@/components/brand/CinematicRenew";
+import { useAuth } from "@/components/providers/AuthProvider";
+import { resumeSession } from "@/lib/auth/client";
 
 /**
  * RENEW — the entry, and the first impression. The mark arrives from depth with
@@ -19,7 +21,19 @@ export default function Home() {
   const router = useRouter();
   const reduced = useReducedMotion();
   const shake = useAnimationControls();
+  const { user, loading } = useAuth();
   const [entering, setEntering] = useState(false);
+
+  // Already signed in? Skip the marketing splash entirely and go straight to the
+  // dashboard — a returning user should see their money, not the logo again.
+  useEffect(() => {
+    if (loading || !user) return;
+    resumeSession().then((ok) => {
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination -- full reload to pick up the fresh session cookie
+      if (ok) window.location.assign("/dashboard");
+      else router.replace("/sign-in");
+    });
+  }, [loading, user, router]);
 
   function enter() {
     if (entering) return;

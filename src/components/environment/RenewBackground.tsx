@@ -25,9 +25,9 @@ export function RenewBackground() {
   const sy = useSpring(my, { stiffness: 40, damping: 18 });
 
   // Three depth planes — the further "back", the less it moves.
-  const aurora = { x: useTransform(sx, [-0.5, 0.5], [8, -8]), y: useTransform(sy, [-0.5, 0.5], [6, -6]) };
-  const near = { x: useTransform(sx, [-0.5, 0.5], [-22, 22]), y: useTransform(sy, [-0.5, 0.5], [-16, 16]) };
-  const far = { x: useTransform(sx, [-0.5, 0.5], [14, -14]), y: useTransform(sy, [-0.5, 0.5], [10, -10]) };
+  const aurora = { x: useTransform(sx, [-0.5, 0.5], [5, -5]), y: useTransform(sy, [-0.5, 0.5], [4, -4]) };
+  const near = { x: useTransform(sx, [-0.5, 0.5], [-12, 12]), y: useTransform(sy, [-0.5, 0.5], [-9, 9]) };
+  const far = { x: useTransform(sx, [-0.5, 0.5], [8, -8]), y: useTransform(sy, [-0.5, 0.5], [6, -6]) };
 
   useEffect(() => {
     if (reduced) return;
