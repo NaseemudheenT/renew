@@ -24,15 +24,17 @@ export interface AccountTypeMeta {
   value: AccountType;
   label: string;
   icon: LucideIcon;
+  /** A distinct hue (hex) per account type — the color-coded OS identity. */
+  color: string;
 }
 
 export const ACCOUNT_TYPES: AccountTypeMeta[] = [
-  { value: "cash", label: "Cash", icon: Coins },
-  { value: "bank", label: "Bank", icon: Landmark },
-  { value: "savings", label: "Savings", icon: PiggyBank },
-  { value: "credit", label: "Credit card", icon: CreditCard },
-  { value: "investment", label: "Investment", icon: TrendingUp },
-  { value: "other", label: "Other", icon: Wallet },
+  { value: "cash", label: "Cash", icon: Coins, color: "#84cc16" },
+  { value: "bank", label: "Bank", icon: Landmark, color: "#38bdf8" },
+  { value: "savings", label: "Savings", icon: PiggyBank, color: "#34d399" },
+  { value: "credit", label: "Credit card", icon: CreditCard, color: "#fb7185" },
+  { value: "investment", label: "Investment", icon: TrendingUp, color: "#a78bfa" },
+  { value: "other", label: "Other", icon: Wallet, color: "#94a3b8" },
 ];
 
 export function accountTypeMeta(t: AccountType): AccountTypeMeta {

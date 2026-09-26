@@ -191,7 +191,7 @@ export function Dashboard({ name }: { name: string }) {
           </StaggerItem>
         ) : (
           <>
-            {/* Hero — Life State orb + net worth */}
+            {/* Hero — net worth, trend and an honest one-line life-state read */}
             <StaggerItem>
               <GlassCard padded className="relative overflow-hidden">
                 <div className="pointer-events-none absolute -right-10 -top-10 size-40 rounded-full blur-2xl" style={{ background: `radial-gradient(circle, color-mix(in srgb, ${life.tone} 20%, transparent), transparent 70%)` }} />

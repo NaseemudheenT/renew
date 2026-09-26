@@ -208,10 +208,10 @@ function AccountRow({ account, balance, money, recent, archived, onEdit, onArchi
         swipeRight={!archived && onEdit ? { label: "Edit", icon: Pencil, bg: "bg-[var(--color-gold-600)]", onTrigger: onEdit } : archived && onRestore ? { label: "Restore", icon: ArchiveRestore, bg: "bg-emerald-500", onTrigger: onRestore } : undefined}
         swipeLeft={{ label: "Delete", icon: Trash2, bg: "bg-rose-500", onTrigger: onDelete }}
       >
-        <div className={cn("glass overflow-hidden p-3.5 transition-[border-color]", expanded && "ring-1 ring-[var(--color-gold-500)]/35")}>
+        <div className="glass overflow-hidden p-3.5 transition-shadow" style={expanded ? { boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${meta.color} 40%, transparent), 0 0 26px -10px ${meta.color}` } : undefined}>
           <div className="flex items-center gap-3">
             <button type="button" onClick={() => setExpanded((v) => !v)} aria-expanded={expanded} className="flex min-w-0 flex-1 items-center gap-3 text-left">
-              <span className="glass grid size-10 shrink-0 place-items-center !rounded-2xl"><Icon className="size-5 text-[var(--color-gold-500)]" /></span>
+              <span className="grid size-10 shrink-0 place-items-center rounded-2xl" style={{ color: meta.color, background: `color-mix(in srgb, ${meta.color} 15%, transparent)`, boxShadow: `inset 0 0 0 1px color-mix(in srgb, ${meta.color} 30%, transparent)` }}><Icon className="size-5" /></span>
               <div className="min-w-0 flex-1">
                 <p className="text-strong truncate text-sm font-medium">{account.name}</p>
                 <p className="text-muted truncate text-xs">{account.institution ? `${account.institution} · ` : ""}{meta.label}</p>
