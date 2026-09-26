@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, useReducedMotion, useAnimationControls } from "framer-motion";
-import { RenewMark } from "@/components/brand/RenewMark";
-import { Wordmark } from "@/components/brand/Wordmark";
+import { CinematicRenew } from "@/components/brand/CinematicRenew";
 
 /**
  * RENEW — the entry, and the first impression. The mark arrives from depth with
@@ -15,7 +14,6 @@ import { Wordmark } from "@/components/brand/Wordmark";
  */
 
 const EASE = [0.22, 1, 0.36, 1] as const;
-const POP = [0.34, 1.4, 0.64, 1] as const; // gentle overshoot for the arrival
 
 export default function Home() {
   const router = useRouter();
@@ -72,82 +70,27 @@ export default function Home() {
         </>
       )}
 
-      {/* Fixed emblem — touch it to enter. */}
+      {/* The cinematic light-formation of the RENEW logo — touch it to enter. */}
       <motion.button
         type="button"
         onClick={enter}
         aria-label="Enter Renew"
         className="group relative z-10 flex flex-col items-center rounded-3xl px-8 py-8 outline-none focus-visible:ring-2 focus-visible:ring-[var(--focus-ring)]"
-        initial={{ opacity: 0, scale: 0.58, filter: "blur(12px)" }}
-        animate={{ opacity: 1, scale: 1, filter: "blur(0px)" }}
-        transition={{
-          duration: 1.0,
-          ease: EASE,
-          scale: { duration: 0.95, ease: POP },
-        }}
-        whileTap={reduced ? undefined : { scale: 0.96 }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6, ease: EASE }}
+        whileTap={reduced ? undefined : { scale: 0.97 }}
       >
-        <span className="relative">
-          {/* One-time signal pulse — a ring that ripples out from the mark on arrival. */}
-          {!reduced && (
-            <motion.span
-              aria-hidden="true"
-              className="pointer-events-none absolute left-1/2 top-1/2 size-40 -translate-x-1/2 -translate-y-1/2 rounded-full"
-              style={{ border: "1.5px solid var(--glass-edge)" }}
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: [0.5, 2.4], opacity: [0, 0.5, 0] }}
-              transition={{ delay: 0.55, duration: 1.5, ease: "easeOut" }}
-            />
-          )}
-          {/* Pulsing bloom (glow only — behind the mark). */}
-          <motion.span
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 size-56 -translate-x-1/2 -translate-y-1/2 rounded-full blur-[46px]"
-            style={{ background: "radial-gradient(circle, var(--bokeh-3), transparent 62%)" }}
-            animate={reduced ? undefined : { opacity: [0.4, 0.78, 0.4] }}
-            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-          />
-          {/* Slow-rotating halo ring (behind). */}
-          <motion.span
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full"
-            style={{
-              background:
-                "conic-gradient(from 0deg, transparent, var(--bokeh-1), transparent 38%, var(--bokeh-3), transparent 72%)",
-              maskImage: "radial-gradient(closest-side, transparent 57%, #000 60%, #000 71%, transparent 74%)",
-              WebkitMaskImage: "radial-gradient(closest-side, transparent 57%, #000 60%, #000 71%, transparent 74%)",
-            }}
-            initial={{ opacity: 0 }}
-            animate={reduced ? { opacity: 0.55 } : { rotate: 360, opacity: 0.55 }}
-            transition={{
-              rotate: { duration: 26, repeat: Infinity, ease: "linear" },
-              opacity: { duration: 1.4, delay: 0.4, ease: EASE },
-            }}
-          />
-          {/* The mark — fixed; only the press animation moves it. */}
-          <motion.span
-            className="relative block transition-transform duration-500 ease-[var(--ease-glass)] group-hover:scale-[1.04]"
-            animate={shake}
-          >
-            <RenewMark size={172} idSuffix="hero" className="drop-shadow-[0_18px_60px_rgba(70,110,220,0.45)]" />
-          </motion.span>
-
-          {/* Soft mirrored reflection beneath the mark. */}
-          <span
-            aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-full mt-3 h-16 w-40 -translate-x-1/2 scale-y-[-1] opacity-25 blur-[3px] [mask-image:linear-gradient(to_bottom,#000,transparent_75%)]"
-          >
-            <RenewMark size={96} idSuffix="hero-reflection" className="mx-auto" />
-          </span>
-        </span>
-
+        <motion.span className="relative block transition-transform duration-500 ease-[var(--ease-glass)] group-hover:scale-[1.03]" animate={shake}>
+          <CinematicRenew size={184} />
+        </motion.span>
         <motion.span
-          className="mt-6"
-          initial={{ opacity: 0, y: 14, filter: "blur(6px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          transition={{ delay: 0.55, duration: 0.9, ease: EASE }}
+          className="text-muted mt-8 text-xs tracking-widest uppercase"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: reduced ? 0.7 : [0, 0, 0.7] }}
+          transition={{ duration: reduced ? 0.4 : 5, times: reduced ? undefined : [0, 0.85, 1], ease: "easeInOut" }}
         >
-          <Wordmark sizeClassName="text-3xl sm:text-4xl" />
+          Tap to enter
         </motion.span>
       </motion.button>
 
