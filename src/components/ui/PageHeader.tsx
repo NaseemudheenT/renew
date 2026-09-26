@@ -29,7 +29,7 @@ export function PageHeader({
       transition={{ duration: 0.5, ease: EASE }}
       className={cn("mb-6 flex flex-wrap items-end justify-between gap-3", className)}
     >
-      <div>
+      <div className="min-w-0 flex-1">
         <h1 className="text-strong text-2xl font-light tracking-tight">{title}</h1>
         <motion.span
           aria-hidden="true"

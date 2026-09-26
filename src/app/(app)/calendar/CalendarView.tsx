@@ -111,6 +111,21 @@ export function CalendarView() {
 
   const selectedItems = useMemo(() => (byDay.get(dayStart(selected.getTime())) ?? []).sort((a, b) => a.at - b.at), [byDay, selected]);
 
+  // A quick read on the month in view — how many bills, subscriptions and
+  // reminders fall inside it. Real data only.
+  const monthSummary = useMemo(() => {
+    const from = startOfMonth(cursor).getTime();
+    const to = endOfMonth(cursor).getTime();
+    let payment = 0, subscription = 0, reminder = 0;
+    for (const it of items) {
+      if (it.at < from || it.at > to) continue;
+      if (it.kind === "payment") payment++;
+      else if (it.kind === "subscription") subscription++;
+      else reminder++;
+    }
+    return { payment, subscription, reminder, total: payment + subscription + reminder };
+  }, [items, cursor]);
+
   return (
     <div className="mx-auto max-w-5xl">
       <PageHeader title={t("nav.calendar")} subtitle="Bills, subscriptions and your own reminders on one timeline." action={<AnimatedButton variant="glass" size="sm" onClick={() => { const now = new Date(); setCursor(now); setSelected(now); }}>Today</AnimatedButton>} />
@@ -145,6 +160,20 @@ export function CalendarView() {
               );
             })}
           </div>
+
+          {/* Month at a glance — real counts for the month in view. */}
+          <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-[var(--glass-border)] pt-3 text-xs">
+            {monthSummary.total === 0 ? (
+              <span className="text-muted">Nothing scheduled this month.</span>
+            ) : (
+              <>
+                <span className="text-muted">This month</span>
+                <span className="inline-flex items-center gap-1.5 text-[var(--text-body)]"><span className="size-2 rounded-full bg-emerald-400" />{monthSummary.payment} bill{monthSummary.payment === 1 ? "" : "s"}</span>
+                <span className="inline-flex items-center gap-1.5 text-[var(--text-body)]"><span className="size-2 rounded-full bg-violet-400" />{monthSummary.subscription} subscription{monthSummary.subscription === 1 ? "" : "s"}</span>
+                <span className="inline-flex items-center gap-1.5 text-[var(--text-body)]"><span className="size-2 rounded-full bg-amber-400" />{monthSummary.reminder} reminder{monthSummary.reminder === 1 ? "" : "s"}</span>
+              </>
+            )}
+          </div>
         </GlassCard>
         <GlassCard padded className="h-max">
           <h2 className="text-strong text-base font-medium capitalize">{dayAria.format(selected)}</h2>
@@ -154,33 +183,42 @@ export function CalendarView() {
                 {selectedItems.length === 0 ? (
                   <EmptyState compact icon={Bell} title="Nothing planned" description="Add a reminder below." />
                 ) : (
-                  <ul className="flex flex-col gap-2">
+                  <motion.ul layout className="flex flex-col gap-2">
+                    <AnimatePresence initial={false} mode="popLayout">
                     {selectedItems.map((it) => {
                       const Icon = KIND_META[it.kind].icon;
+                      const anim = {
+                        layout: true,
+                        initial: { opacity: 0, y: 10, scale: 0.97 },
+                        animate: { opacity: 1, y: 0, scale: 1 },
+                        exit: { opacity: 0, x: -24, transition: { duration: 0.22 } },
+                        transition: { type: "spring" as const, stiffness: 420, damping: 34 },
+                      };
                       if (it.kind === "reminder") {
                         return (
-                          <li key={`reminder-${it.id}`} className="flex items-center gap-2.5 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2.5">
+                          <motion.li key={`reminder-${it.id}`} {...anim} className="flex items-center gap-2.5 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3 py-2.5">
                             <button type="button" onClick={() => void toggleReminder(it.id, !it.done)} aria-label={it.done ? "Mark not done" : "Mark done"}
-                              className={cn("grid size-5 shrink-0 place-items-center rounded-full border transition-colors", it.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-[var(--field-border)] hover:border-[var(--focus-ring)]")}>
-                              {it.done && <Check className="size-3.5" />}
+                              className={cn("grid size-5 shrink-0 place-items-center rounded-full border transition-colors active:scale-90", it.done ? "border-emerald-500 bg-emerald-500 text-white" : "border-[var(--field-border)] hover:border-[var(--focus-ring)]")}>
+                              <AnimatePresence>{it.done && <motion.span initial={{ scale: 0, rotate: -30 }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} transition={{ type: "spring", stiffness: 500, damping: 24 }}><Check className="size-3.5" /></motion.span>}</AnimatePresence>
                             </button>
-                            <span className={cn("min-w-0 flex-1 truncate text-sm", it.done ? "text-[var(--text-muted)] line-through" : "text-body")}>{it.title}</span>
+                            <span className={cn("min-w-0 flex-1 truncate text-sm transition-colors", it.done ? "text-[var(--text-muted)] line-through" : "text-body")}>{it.title}</span>
                             {remindersById.get(it.id)?.hasTime && <span className="text-muted inline-flex items-center gap-1 text-xs"><Clock className="size-3" />{timeLabel(it.at)}</span>}
-                            <button type="button" onClick={() => void removeReminder(it.id)} aria-label="Delete reminder" className="text-muted grid size-7 shrink-0 place-items-center rounded-full hover:bg-rose-500/10 hover:text-rose-500"><Trash2 className="size-3.5" /></button>
-                          </li>
+                            <button type="button" onClick={() => void removeReminder(it.id)} aria-label="Delete reminder" className="text-muted grid size-7 shrink-0 place-items-center rounded-full transition-colors hover:bg-rose-500/10 hover:text-rose-500 active:scale-90"><Trash2 className="size-3.5" /></button>
+                          </motion.li>
                         );
                       }
                       return (
-                        <li key={`${it.kind}-${it.id}`}>
+                        <motion.li key={`${it.kind}-${it.id}`} {...anim}>
                           <Link href={it.href ?? "/payments"} className="flex items-center gap-3 rounded-2xl border border-[var(--field-border)] bg-[var(--field-bg)] px-3.5 py-3 transition-colors hover:border-[var(--focus-ring)]/50">
-                            <Icon className="size-4 shrink-0 text-[var(--color-gold-500)]" />
+                            <span className={cn("grid size-8 shrink-0 place-items-center rounded-xl", it.kind === "subscription" ? "bg-violet-500/12 text-violet-400" : "bg-emerald-500/12 text-emerald-400")}><Icon className="size-4" /></span>
                             <span className="text-body min-w-0 flex-1 truncate text-sm">{it.title}</span>
-                            <span className="text-muted text-xs">{dueLabel(it.at)}</span>
+                            <span className="text-muted shrink-0 text-xs">{dueLabel(it.at)}</span>
                           </Link>
-                        </li>
+                        </motion.li>
                       );
                     })}
-                  </ul>
+                    </AnimatePresence>
+                  </motion.ul>
                 )}
               </motion.div>
             </AnimatePresence>
