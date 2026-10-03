@@ -2,6 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Pin the Turbopack workspace root to THIS project. Without it Next walks up
+  // and can latch onto a stray package-lock.json in the home folder, which
+  // breaks next/font resolution at build time ("queries have exactly one entry").
+  turbopack: { root: __dirname },
   poweredByHeader: false,
   // Ship less JS: import only the icons/helpers actually used from these big
   // barrel packages, instead of their whole module graphs.
